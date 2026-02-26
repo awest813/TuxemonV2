@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from tuxemon.core.core_effect import CoreEffect
-from tuxemon.db import EffectPhase
 
 if TYPE_CHECKING:
     from tuxemon.session import Session
@@ -14,15 +14,15 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+@dataclass
 class HeldHealLowHp(CoreEffect):
     """
     Heals the holder when their HP drops below a certain threshold.
-    Effect parameters:
-        threshold: float (0.0 to 1.0, default 0.5)
-        heal_amount: int (flat HP) or float (percentage if < 1.0)
     """
 
     name = "held_heal_low_hp"
+    threshold: float = 0.5
+    heal_amount: int | float = 20
 
     def apply(self, session: "Session", context: dict[str, Any]) -> None:
         """
@@ -32,11 +32,8 @@ class HeldHealLowHp(CoreEffect):
         if not user:
             return
 
-        threshold = float(self.parameters.get("threshold", 0.5))
-        heal_value = self.parameters.get("heal_amount", 20)
-
         # Check HP threshold
-        if user.hp_ratio > threshold or user.is_fainted:
+        if user.hp_ratio > self.threshold or user.is_fainted:
             return
 
         # Check if item exists and is consumable
@@ -46,10 +43,10 @@ class HeldHealLowHp(CoreEffect):
 
         # Calculate healing
         amount = 0
-        if isinstance(heal_value, float) and heal_value < 1.0:
-            amount = int(user.hp * heal_value)
+        if isinstance(self.heal_amount, float) and self.heal_amount < 1.0:
+            amount = int(user.hp * self.heal_amount)
         else:
-            amount = int(heal_value)
+            amount = int(self.heal_amount)
 
         logger.info(f"{user.name} consumes {item.name} to heal {amount} HP!")
 
@@ -58,6 +55,3 @@ class HeldHealLowHp(CoreEffect):
 
         # Consume item
         user.item_handler.take_item()
-
-        # Log/Notify (This part depends on how combat messages are handled)
-        # For now, we assume this effect is called within a combat loop
