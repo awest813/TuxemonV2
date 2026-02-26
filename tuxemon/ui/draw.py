@@ -14,6 +14,7 @@ from pygame.rect import Rect
 from pygame.surface import Surface
 
 from tuxemon.graphics import ColorLike
+from tuxemon.ui.graphic_box import GraphicBox
 from tuxemon.ui.text_alignment import HorizontalAlignment, VerticalAlignment
 from tuxemon.ui.text_renderer import TextRenderer
 
@@ -22,7 +23,26 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-__all__ = ("GraphicBox",)
+__all__ = (
+    "GraphicBox",
+    "RenderMode",
+    "TextOverflow",
+    "RenderedChar",
+    "get_font_height",
+    "get_text_size",
+    "OverflowHandler",
+    "iter_render_text",
+    "tokenize_preserving_spacing",
+    "build_line",
+    "constrain_width",
+    "iterate_words",
+    "iterate_lines",
+    "iterate_paragraphs",
+    "iterate_word_lines",
+    "blit_alpha",
+    "break_text_into_lines",
+    "calculate_alignment_offset",
+)
 
 font_size_cache: dict[str, tuple[int, int]] = {}
 
