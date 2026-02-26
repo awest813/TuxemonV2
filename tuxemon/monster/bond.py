@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
-# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
+# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>,
+# Benjamin Bean <superman2k5@gmail.com>
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -35,7 +36,10 @@ class BondHandler:
         self._bond = max(self.MIN_BOND, min(value, self.MAX_BOND))
 
     def set_state(self, save_data: Mapping[str, Any]) -> None:
-        """Loads bond value from saved data, supporting both legacy and nested formats."""
+        """
+        Loads bond value from saved data, supporting both legacy and nested
+        formats.
+        """
         if "bond_dict" in save_data and isinstance(
             save_data["bond_dict"], dict
         ):
@@ -68,8 +72,8 @@ class BondHandler:
 
     def change_bond(self, value: int | float) -> None:
         """
-        Adjusts the bond value using either an absolute or percentage-based input.
-        Enforces limits from config_monster.bond_range.
+        Adjusts the bond value using either an absolute or percentage-based
+        input. Enforces limits from config_monster.bond_range.
         """
         _minor, _major = config_monster.bond_range
         bond_change = (
@@ -88,8 +92,8 @@ class BondHandler:
         self, monster_name: str, player_name: str
     ) -> str | None:
         """
-        Returns the msgid corresponding to the current bond level,
-        based on the configured bond_sentiments dictionary.
+        Returns the msgid corresponding to the current bond level, based on
+        the configured bond_sentiments dictionary.
         """
         bond_level = self.bond
         bond_sentiments = config_monster.bond_sentiments
@@ -107,7 +111,8 @@ class BondHandler:
 
     def get_bond_icon_path(self) -> str | None:
         """
-        Returns the file path to the bond icon based on the monster's current bond level.
+        Returns the file path to the bond icon based on the monster's current
+        bond level.
         """
         bond_level = self.bond
         bond_sentiments = config_monster.bond_sentiments
@@ -121,7 +126,8 @@ class BondHandler:
 
     def apply_bond_modifier(self, event: str) -> None:
         """
-        Applies a bond change based on a named event using config_monster.bond_modifiers.
+        Applies a bond change based on a named event using
+        config_monster.bond_modifiers.
         """
         modifier = config_monster.bond_modifiers.get(event)
         if modifier is not None:

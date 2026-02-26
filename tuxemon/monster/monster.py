@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
-# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
+# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>,
+# Benjamin Bean <superman2k5@gmail.com>
 from __future__ import annotations
 
 import logging
@@ -393,7 +394,9 @@ class Monster:
         self.acquisition = Acquisition(acquisition)
 
     def has_acquisition(self, method: Acquisition) -> bool:
-        """Returns True if the monster was acquired via the specified method."""
+        """
+        Returns True if the monster was acquired via the specified method.
+        """
         return self.acquisition == method
 
     def equip_item(self, item: Item) -> bool:
@@ -488,7 +491,8 @@ class Monster:
         if points_to_add == 0:
             logger.debug(
                 f"No TP added to '{stat_name}' — cap reached "
-                f"(remaining_total={remaining_total}, remaining_stat={remaining_stat})."
+                f"(remaining_total={remaining_total}, "
+                f"remaining_stat={remaining_stat})."
             )
             return
 
@@ -596,7 +600,10 @@ class Monster:
         )[0]
 
     def transfer_properties_from(self, old_monster: Monster) -> None:
-        """Copies essential state and identity properties from the pre-evolved monster."""
+        """
+        Copies essential state and identity properties from the pre-evolved
+        monster.
+        """
         self.set_level(old_monster.level, old_monster.level)
         self.current_hp = min(old_monster.current_hp, self.hp)
         self.moves = old_monster.moves

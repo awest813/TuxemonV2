@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
-# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
+# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>,
+# Benjamin Bean <superman2k5@gmail.com>
 from __future__ import annotations
 
 import logging
@@ -246,7 +247,10 @@ class StatCalculator:
         return modified
 
     def calculate_at_level(self, target_level: int) -> BasicStats:
-        """Returns final stats at a specific level without modifying internal state."""
+        """
+        Returns final stats at a specific level without modifying internal
+        state.
+        """
         if target_level <= 0:
             raise ValueError("Target level must be a positive integer.")
 
@@ -257,7 +261,10 @@ class StatCalculator:
 
 
 class StatAnalyzer:
-    """Provides detailed analysis, breakdown, and growth projections for monster stats."""
+    """
+    Provides detailed analysis, breakdown, and growth projections for monster
+    stats.
+    """
 
     def __init__(self, calculator: StatCalculator):
         self.calculator = calculator
@@ -319,7 +326,9 @@ class StatAnalyzer:
         return breakdown
 
     def evaluate_taste_efficiency(self) -> float:
-        """Returns a normalized synergy score (-1 to +1) based on taste effects."""
+        """
+        Returns a normalized synergy score (-1 to +1) based on taste effects.
+        """
         breakdown = self.get_breakdown()
         score: float = 0.0
         total_base: float = 0.0

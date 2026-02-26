@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
-# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
+# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>,
+# Benjamin Bean <superman2k5@gmail.com>
 from __future__ import annotations
 
 import logging
@@ -98,18 +99,21 @@ class MonsterPlagueHandler:
         return self._plagues
 
     def infect(self, plague_slug: str) -> None:
+        """Infect the monster with the specified plague."""
         if plague_slug not in self.plague_data:
             logger.error(f"Unknown plague slug: {plague_slug}")
             return
         self._plagues[plague_slug] = PlagueType.INFECTED
 
     def inoculate(self, plague_slug: str) -> None:
+        """Inoculate the monster against the specified plague."""
         if plague_slug not in self.plague_data:
             logger.error(f"Unknown plague slug: {plague_slug}")
             return
         self._plagues[plague_slug] = PlagueType.INOCULATED
 
     def can_be_infected_by(self, monster: Monster, plague_slug: str) -> bool:
+        """Check if the monster can be infected by the specified plague."""
         plague_config = self.get_plague_config(plague_slug)
         if plague_config is None:
             logger.error(f"Unknown plague slug: {plague_slug}")
@@ -162,8 +166,9 @@ class MonsterPlagueHandler:
 
         logger.debug(
             f"Plague check for monster '{monster.name}': slug={plague_slug}, "
-            f"spreadness={plague_config.spreadness}, modifier={modifier}, resistance={resistance}, "
-            f"final_chance={final_chance}, chance={chance}, can_be_infected={can_be_infected}"
+            f"spreadness={plague_config.spreadness}, modifier={modifier}, "
+            f"resistance={resistance}, final_chance={final_chance}, "
+            f"chance={chance}, can_be_infected={can_be_infected}"
         )
 
         return can_be_infected and chance
@@ -176,7 +181,9 @@ class MonsterPlagueHandler:
             min_w, max_w = plague_config.weight_range
             if not (min_w <= monster.weight <= max_w):
                 logger.debug(
-                    f"Monster '{monster.name}' weight {monster.weight}kg is outside target range for plague '{plague_slug}': {plague_config.weight_range}"
+                    f"Monster '{monster.name}' weight {monster.weight}kg is "
+                    f"outside target range for plague '{plague_slug}': "
+                    f"{plague_config.weight_range}"
                 )
                 return False
 
@@ -185,7 +192,9 @@ class MonsterPlagueHandler:
             min_h, max_h = plague_config.height_range
             if not (min_h <= monster.height <= max_h):
                 logger.debug(
-                    f"Monster '{monster.name}' height {monster.height}m is outside target range for plague '{plague_slug}': {plague_config.height_range}"
+                    f"Monster '{monster.name}' height {monster.height}m is "
+                    f"outside target range for plague '{plague_slug}': "
+                    f"{plague_config.height_range}"
                 )
                 return False
 
@@ -197,7 +206,8 @@ class MonsterPlagueHandler:
             )
             if type_weight == 0.0:
                 logger.debug(
-                    f"Monster '{monster.name}' has no matching types for plague '{plague_slug}': {plague_config.type_weights}"
+                    f"Monster '{monster.name}' has no matching types for "
+                    f"plague '{plague_slug}': {plague_config.type_weights}"
                 )
                 return False
 
@@ -208,7 +218,9 @@ class MonsterPlagueHandler:
             )
             if shape_weight == 0.0:
                 logger.debug(
-                    f"Monster '{monster.name}' shape '{monster.shape.slug}' not in shape weights for plague '{plague_slug}': {plague_config.shape_weights}"
+                    f"Monster '{monster.name}' shape '{monster.shape.slug}' "
+                    f"not in shape weights for plague '{plague_slug}': "
+                    f"{plague_config.shape_weights}"
                 )
                 return False
 
@@ -272,7 +284,10 @@ class MonsterPlagueHandler:
                 or held_item.slug != inoculation.required_held_item
             ):
                 logger.debug(
-                    f"Monster '{monster.name}' must hold item '{inoculation.required_held_item}' to be eligible for inoculation against '{plague_slug}', but is holding '{held_item.slug if held_item else 'none'}'."
+                    f"Monster '{monster.name}' must hold item "
+                    f"'{inoculation.required_held_item}' to be eligible for "
+                    f"inoculation against '{plague_slug}', but is holding "
+                    f"'{held_item.slug if held_item else 'none'}'."
                 )
                 return False
 
@@ -283,7 +298,9 @@ class MonsterPlagueHandler:
                 for t in monster.types.get_type_slugs()
             ):
                 logger.debug(
-                    f"Monster '{monster.name}' types {monster.types.get_type_slugs()} not eligible for inoculation against '{plague_slug}'."
+                    f"Monster '{monster.name}' types "
+                    f"{monster.types.get_type_slugs()} not eligible for "
+                    f"inoculation against '{plague_slug}'."
                 )
                 return False
 
@@ -291,7 +308,8 @@ class MonsterPlagueHandler:
         if inoculation.eligible_shapes:
             if monster.shape.slug not in inoculation.eligible_shapes:
                 logger.debug(
-                    f"Monster '{monster.name}' shape '{monster.shape.slug}' not eligible for inoculation against '{plague_slug}'."
+                    f"Monster '{monster.name}' shape '{monster.shape.slug}' "
+                    f"not eligible for inoculation against '{plague_slug}'."
                 )
                 return False
 

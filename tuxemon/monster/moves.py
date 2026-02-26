@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
-# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
+# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>,
+# Benjamin Bean <superman2k5@gmail.com>
 from __future__ import annotations
 
 import logging
@@ -147,7 +148,8 @@ class MonsterMovesHandler:
 
         if method is not None and move_data.learning_method != method:
             logger.debug(
-                f"Move '{technique_slug}' not eligible: Wrong method. Expected '{method.name}', got '{move_data.learning_method.name}'."
+                f"Move '{technique_slug}' not eligible: Wrong method. "
+                f"Expected '{method.name}', got '{move_data.learning_method.name}'."
             )
             return False
 
@@ -255,7 +257,9 @@ class MonsterMovesHandler:
                 monster, technique, max_moves=max_moves, method=method
             ):
                 logger.debug(
-                    f"Monster '{monster.slug}' learned technique: {technique.slug} at level {monster.level} and stage {monster.stage}"
+                    f"Monster '{monster.slug}' learned technique: "
+                    f"{technique.slug} at level {monster.level} and stage "
+                    f"{monster.stage}"
                 )
 
     def techniques_learned_between(
