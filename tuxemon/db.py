@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
-# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
+# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>,
+# Benjamin Bean <superman2k5@gmail.com>
 from __future__ import annotations
 
 import logging
@@ -267,12 +268,18 @@ class BoundingBox(BaseModel):
     )
     width: int = Field(
         ...,
-        description="The horizontal size of the bounding box. Must be a positive integer.",
+        description=(
+            "The horizontal size of the bounding box. "
+            "Must be a positive integer."
+        ),
         gt=0,
     )
     height: int = Field(
         ...,
-        description="The vertical size of the bounding box. Must be a positive integer.",
+        description=(
+            "The vertical size of the bounding box. "
+            "Must be a positive integer."
+        ),
         gt=0,
     )
 
@@ -310,7 +317,10 @@ class LogicCondition(ParameterizableRule):
 
 
 class SpatialCondition(LogicCondition):
-    """Represents a condition that inherits generic logic and adds a spatial component."""
+    """
+    Represents a condition that inherits generic logic and adds a spatial
+    component.
+    """
 
     box: BoundingBox = Field(
         ..., description="The spatial bounding box for this condition."
@@ -335,27 +345,41 @@ class EventObject(BaseModel):
     )
     priority: int = Field(
         ...,
-        description="Order of evaluation relative to other EventObjects. Higher number (e.g., 10) is higher priority.",
+        description=(
+            "Order of evaluation relative to other EventObjects. "
+            "Higher number (e.g., 10) is higher priority."
+        ),
         ge=0,
     )
     timeout: float | None = Field(
         None,
-        description="Maximum duration (in seconds) this event is allowed to run. None = no timeout.",
+        description=(
+            "Maximum duration (in seconds) this event is allowed to run. "
+            "None = no timeout."
+        ),
     )
     delay: float | None = Field(
         None,
-        description="Delay before the event starts processing (in seconds). None = no delay.",
+        description=(
+            "Delay before the event starts processing (in seconds). "
+            "None = no delay."
+        ),
     )
     box: BoundingBox = Field(
         ..., description="The spatial bounding box of the event."
     )
     conds: Sequence[SpatialCondition] = Field(
         default_factory=list,
-        description="A sequence of conditions (spatial or logic) that must all be met to trigger the actions.",
+        description=(
+            "A sequence of conditions (spatial or logic) that must all "
+            "be met to trigger the actions."
+        ),
     )
     acts: Sequence[ParameterizableRule] = Field(
         default_factory=list,
-        description="A sequence of actions/effects to execute when conditions are met.",
+        description=(
+            "A sequence of actions/effects to execute when conditions are met."
+        ),
     )
     behavs: Sequence[Behavior] = Field(
         default_factory=list,
@@ -366,22 +390,33 @@ class EventObject(BaseModel):
 class BaseComparison(BaseModel):
     comparison: Comparison = Field(
         ...,
-        description="The type of comparison to perform (e.g., greater_than, equal_to).",
+        description=(
+            "The type of comparison to perform (e.g., greater_than, equal_to)."
+        ),
     )
     target_value: int | None = Field(
         None,
-        description="An optional fixed numeric value to compare against (e.g., stat must be greater than 50).",
+        description=(
+            "An optional fixed numeric value to compare against "
+            "(e.g., stat must be greater than 50)."
+        ),
     )
 
 
 class StatsComparison(BaseComparison):
     stat_type: StatType = Field(
         ...,
-        description="The primary stat being evaluated for the evolution condition (e.g., speed, defense).",
+        description=(
+            "The primary stat being evaluated for the evolution "
+            "condition (e.g., speed, defense)."
+        ),
     )
     target_stat: StatType | None = Field(
         None,
-        description="An optional secondary stat to compare against the primary stat (e.g., compare speed to defense).",
+        description=(
+            "An optional secondary stat to compare against the primary "
+            "stat (e.g., compare speed to defense)."
+        ),
     )
 
 
@@ -409,26 +444,40 @@ class GameCondition(BaseModel):
     )
     description: str | None = Field(
         default=None,
-        description="A human-readable explanation of the requirement for debugging.",
+        description=(
+            "A human-readable explanation of the requirement for debugging."
+        ),
     )
 
 
 class PartyConditionsModel(BaseModel):
     monster_slugs: dict[str, int] | None = Field(
         None,
-        description="A dictionary specifying required monsters and their minimum counts by slug.",
+        description=(
+            "A dictionary specifying required monsters and their minimum "
+            "counts by slug."
+        ),
     )
     monster_types: dict[str, int] | None = Field(
         None,
-        description="A dictionary specifying required monster types and their minimum counts.",
+        description=(
+            "A dictionary specifying required monster types and their "
+            "minimum counts."
+        ),
     )
     genders: dict[GenderType, int] | None = Field(
         None,
-        description="A dictionary specifying required genders and their minimum counts.",
+        description=(
+            "A dictionary specifying required genders and their minimum "
+            "counts."
+        ),
     )
     alignment: str | None = Field(
         None,
-        description="The elemental alignment the party must lean toward for evolution to occur.",
+        description=(
+            "The elemental alignment the party must lean toward for "
+            "evolution to occur."
+        ),
     )
 
     @field_validator("monster_slugs")
@@ -918,7 +967,8 @@ class MonsterEvolutionItemModel(BaseModel):
         description=(
             "A dictionary of item slugs and their associated evolution weights. "
             "Weights are relative and will be normalized to sum to 1.0. "
-            "Each item must exist in the database and have a non-negative weight."
+            "Each item must exist in the database and have a non-negative "
+            "weight."
         ),
     )
     inside: bool | None = Field(
@@ -927,56 +977,81 @@ class MonsterEvolutionItemModel(BaseModel):
     )
     acquisition: Acquisition | None = Field(
         None,
-        description="How the monster was obtained (e.g. caught, bred, traded, gifted).",
+        description=(
+            "How the monster was obtained (e.g. caught, bred, traded, gifted)."
+        ),
     )
     variables: Sequence[GameCondition] = Field(
         default_factory=list,
-        description="The game variables that must exist and match a specific value for the monster to evolve.",
+        description=(
+            "The game variables that must exist and match a specific value "
+            "for the monster to evolve."
+        ),
         min_length=1,
     )
     stats: StatsComparison | None = Field(
         None,
         description=(
-            "Defines a condition where one monster stat must compare to another stat or value "
-            "for evolution to occur. For example, 'speed must be greater than defense'. "
-            "Includes the stat being evaluated, the type of comparison (e.g., greater_than, equal_to), "
-            "and the target stat or value."
+            "Defines a condition where one monster stat must compare to "
+            "another stat or value for evolution to occur. For example, "
+            "'speed must be greater than defense'. Includes the stat being "
+            "evaluated, the type of comparison (e.g., greater_than, "
+            "equal_to), and the target stat or value."
         ),
     )
     steps: int | None = Field(
         None,
-        description="The minimum number of steps the monster must have walked to evolve.",
+        description=(
+            "The minimum number of steps the monster must have walked to "
+            "evolve."
+        ),
     )
     tech: str | None = Field(
         None,
-        description="The technique that a monster in the party must have for the evolution to occur.",
+        description=(
+            "The technique that a monster in the party must have for the "
+            "evolution to occur."
+        ),
     )
     moves: Sequence[str] = Field(
         default_factory=list,
-        description="The techniques that the monster must have learned for the evolution to occur.",
+        description=(
+            "The techniques that the monster must have learned for the "
+            "evolution to occur."
+        ),
     )
     bond: BondComparison | None = Field(
         None,
         description=(
-            "Defines a condition where the monster's bond must meet a specific comparison to evolve. "
-            "Includes the comparison type (e.g., greater_than, equals) and the target bond value. "
+            "Defines a condition where the monster's bond must meet a "
+            "specific comparison to evolve. Includes the comparison type "
+            "(e.g., greater_than, equals) and the target bond value. "
             "For example, 'bond must be greater than 50'."
         ),
     )
     tastes: dict[str, str] | None = Field(
         None,
-        description="A dictionary of taste values required for the monster to evolve (e.g., {'cold': 'value', 'warm': 'value'}).",
+        description=(
+            "A dictionary of taste values required for the monster to evolve "
+            "(e.g., {'cold': 'value', 'warm': 'value'})."
+        ),
     )
     probability: float | None = Field(
         None,
-        description="Chance (0.0 to 1.0) that this evolution occurs when conditions are met.",
+        description=(
+            "Chance (0.0 to 1.0) that this evolution occurs when conditions "
+            "are met."
+        ),
     )
     held_item: str | None = Field(
         None, description="Item slug the monster must be holding to evolve."
     )
     party_conditions: PartyConditionsModel | None = Field(
         None,
-        description="Complex conditions based on the player's party required for evolution.",
+        description=(
+            "Complex conditions based on the player's party required for "
+            "evolution."
+        ),
     )
 
     @field_validator("moves")
@@ -992,7 +1067,7 @@ class MonsterEvolutionItemModel(BaseModel):
     @field_validator("moves")
     def validate_moves(cls, v: Sequence[str]) -> Sequence[str]:
         if not v:
-            raise ValueError(f"Moves must contain at least 1 technique")
+            raise ValueError("Moves must contain at least 1 technique")
         return v
 
     @field_validator("tech")
@@ -1089,11 +1164,17 @@ class FlairModel(BaseModel, BaseLookupModel):
     )
     sprite_type: set[str] | None = Field(
         None,
-        description="Specifies which sprite type this flair applies to (e.g., 'front', 'back', 'menu01'). If None, applies to all.",
+        description=(
+            "Specifies which sprite type this flair applies to (e.g., "
+            "'front', 'back', 'menu01'). If None, applies to all."
+        ),
     )
     sprite_type_override: str | None = Field(
         None,
-        description="Overrides the default sprite type used in the file path (e.g., 'universal').",
+        description=(
+            "Overrides the default sprite type used in the file path "
+            "(e.g., 'universal')."
+        ),
     )
     color: ColorModel | None = Field(
         None, description="The color tint to apply to the flair sprite."
@@ -1539,7 +1620,10 @@ class TechniqueModel(BaseModel, BaseLookupModel):
     modifiers: list[Modifier] = Field(..., description="Various modifiers")
     stat_modifiers: dict[str, StatModel] = Field(
         default_factory=dict,
-        description="Dictionary of stat modifiers keyed by stat name (e.g., 'speed', 'hp')",
+        description=(
+            "Dictionary of stat modifiers keyed by stat name (e.g., 'speed', "
+            "'hp')"
+        ),
     )
     use_tech: str | None = Field(
         None,
@@ -1555,15 +1639,22 @@ class TechniqueModel(BaseModel, BaseLookupModel):
     )
     confirm_text: str = Field(
         "item_confirm_use",
-        description="Translation key for the label used when confirming tech usage.",
+        description=(
+            "Translation key for the label used when confirming tech usage."
+        ),
     )
     cancel_text: str = Field(
         "item_confirm_cancel",
-        description="Translation key for the label used when canceling tech usage.",
+        description=(
+            "Translation key for the label used when canceling tech usage."
+        ),
     )
     menu_actions: Sequence[MenuAction] = Field(
         default_factory=list,
-        description="Custom list of menu actions (key, display_text) for this technique.",
+        description=(
+            "Custom list of menu actions (key, display_text) for this "
+            "technique."
+        ),
     )
     types: Sequence[str] = Field(
         default_factory=list, description="Type(s) of the technique"
@@ -1595,22 +1686,33 @@ class TechniqueModel(BaseModel, BaseLookupModel):
     )
     min_recharge: int = Field(
         0,
-        description="The absolute floor for recharge time (haste/multipliers cannot go below this).",
+        description=(
+            "The absolute floor for recharge time (haste/multipliers cannot "
+            "go below this)."
+        ),
         ge=0,
     )
     initial_delay: int = Field(
         0,
-        description="Number of turns the technique is unavailable at the start of a battle.",
+        description=(
+            "Number of turns the technique is unavailable at the start of a "
+            "battle."
+        ),
         ge=0,
     )
     starting_charge: int = Field(
         0,
-        description="Allows a move to be used multiple times before entering cooldown (if logic supports it).",
+        description=(
+            "Allows a move to be used multiple times before entering cooldown "
+            "(if logic supports it)."
+        ),
         ge=0,
     )
     cooldown_multiplier: float = Field(
         1.0,
-        description="A static modifier for how fast this specific tech recharges.",
+        description=(
+            "A static modifier for how fast this specific tech recharges."
+        ),
         ge=0.0,
     )
     range: Range = Field(..., description="The attack range of this technique")
@@ -1702,11 +1804,15 @@ class StatusModel(BaseModel, BaseLookupModel):
     )
     step_interval: int = Field(
         0,
-        description="The number of steps between out-of-battle effect triggers.",
+        description=(
+            "The number of steps between out-of-battle effect triggers."
+        ),
     )
     step_effect_value: float = Field(
         0.0,
-        description="The value (flat or percentage) used for the step-interval effect.",
+        description=(
+            "The value (flat or percentage) used for the step-interval effect."
+        ),
     )
     step_effect_type: StepEffectType = Field(
         StepEffectType.NONE,
@@ -1840,7 +1946,9 @@ class TemplateModel(BaseModel):
 class NpcTemplateModel(TemplateModel):
     sprite_name: str = Field(
         ...,
-        description="Base filename of the overworld sprite sheet (without extension)",
+        description=(
+            "Base filename of the overworld sprite sheet (without extension)"
+        ),
     )
     frame_width: int = Field(
         16,
@@ -1860,7 +1968,9 @@ class NpcTemplateModel(TemplateModel):
     )
     is_static_prop: bool = Field(
         False,
-        description="If True, this NPC uses a single static sprite instead of a sheet",
+        description=(
+            "If True, this NPC uses a single static sprite instead of a sheet"
+        ),
     )
     animation_speed: float = Field(
         1.0,
@@ -1876,7 +1986,9 @@ class NpcTemplateModel(TemplateModel):
     )
     combat_sheet: str = Field(
         ...,
-        description="Filename of the combat sprite sheet (side-by-side, back|front)",
+        description=(
+            "Filename of the combat sprite sheet (side-by-side, back|front)"
+        ),
     )
     combat_frame_width: int = 64
     combat_frame_height: int = 64
@@ -2012,11 +2124,17 @@ class NpcModel(BaseModel, BaseLookupModel):
     )
     speech: NpcSpeech = Field(
         ...,
-        description="Dialogue configuration for the NPC, including default lines and location-based overrides",
+        description=(
+            "Dialogue configuration for the NPC, including default lines and "
+            "location-based overrides"
+        ),
     )
     audio: NpcAudioModel = Field(
         ...,
-        description="Audio configuration for the NPC, including music themes, sound effects, and ambient sounds",
+        description=(
+            "Audio configuration for the NPC, including music themes, "
+            "sound effects, and ambient sounds"
+        ),
     )
 
     @classmethod
@@ -2066,29 +2184,45 @@ class BattleHudModel(BaseModel):
     )
     # Bars
     hp_bar_width: int = Field(
-        70, ge=1, description="Default width (scaled units) of the HP bar."
+        70,
+        ge=1,
+        description="Default width (scaled units) of the HP bar.",
     )
     hp_bar_height: int = Field(
-        8, ge=1, description="Default height (scaled units) of the HP bar."
+        8,
+        ge=1,
+        description="Default height (scaled units) of the HP bar.",
     )
     hp_player_top: int = Field(
         18,
-        description="Vertical offset from the top of the player's HUD sprite to place the HP bar.",
+        description=(
+            "Vertical offset from the top of the player's HUD sprite to place "
+            "the HP bar."
+        ),
     )
     hp_opponent_top: int = Field(
         12,
-        description="Vertical offset from the top of the opponent's HUD sprite to place the HP bar.",
+        description=(
+            "Vertical offset from the top of the opponent's HUD sprite to "
+            "place the HP bar."
+        ),
     )
     exp_bar_height: int = Field(
         6, ge=1, description="Default height (scaled units) of the EXP bar."
     )
     exp_bar_top: int = Field(
         31,
-        description="Vertical offset from the top of the player's HUD sprite to place the EXP bar.",
+        description=(
+            "Vertical offset from the top of the player's HUD sprite to place "
+            "the EXP bar."
+        ),
     )
     bar_right_padding: int = Field(
         8,
-        description="Horizontal padding between the right edge of the HUD sprite and the bar's right edge.",
+        description=(
+            "Horizontal padding between the right edge of the HUD sprite and "
+            "the bar's right edge."
+        ),
     )
 
     @field_validator(
@@ -2164,10 +2298,13 @@ class BattleGraphicsModel(BaseModel):
     )
     monster_base_offset: int = Field(
         24,
-        description="Vertical offset for wild monsters relative to island bottom",
+        description=(
+            "Vertical offset for wild monsters relative to island bottom"
+        ),
     )
     player_base_offset: int = Field(
-        6, description="Vertical offset for player relative to island center"
+        6,
+        description="Vertical offset for player relative to island center",
     )
     entry_jump_distance: int = Field(
         50, description="Vertical 'bounce' during entry."
@@ -2281,27 +2418,43 @@ class EncounterItemModel(BaseModel):
     )
     min_player_level: int | None = Field(
         None,
-        description="Minimum average level of player's party for this encounter.",
+        description=(
+            "Minimum average level of player's party for this encounter."
+        ),
     )
     max_player_level: int | None = Field(
         None,
-        description="Maximum average level of player's party for this encounter.",
+        description=(
+            "Maximum average level of player's party for this encounter."
+        ),
     )
     scaling_enabled: bool = Field(
         False,
-        description="If true, scales the monster level based on player's party level average.",
+        description=(
+            "If true, scales the monster level based on player's party "
+            "level average."
+        ),
     )
     override_level_range: bool = Field(
         False,
-        description="If true, allows scaling to override a monster's declared level_range and match party average directly.",
+        description=(
+            "If true, allows scaling to override a monster's declared "
+            "level_range and match party average directly."
+        ),
     )
     scaling_offset_range: tuple[int, int] | None = Field(
         None,
-        description="Range used for random offset when scaling level overrides are applied (e.g. [-3, +4])",
+        description=(
+            "Range used for random offset when scaling level overrides are "
+            "applied (e.g. [-3, +4])"
+        ),
     )
     time_of_day: Sequence[str] | None = Field(
         None,
-        description="Allowed time stages (dawn, morning, afternoon, dusk, night). If None, all times are allowed.",
+        description=(
+            "Allowed time stages (dawn, morning, afternoon, dusk, night). "
+            "If None, all times are allowed."
+        ),
     )
 
     @field_validator("time_of_day")
@@ -2418,12 +2571,17 @@ class HordeEncounterModel(BaseModel):
     )
     horde_level_range: tuple[int, int] | None = Field(
         None,
-        description="Optional: A base level range for the entire horde. "
-        "Monsters may have their own level ranges that differ.",
+        description=(
+            "Optional: A base level range for the entire horde. "
+            "Monsters may have their own level ranges that differ."
+        ),
     )
     horde_exp_mod: float | None = Field(
         None,
-        description="Optional: A modifier for the experience points of the entire horde.",
+        description=(
+            "Optional: A modifier for the experience points of the entire "
+            "horde."
+        ),
         gt=0.0,
     )
 
@@ -2477,15 +2635,23 @@ class EncounterModel(BaseModel, BaseLookupModel):
     )
     scale_offset_range: tuple[int, int] | None = Field(
         None,
-        description="Custom offset range applied when scaling override is active (e.g. -3 to +5)",
+        description=(
+            "Custom offset range applied when scaling override is active "
+            "(e.g. -3 to +5)"
+        ),
     )
     scale_multiplier: float = Field(
         1.0,
-        description="Multiplier applied to party average to define base scaled level",
+        description=(
+            "Multiplier applied to party average to define base scaled level"
+        ),
     )
     override_level_range: bool = Field(
         False,
-        description="If true, allows scaling to override a monster's declared level_range and match party average directly.",
+        description=(
+            "If true, allows scaling to override a monster's declared "
+            "level_range and match party average directly."
+        ),
     )
 
     @classmethod

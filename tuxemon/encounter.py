@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
-# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
+# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>,
+# Benjamin Bean <superman2k5@gmail.com>
 from __future__ import annotations
 
 import logging
@@ -67,7 +68,9 @@ class EncounterManager:
             return False
 
     def unload_zone(self) -> None:
-        """Explicitly unloads the current zone, often called when changing maps."""
+        """
+        Explicitly unloads the current zone, often called when changing maps.
+        """
         self._active_handler = None
         logger.debug("Encounter zone unloaded.")
 

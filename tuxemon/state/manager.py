@@ -289,20 +289,17 @@ class StateManager:
 
         if isinstance(state_name, State):
             # If state_name is already an instance (State), use it directly.
-            # Mypy might complain if it expects StateType (a TypeVar), but State is the base class.
-            # We can cast or ignore if needed, but logic is sound.
-            instance = state_name  # type: ignore[assignment]
+            instance = state_name
         elif isinstance(state_name, str):
-            instance = self.state_factory.create_state(state_name, **kwargs)
+            instance = self.state_factory.create_state(
+                state_name, **kwargs
+            )  # type: ignore[assignment]
         else:
             warnings.warn(
                 "Calling push_state with Type[State] is deprecated, use an instantiated State instead",
                 DeprecationWarning,
             )
-            # mypy complains about instance type because it infers 'State' but state_name
-            # can be a subclass (StateType). However, since StateType is bound to State,
-            # this is functionally safe but mypy struggles with the conditional instantiation.
-            instance = state_name(**kwargs) if kwargs else state_name()  # type: ignore[assignment]
+            instance = state_name(**kwargs) if kwargs else state_name()
 
         self.state_stack.push(instance)
 
