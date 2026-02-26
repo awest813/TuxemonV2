@@ -127,6 +127,12 @@ class Encounter:
         ):
             return False
 
+        if enc.time_of_day:
+            time_vars = character.session.time.get_time_variables()
+            current_stage = time_vars.stage_of_day
+            if current_stage not in enc.time_of_day:
+                return False
+
         return True
 
     def get_single_encounter(

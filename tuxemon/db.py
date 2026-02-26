@@ -2299,6 +2299,23 @@ class EncounterItemModel(BaseModel):
         None,
         description="Range used for random offset when scaling level overrides are applied (e.g. [-3, +4])",
     )
+    time_of_day: Sequence[str] | None = Field(
+        None,
+        description="Allowed time stages (dawn, morning, afternoon, dusk, night). If None, all times are allowed.",
+    )
+
+    @field_validator("time_of_day")
+    def validate_time_of_day(
+        cls, v: Sequence[str] | None
+    ) -> Sequence[str] | None:
+        if v:
+            valid_stages = {"dawn", "morning", "afternoon", "dusk", "night"}
+            for stage in v:
+                if stage not in valid_stages:
+                    raise ValueError(
+                        f"Invalid time stage '{stage}'. Must be one of {valid_stages}"
+                    )
+        return v
 
     @field_validator("monster")
     def monster_exists(cls, v: str) -> str:

@@ -8,10 +8,29 @@ from tuxemon.db import EncounterType
 from tuxemon.encounter import Encounter, EncounterResult, HordeEncounterResult
 
 
+class DummyTimeVariables:
+    def __init__(self, stage="day"):
+        self.stage_of_day = stage
+
+
+class DummyTimeHandler:
+    def __init__(self, stage="day"):
+        self.variables = DummyTimeVariables(stage)
+
+    def get_time_variables(self):
+        return self.variables
+
+
+class DummySession:
+    def __init__(self, stage="day"):
+        self.time = DummyTimeHandler(stage)
+
+
 class DummyNPC:
-    def __init__(self, avg_level=5, variables=None):
+    def __init__(self, avg_level=5, variables=None, stage="day"):
         self.party = type("Party", (), {"level_average": avg_level})
         self.game_variables = variables or {}
+        self.session = DummySession(stage)
 
 
 class DummyEncounterData:
@@ -39,6 +58,7 @@ class DummyEncounterItem:
         level_range=(1, 5),
         held_items=None,
         scaling_enabled=False,
+        time_of_day=None,
     ):
         self.monster = monster
         self.encounter_rate = rate
@@ -52,6 +72,7 @@ class DummyEncounterItem:
         self.variables = []
         self.override_level_range = None
         self.scaling_offset_range = None
+        self.time_of_day = time_of_day
 
 
 class DummyHeldItem:
@@ -179,3 +200,40 @@ def test_horde_encounter(monkeypatch):
         "pairagrin",
     }
     assert result.horde_exp_mod is None
+
+
+def test_time_of_day_filtering(monkeypatch):
+    zone = DummyEncounterData()
+    # Monster 1: only at night
+    nocturnal = DummyEncounterItem(
+        monster="hoot", rate=100, level_range=(1, 5), time_of_day=["night"]
+    )
+    # Monster 2: only during day/morning
+    diurnal = DummyEncounterItem(
+        monster="chirp",
+        rate=100,
+        level_range=(1, 5),
+        time_of_day=["day", "morning"],
+    )
+    zone.encounters = [nocturnal, diurnal]
+    enc = Encounter(zone)
+
+    monkeypatch.setattr(random, "uniform", lambda a, b: 0)
+    monkeypatch.setattr(random, "choices", lambda seq, weights, k: [seq[0]])
+
+    # Case 1: It is Night. Should find "hoot".
+    npc_night = DummyNPC(stage="night")
+    result = enc.get_single_encounter(npc_night, total_prob=100)
+    assert result is not None
+    assert result.monster.monster == "hoot"
+
+    # Case 2: It is Morning. Should find "chirp".
+    npc_morning = DummyNPC(stage="morning")
+    result = enc.get_single_encounter(npc_morning, total_prob=100)
+    assert result is not None
+    assert result.monster.monster == "chirp"
+
+    # Case 3: It is Dusk. Should find nothing (neither matches).
+    npc_dusk = DummyNPC(stage="dusk")
+    result = enc.get_single_encounter(npc_dusk, total_prob=100)
+    assert result is None
