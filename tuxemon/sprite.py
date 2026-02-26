@@ -480,7 +480,7 @@ class SpriteGroup(LayeredUpdates, Generic[_GroupElement]):
     def __iter__(self) -> Iterator[_GroupElement]:
         return LayeredUpdates.__iter__(self)
 
-    def sprites(self) -> Sequence[_GroupElement]:
+    def sprites(self) -> list[_GroupElement]:
         # Pygame typing is awful. Ignore Mypy here.
         return LayeredUpdates.sprites(self)
 
@@ -613,7 +613,12 @@ class RelativeGroup(MenuSpriteGroup[_MenuElement]):
         else:
             self.rect = Rect(self.parent.rect)
 
-    def draw(self, surface: Surface) -> list[FRect | Rect]:
+    def draw(
+        self,
+        surface: Surface,
+        bgd: Surface | None = None,
+        special_flags: int = 0,
+    ) -> list[FRect | Rect]:
         self.update_rect_from_parent()
         topleft = self.rect.topleft
 
@@ -623,7 +628,7 @@ class RelativeGroup(MenuSpriteGroup[_MenuElement]):
             s.rect.move_ip(topleft)
 
         try:
-            dirty = super().draw(surface)
+            dirty = super().draw(surface, bgd, special_flags)
         finally:
             for s in self.sprites():
                 s.rect.move_ip((-topleft[0], -topleft[1]))
@@ -690,10 +695,15 @@ class VisualSpriteList(RelativeGroup[_MenuElement]):
             super().remove(i)
         self._needs_arrange = True
 
-    def draw(self, surface: Surface) -> list[FRect | Rect]:
+    def draw(
+        self,
+        surface: Surface,
+        bgd: Surface | None = None,
+        special_flags: int = 0,
+    ) -> list[FRect | Rect]:
         if self._needs_arrange:
             self.arrange_menu_items()
-        dirty = super().draw(surface)
+        dirty = super().draw(surface, bgd, special_flags)
         return dirty
 
     def arrange_menu_items(self) -> None:
