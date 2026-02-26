@@ -14,6 +14,7 @@ from tuxemon.platform.const.graphics import FONT_SIZE
 from tuxemon.scaling import DefaultScaling
 from tuxemon.tools import scale
 from tuxemon.ui.draw import (
+    GraphicBox,
     RenderMode,
     blit_alpha,
     break_text_into_lines,
@@ -760,3 +761,18 @@ class TestCalculateAlignmentOffset(unittest.TestCase):
                 h_alignment,
                 v_alignment,
             )
+
+
+class TestDrawExports(unittest.TestCase):
+    def test_graphic_box_export(self):
+        """Test that GraphicBox is exported by tuxemon.ui.draw"""
+        from tuxemon.ui.graphic_box import GraphicBox as OriginalGraphicBox
+
+        self.assertIs(GraphicBox, OriginalGraphicBox)
+
+    def test_other_exports(self):
+        """Test that other symbols are exported"""
+        self.assertTrue(callable(get_font_height))
+        self.assertTrue(callable(get_text_size))
+        self.assertTrue(callable(iter_render_text))
+        self.assertTrue(callable(blit_alpha))
