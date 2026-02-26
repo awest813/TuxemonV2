@@ -44,3 +44,29 @@ class MonsterItemHandler:
 
     def decode_item(self, json_data: Mapping[str, Any] | None) -> Item | None:
         return Item.from_save(json_data) if json_data is not None else None
+
+    def check_trigger(self, trigger_type: str, context: dict[str, Any]) -> bool:
+        """
+        Check if the held item should trigger based on the given condition.
+
+        Parameters:
+            trigger_type: The type of trigger event (e.g. 'turn_end', 'damage_taken').
+            context: A dictionary containing relevant battle context (e.g. user HP, attacker info).
+
+        Returns:
+            True if the item effect should be activated.
+        """
+        if not self._item:
+            return False
+
+        # Check conditions
+        if self._item.conditions:
+            # TODO: Implement condition checking
+            pass
+
+        # Check effects
+        if self._item.effects:
+            # TODO: Implement effect checking
+            pass
+
+        return False
