@@ -23,6 +23,12 @@ from tuxemon.event.eventmiddleware import (
     WorldCommandMiddleware,
 )
 from tuxemon.faction.manager import FactionManager
+from tuxemon.platform.const.graphics import (
+    TINT_DAWN,
+    TINT_DAY,
+    TINT_DUSK,
+    TINT_NIGHT,
+)
 from tuxemon.platform.events import PlayerInput
 from tuxemon.prepare import DEV_TOOLS
 from tuxemon.save_state import WorldSave
@@ -156,6 +162,21 @@ class WorldState(State):
         self.client.npc_manager.update_npcs(time_delta, self.client)
         self.client.npc_manager.update_npcs_off_map(time_delta, self.client)
         self.client.map_renderer.update(time_delta)
+
+        # Apply day/night cycle tint if outside
+        if self.client.map_manager.map_inside:
+            self.client.map_renderer.layer_color = None
+        else:
+            time_vars = self.session.time.get_time_variables()
+            stage = time_vars.stage_of_day
+            if stage == "night":
+                self.client.map_renderer.layer_color = TINT_NIGHT
+            elif stage == "dawn":
+                self.client.map_renderer.layer_color = TINT_DAWN
+            elif stage == "dusk":
+                self.client.map_renderer.layer_color = TINT_DUSK
+            else:
+                self.client.map_renderer.layer_color = TINT_DAY
 
     def draw(self, surface: Surface) -> None:
         """Draw the game world to the screen."""

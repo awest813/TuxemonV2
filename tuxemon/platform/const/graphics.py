@@ -28,6 +28,12 @@ FONT_SHADOW_COLOR = (192, 192, 192)  # silver
 SCROLLBAR_COLOR = (237, 246, 248)
 SCROLLBAR_SLIDER_COLOR = (197, 232, 234)
 
+# Time of Day Tints (RGBA)
+TINT_DAY = (0, 0, 0, 0)
+TINT_NIGHT = (0, 0, 60, 100)
+TINT_DAWN = (60, 20, 0, 60)
+TINT_DUSK = (60, 20, 40, 60)
+
 # Gradient Paths
 GRAD_BLACK: str = "gfx/ui/background/gradient_black.png"
 GRAD_BLUE: str = "gfx/ui/background/gradient_blue.png"
