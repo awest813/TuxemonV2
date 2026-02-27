@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from tuxemon.event import get_event_bus
+
 if TYPE_CHECKING:
     from tuxemon.monster.monster import Monster
     from tuxemon.session import Session
@@ -18,6 +20,17 @@ def monster_update_listener(
 ) -> None:
     for monster in monsters:
         monster.steps += steps
+        if monster.is_egg:
+            # Check if it was already ready to hatch to prevent event flooding
+            was_not_ready = monster.hatch_steps > 0
+
+            # Decrement hatch steps (supporting float precision)
+            monster.hatch_steps -= steps
+
+            # If it just became ready, fire the event
+            if was_not_ready and monster.hatch_steps <= 0:
+                get_event_bus().publish("egg_ready_to_hatch", monster=monster)
+
         if monster.status:
             results = monster.status.tick_statuses_on_steps(session, steps)
             for r in results:

@@ -36,6 +36,8 @@ Features
 - 221 NPC sprites
 - 18 items
 
+See our [ROADMAP](ROADMAP.md) for upcoming features and progress.
+
 
 Installation
 ------------
