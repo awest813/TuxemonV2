@@ -61,6 +61,9 @@ class StartState(PygameMenuState):
         self,
         menu: Menu,
     ) -> None:
+        menu.add.label("TUXEMON", font_size=self.font_type.biggest)
+        menu.add.vertical_margin(20)
+
         # If there is a save, then move the cursor to "Load game" first
         index = get_index_of_latest_save()
 
@@ -95,6 +98,7 @@ class StartState(PygameMenuState):
                 font_size=self.font_type.big,
                 button_id="menu_load",
             )
+
         if len(self.client.config.mods) == 1:
             menu.add.button(
                 title=T.translate("menu_new_game"),
@@ -111,6 +115,7 @@ class StartState(PygameMenuState):
                 font_size=self.font_type.big,
                 button_id="menu_mod_choice",
             )
+
         menu.add.button(
             title=T.translate("menu_battle"),
             action=change_state(
@@ -129,12 +134,16 @@ class StartState(PygameMenuState):
             font_size=self.font_type.big,
             button_id="menu_minigame",
         )
+
+        menu.add.vertical_margin(15)
+
         menu.add.button(
             title=T.translate("menu_options"),
             action=change_state("ControlState", main_menu=True),
             font_size=self.font_type.big,
             button_id="menu_options",
         )
+
         menu.add.button(
             title=T.translate("exit"),
             action=exit_game,
@@ -211,6 +220,14 @@ class ModsChoice(PygameMenuState):
                 button_id=mod_name,
             )
 
+        menu.add.vertical_margin(15)
+        menu.add.button(
+            title=T.translate("menu_back"),
+            action=self.client.pop_state,
+            font_size=self.font_type.big,
+            button_id="back",
+        )
+
     def __init__(
         self, client: BaseClient, mods: list[str], **kwargs: Any
     ) -> None:
@@ -223,5 +240,10 @@ class ModsChoice(PygameMenuState):
 
         super().__init__(client=client, height=height, width=width, **kwargs)
 
+        self.menu.add.label(
+            T.translate("menu_new_game"),
+            font_size=self.font_type.bigger,
+        )
+        self.menu.add.vertical_margin(15)
         self.add_menu_items(self.menu)
         self.reset_theme()

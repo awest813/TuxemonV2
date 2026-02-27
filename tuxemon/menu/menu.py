@@ -120,7 +120,10 @@ class PygameMenuState(State):
         self.font_type = font_settings or FontSettings.from_context(
             self.client.context
         )
-        theme = theme or get_theme()
+        pending_theme = getattr(self, "_pending_theme", None)
+        theme = theme or pending_theme or get_theme()
+        if hasattr(self, "_pending_theme"):
+            delattr(self, "_pending_theme")
         self._initialize_attributes()
         self._create_menu(width, height, theme, sound_engine, **kwargs)
         self._input_handler = PygameMenuInputHandler(self)
@@ -192,8 +195,9 @@ class PygameMenuState(State):
             Theme: The configured theme object.
         """
         base_image = self._create_image(background, position)
-        theme = get_theme()
+        theme = get_theme().copy()
         theme.background_color = base_image
+        self._pending_theme = theme
         return theme
 
     def _create_image(
