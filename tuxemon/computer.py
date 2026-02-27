@@ -168,13 +168,11 @@ class PCMenuBuilder:
                 provider.get_menu_items(self.client, char, self.tag_list)
             )
 
-        # --- Multiplayer placeholder ---
+        # --- Multiplayer ---
         menu.append(
             (
                 "menu_multiplayer",
-                partial(
-                    open_dialog, self.client, [T.translate("not_implemented")]
-                ),
+                partial(self.client.push_state, "MultiplayerMenu"),
             )
         )
 
