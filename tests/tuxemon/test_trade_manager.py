@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -184,6 +184,35 @@ def test_accept_trade_nonexistent_offer(manager):
     fake_id = uuid4()
     result = manager.accept_trade(fake_id)
     assert result == TradeResult.NOT_FOUND
+
+
+def test_propose_trade_sets_default_expiry(manager, players_and_monsters):
+    player_a, _, monster_a, monster_b = players_and_monsters
+    result = manager.propose_trade(monster_a, monster_b)
+
+    assert result == TradeResult.SUCCESS
+    offer = manager.pending_offers[0]
+    assert offer.expires_at is not None
+    delta = offer.expires_at - offer.timestamp
+    assert int(delta.total_seconds()) == manager.default_offer_ttl_seconds
+    offers = manager.get_pending_offers_for_player(player_a.instance_id)
+    assert offer in offers
+
+
+def test_purge_expired_offers_removes_only_expired(
+    manager, players_and_monsters
+):
+    player_a, _, monster_a, monster_b = players_and_monsters
+    manager.propose_trade(monster_a, monster_b, expires_in_seconds=1)
+    manager.propose_trade(monster_a, monster_b, expires_in_seconds=60)
+
+    now = datetime.now(timezone.utc) + timedelta(seconds=2)
+    removed = manager.purge_expired_offers(now)
+
+    assert removed == 1
+    assert len(manager.pending_offers) == 1
+    offers = manager.get_pending_offers_for_player(player_a.instance_id)
+    assert len(offers) == 1
 
 
 def test_get_trade_history_filtered(manager, sample_record):
