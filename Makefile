@@ -12,6 +12,7 @@ validate:
 .PHONY: setup
 setup:
 	pip install -U -r ./requirements.txt
+	pip install -e . --no-build-isolation
 
 # Run the game
 .PHONY: run
