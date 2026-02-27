@@ -26,11 +26,25 @@ class Paginator:
         """
         Paginates the list of items based on the page size and page number.
         """
-        if page_number < 0 or page_number >= self._total_pages:
+        if not isinstance(page_number, int):
+            raise TypeError("Page number must be an integer.")
+        if not self.is_valid_page(page_number):
             return []
         start = page_number * self._page_size
         end = start + self._page_size
         return self._items[start:end]
+
+    def is_valid_page(self, page_number: int) -> bool:
+        """Returns whether the page index points to an existing page."""
+        return 0 <= page_number < self._total_pages
+
+    def clamp_page(self, page_number: int) -> int:
+        """Clamps the page number to the available range."""
+        if not isinstance(page_number, int):
+            raise TypeError("Page number must be an integer.")
+        if self._total_pages == 0:
+            return 0
+        return max(0, min(page_number, self._total_pages - 1))
 
     def total_pages(self) -> int:
         """
