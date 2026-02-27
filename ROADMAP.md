@@ -10,5 +10,6 @@
 
 ### Planned
 - [ ] Advanced Breeding Mechanics
+  - [x] Taste mutation inheritance is now applied to offspring
 - [ ] Online Trading
 - [ ] Multiplayer Battles
