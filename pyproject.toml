@@ -110,3 +110,8 @@ ignore = []
 max-line-length = 79
 exclude = [".env/*", ".git"]
 max-complexity = 10
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+testpaths = ["tests"]
+pythonpath = ["."]
