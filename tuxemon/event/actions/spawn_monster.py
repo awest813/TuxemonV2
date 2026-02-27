@@ -107,12 +107,8 @@ class SpawnMonsterAction(EventAction):
         child.birthdate = session.time.get_month_day()
         child.set_acquisition(Acquisition.BRED)
 
-        # Give the child a random move from the father
-        father_moves = len(father.moves.current_moves)
-        replace_tech = random.randrange(0, 2)
-        random_move = father.moves.get_moves()[random.randrange(father_moves)]
-        child.moves.replace_move(replace_tech, random_move)
-        logger.debug(f"Move inherited from father: move='{random_move.slug}'")
+        # Advanced breeding move inheritance: both parents can pass techniques.
+        _inherit_parental_moves(child, mother, father)
 
         # Tastes
         taste_warm, taste_cold = _determine_tastes(mother, father)
@@ -262,6 +258,48 @@ def _determine_tastes(mother: Monster, father: Monster) -> tuple[str, str]:
     cold_slug = _mutate_taste(taste_cold, "cold")
 
     return (warm_slug, cold_slug)
+
+
+def _inherit_parental_moves(
+    child: Monster, mother: Monster, father: Monster
+) -> None:
+    """
+    Let each parent contribute one move candidate to the offspring.
+
+    The chosen parent techniques are placed into random child move slots,
+    avoiding duplicate move slugs when both parents share the same move.
+    """
+
+    inherited_moves = []
+    if mother.moves.current_moves:
+        inherited_moves.append(random.choice(mother.moves.get_moves()))
+    if father.moves.current_moves:
+        inherited_moves.append(random.choice(father.moves.get_moves()))
+
+    if not inherited_moves:
+        logger.debug("No parent moves available for inheritance")
+        return
+
+    unique_moves = []
+    seen_slugs = set()
+    for move in inherited_moves:
+        if move.slug not in seen_slugs:
+            unique_moves.append(move)
+            seen_slugs.add(move.slug)
+
+    child_slots = len(child.moves.current_moves)
+    if child_slots == 0:
+        logger.debug("Child has no move slots available for inherited moves")
+        return
+
+    slot_count = min(child_slots, len(unique_moves))
+    replacement_slots = random.sample(range(child_slots), k=slot_count)
+
+    for slot, move in zip(replacement_slots, unique_moves):
+        child.moves.replace_move(slot, move)
+        logger.debug(
+            f"Move inherited from parent: move='{move.slug}', slot={slot}"
+        )
 
 
 def _mutate_taste(
