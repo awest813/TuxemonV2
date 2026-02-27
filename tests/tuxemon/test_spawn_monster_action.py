@@ -51,11 +51,14 @@ class TestInheritParentalMoves(unittest.TestCase):
 
         replace_move = unittest.mock.Mock()
 
+        add_move = unittest.mock.Mock()
         child = SimpleNamespace(
+            max_moves=2,
             moves=SimpleNamespace(
                 current_moves=[child_move_1, child_move_2],
+                add_move=add_move,
                 replace_move=replace_move,
-            )
+            ),
         )
         mother = SimpleNamespace(
             moves=SimpleNamespace(
@@ -86,8 +89,14 @@ class TestInheritParentalMoves(unittest.TestCase):
         child_move = SimpleNamespace(slug="growl")
         replace_move = unittest.mock.Mock()
 
+        add_move = unittest.mock.Mock()
         child = SimpleNamespace(
-            moves=SimpleNamespace(current_moves=[child_move], replace_move=replace_move)
+            max_moves=1,
+            moves=SimpleNamespace(
+                current_moves=[child_move],
+                add_move=add_move,
+                replace_move=replace_move,
+            ),
         )
         mother = SimpleNamespace(
             moves=SimpleNamespace(
@@ -110,6 +119,38 @@ class TestInheritParentalMoves(unittest.TestCase):
             _inherit_parental_moves(child, mother, father)
 
         replace_move.assert_called_once_with(0, shared_move)
+
+    def test_prefers_appending_inherited_move_when_child_has_capacity(self):
+        mother_move = SimpleNamespace(slug="water_pulse")
+        child_move = SimpleNamespace(slug="quick_attack")
+        add_move = unittest.mock.Mock()
+        replace_move = unittest.mock.Mock()
+
+        child = SimpleNamespace(
+            max_moves=4,
+            moves=SimpleNamespace(
+                current_moves=[child_move],
+                add_move=add_move,
+                replace_move=replace_move,
+            ),
+        )
+        mother = SimpleNamespace(
+            moves=SimpleNamespace(
+                current_moves=[mother_move], get_moves=lambda: [mother_move]
+            )
+        )
+        father = SimpleNamespace(
+            moves=SimpleNamespace(current_moves=[], get_moves=lambda: [])
+        )
+
+        with patch(
+            "tuxemon.event.actions.spawn_monster.random.choice",
+            return_value=mother_move,
+        ):
+            _inherit_parental_moves(child, mother, father)
+
+        add_move.assert_called_once_with(mother_move)
+        replace_move.assert_not_called()
 
 
 if __name__ == "__main__":
