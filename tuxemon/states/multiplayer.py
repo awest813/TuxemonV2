@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Generator
+from functools import partial
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from pygame_menu.menu import Menu
@@ -106,7 +107,7 @@ class MultiplayerMenu(PygameMenuState):
                 self.network.client.connect_to_host(ip, port)
 
 
-class MultiplayerSelect(PopUpMenu[None]):
+class MultiplayerSelect(PopUpMenu[tuple[str, int]]):
     """Menu to show games found by the network game scanner"""
 
     name: ClassVar[str] = "MultiplayerSelect"
@@ -119,13 +120,28 @@ class MultiplayerSelect(PopUpMenu[None]):
         # make a timer to refresh the menu items every second
         self.task(self.reload_items, interval=1, times=-1)
 
-    def initialize_items(self) -> Generator[MenuItem[None], None, None]:
+    def _join_selected_server(self, server: tuple[str, int]) -> None:
+        """Store and connect to the selected server from the scanner list."""
+        assert self.network.client
+        ip, port = server
+        self.network.client.connect_to_host(ip, port)
+        self.client.pop_state(self)
+
+    def initialize_items(
+        self,
+    ) -> Generator[MenuItem[tuple[str, int]], None, None]:
         assert self.network.client
         servers = self.network.client.server_list
-        if servers:
-            for server in servers:
+        available_games = self.network.client.available_games
+        if servers and len(servers) == len(available_games):
+            for server, game in zip(servers, available_games):
                 label = self.shadow_text(server)
-                yield MenuItem(label, None, None, None)
+                yield MenuItem(
+                    label,
+                    game,
+                    server,
+                    partial(self._join_selected_server, game),
+                )
         else:
             label = self.shadow_text(T.translate("multiplayer_no_servers"))
             item = MenuItem(label, None, None, None)
