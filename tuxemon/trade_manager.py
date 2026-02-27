@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
@@ -88,7 +88,39 @@ class TradeManager:
         self.npc_manager = npc_manager
         self.global_trade_log: list[TradeRecord] = []
         self.pending_offers: list[TradeOffer] = []
+        self.default_offer_ttl_seconds = 300
         self.event_bus = get_event_bus()
+
+    def _is_offer_expired(
+        self, offer: TradeOffer, now: datetime | None = None
+    ) -> bool:
+        if offer.expires_at is None:
+            return False
+        current_time = now or datetime.now(timezone.utc)
+        return current_time > offer.expires_at
+
+    def purge_expired_offers(self, now: datetime | None = None) -> int:
+        """Remove expired offers and return the number removed."""
+        current_time = now or datetime.now(timezone.utc)
+        active_offers = []
+        removed = 0
+        for offer in self.pending_offers:
+            if self._is_offer_expired(offer, current_time):
+                removed += 1
+                continue
+            active_offers.append(offer)
+        self.pending_offers = active_offers
+        return removed
+
+    def get_pending_offers_for_player(self, player_id: UUID) -> list[TradeOffer]:
+        """Return active pending offers where player is proposer or receiver."""
+        self.purge_expired_offers()
+        return [
+            offer
+            for offer in self.pending_offers
+            if offer.proposing_player_id == player_id
+            or offer.receiving_player_id == player_id
+        ]
 
     def _find_owner(self, monster: Monster) -> NPC | None:
         return self.npc_manager.get_monster_owner(monster)
@@ -234,7 +266,10 @@ class TradeManager:
         return TradeResult.SUCCESS
 
     def propose_trade(
-        self, proposing_monster: Monster, requested_monster: Monster
+        self,
+        proposing_monster: Monster,
+        requested_monster: Monster,
+        expires_in_seconds: int | None = None,
     ) -> TradeResult:
         owner_a = self._find_owner(proposing_monster)
         owner_b = self._find_owner(requested_monster)
@@ -258,6 +293,13 @@ class TradeManager:
             requested_monster_id=requested_monster.instance_id,
         )
 
+        ttl_seconds = (
+            self.default_offer_ttl_seconds
+            if expires_in_seconds is None
+            else max(0, expires_in_seconds)
+        )
+        offer.expires_at = offer.timestamp + timedelta(seconds=ttl_seconds)
+
         self.pending_offers.append(offer)
         self.event_bus.publish("trade_offer_proposed", offer)
         return TradeResult.SUCCESS
@@ -269,7 +311,7 @@ class TradeManager:
         if offer is None:
             return TradeResult.NOT_FOUND
 
-        if offer.expires_at and datetime.now(timezone.utc) > offer.expires_at:
+        if self._is_offer_expired(offer):
             self.pending_offers.remove(offer)
             return TradeResult.EXPIRED
 

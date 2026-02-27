@@ -14,4 +14,5 @@
   - [x] Dual-parent move inheritance now applies one move candidate from each parent
   - [x] Inherited parental moves now fill open child move capacity before replacing existing moves
 - [ ] Online Trading
+  - [x] Added trade-offer TTL defaults, expiration cleanup, and player-centric pending-offer queries
 - [ ] Multiplayer Battles
