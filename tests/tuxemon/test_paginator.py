@@ -129,3 +129,25 @@ def test_zero_items_initially(page_size):
 def test_invalid_page_size(items, bad_size):
     with pytest.raises(ValueError):
         Paginator(items, bad_size)
+
+
+def test_is_valid_page(paginator):
+    assert paginator.is_valid_page(0) is True
+    assert paginator.is_valid_page(2) is True
+    assert paginator.is_valid_page(3) is False
+
+
+def test_clamp_page(paginator):
+    assert paginator.clamp_page(-3) == 0
+    assert paginator.clamp_page(1) == 1
+    assert paginator.clamp_page(99) == 2
+
+
+def test_clamp_page_when_empty(page_size):
+    paginator = Paginator([], page_size)
+    assert paginator.clamp_page(10) == 0
+
+
+def test_clamp_page_rejects_non_integer(paginator):
+    with pytest.raises(TypeError):
+        paginator.clamp_page(1.5)

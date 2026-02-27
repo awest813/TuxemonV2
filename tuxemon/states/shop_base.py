@@ -172,6 +172,8 @@ class ShopMenuState(Menu[T], Generic[T], ABC):
     def reload_shop(self) -> None:
         self.clear()
         self.inventory = self._filter_inventory()
+        self.paginator.update_items(self.inventory)
+        self.current_page = self.paginator.clamp_page(self.current_page)
         paged_inventory = self.paginator.paginate(self.current_page)
         self._populate_menu(paged_inventory)
         self.selected_index = (

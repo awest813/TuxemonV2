@@ -235,6 +235,8 @@ class ItemMenuState(Menu[Item]):
     def reload_items(self) -> None:
         self.clear()
         self.inventory = self.filter_controller.get_filtered_inventory()
+        self.paginator.update_items(self.inventory)
+        self.current_page = self.paginator.clamp_page(self.current_page)
 
         total_pages, page_items = self.paginator.calculate_page_data(
             self.current_page
