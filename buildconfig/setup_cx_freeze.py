@@ -1,10 +1,10 @@
 #!/usr/bin/python
 """
 Responsible for building the Windows binary package of the
-game with cx_Freeze and Python 3.6
+game with cx_Freeze and Python 3.10+
 
 To build the package on Windows, run the following command on Windows:
-    `python build_win32.py build`
+    `python buildconfig/setup_cx_freeze.py build`
 
 "win32" is just the name used by cx_freeze and doesn't mean it is a 32-bit app.
 
@@ -16,13 +16,15 @@ import os
 import sys
 from pathlib import Path
 
+# Ensure imports work whether the script is run from the repo root or
+# from inside buildconfig/.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from cx_Freeze import Executable, setup
 
 from tuxemon.database.yaml_utils import load_yaml
-
-# required so that the tuxemon folder can be found
-# when run from the buildconfig folder
-sys.path.append(os.getcwd())
 
 logger = logging.getLogger(__name__)
 
@@ -32,10 +34,14 @@ os.environ["SDL_AUDIODRIVER"] = "disk"
 
 
 def load_config(config_file: str = "build_config.yaml"):
+    config_path = Path(config_file)
+    if not config_path.is_absolute():
+        config_path = Path(__file__).resolve().parent / config_path
+
     try:
-        return load_yaml(Path(config_file))
+        return load_yaml(config_path)
     except FileNotFoundError:
-        logger.error(f"Configuration file not found: {config_file}")
+        logger.error(f"Configuration file not found: {config_path}")
         sys.exit(1)
     except Exception as e:
         logger.error(f"Error loading configuration: {e}")

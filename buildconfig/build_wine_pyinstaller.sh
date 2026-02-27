@@ -1,66 +1,49 @@
 #!/bin/bash
-# debian 10
-PYTHON_VERSION="3.10"
+# Debian/Ubuntu Wine build for Windows PyInstaller package.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." >/dev/null 2>&1 && pwd)"
+cd "$REPO_ROOT"
+
+PYTHON_VERSION="${PYTHON_VERSION:-3.10}"
 WINE_PYTHON="wine python${PYTHON_VERSION}"
 BUILD_DIR="build/tuxemon"
 
-# Run setup script
+if ! command -v wine >/dev/null 2>&1; then
+  echo "Error: wine command not found."
+  exit 1
+fi
+
+# Run setup script.
 buildconfig/setup_wine_debian10.sh
-if [ $? -ne 0 ]; then
-  echo "Error: setup_wine_debian10.sh failed."
-  exit 1
-fi
 
-# Install dependencies
+# Install dependencies.
 $WINE_PYTHON -m pip install -U setuptools wheel pyinstaller
-if [ $? -ne 0 ]; then
-  echo "Error: Failed to install PyInstaller dependencies."
-  exit 1
-fi
-
 $WINE_PYTHON -m pip install -U -r requirements.txt
-if [ $? -ne 0 ]; then
-  echo "Error: Failed to install project dependencies."
-  exit 1
-fi
 
-# Clean up .pyc files
+# Clean up .pyc files.
 find . -name "*.pyc" -delete
-if [ $? -ne 0 ]; then
-  echo "Error: Failed to delete .pyc files."
-  exit 1
-fi
 
-# Build with PyInstaller
+# Build with PyInstaller.
 wine pyinstaller buildconfig/pyinstaller/tuxemon.spec
-if [ $? -ne 0 ]; then
-  echo "Error: PyInstaller build failed."
-  exit 1
-fi
 
-# Copy necessary files
 if [ ! -d "$BUILD_DIR" ]; then
-    echo "Error: Build directory not found."
-    exit 1
-fi
-
-cd "$BUILD_DIR"
-
-cp ~/.wine/drive_c/Program\ Files/Python${PYTHON_VERSION}/python${PYTHON_VERSION}.dll .
-if [ $? -ne 0 ]; then
-  echo "Error: Failed to copy python DLL."
+  echo "Error: Build directory not found."
   exit 1
 fi
 
-cd ../../
+PYTHON_DLL_WIN="$($WINE_PYTHON -c 'import sys; print(f"{sys.base_prefix}\\python{sys.version_info.major}{sys.version_info.minor}.dll")')"
+PYTHON_DLL="$(winepath -u "$PYTHON_DLL_WIN")"
+if [ ! -f "$PYTHON_DLL" ]; then
+  echo "Error: Python runtime DLL not found at: $PYTHON_DLL"
+  exit 1
+fi
 
-cp LICENSE "$BUILD_DIR"
-cp CONTRIBUTING.md "$BUILD_DIR"
-cp CONTRIBUTORS.md "$BUILD_DIR"
-cp ATTRIBUTIONS.md "$BUILD_DIR"
-cp README.md "$BUILD_DIR"
-cp SPYDER_README.md "$BUILD_DIR"
+cp "$PYTHON_DLL" "$BUILD_DIR/"
+
+for file in LICENSE CONTRIBUTING.md CONTRIBUTORS.md ATTRIBUTIONS.md README.md SPYDER_README.md; do
+  cp "$file" "$BUILD_DIR/"
+done
 
 echo "Windows PyInstaller build complete."
-
-exit 0

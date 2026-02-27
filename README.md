@@ -46,6 +46,18 @@ If you want to try the game, it's recommended to download and try the
 development branch first. The master branch should be stable, but is
 often out of date.
 
+### Developer editable install
+
+If you are running from source and want imports to work without manually
+setting `PYTHONPATH`, install the project in editable mode:
+
+```shell
+python -m pip install -e . --no-build-isolation
+```
+
+`--no-build-isolation` avoids creating an isolated build environment,
+which is useful in offline or restricted network environments.
+
 
 ### Windows Source
 
