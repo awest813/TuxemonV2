@@ -44,6 +44,7 @@
 .. autoscriptinfoclass:: tuxemon.core.effects.grabbed.GrabbedEffect
 .. autoscriptinfoclass:: tuxemon.core.effects.harpooned.HarpoonedEffect
 .. autoscriptinfoclass:: tuxemon.core.effects.heal.HealEffect
+.. autoscriptinfoclass:: tuxemon.core.effects.held_heal_low_hp.HeldHealLowHpEffect
 .. autoscriptinfoclass:: tuxemon.core.effects.healing.HealingEffect
 .. autoscriptinfoclass:: tuxemon.core.effects.learn_mm.LearnMmEffect
 .. autoscriptinfoclass:: tuxemon.core.effects.learn_tm.LearnTmEffect
