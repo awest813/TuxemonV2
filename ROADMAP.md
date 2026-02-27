@@ -11,5 +11,6 @@
 ### Planned
 - [ ] Advanced Breeding Mechanics
   - [x] Taste mutation inheritance is now applied to offspring
+  - [x] Dual-parent move inheritance now applies one move candidate from each parent
 - [ ] Online Trading
 - [ ] Multiplayer Battles

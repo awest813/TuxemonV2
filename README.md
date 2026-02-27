@@ -25,7 +25,7 @@ Current snapshot from this branch:
 - NPCs: 122
 - Maps: 224
 - Localization catalogs: 14
-- Roadmap checklist completion: 5/8
+- Roadmap checklist completion: 6/9
 
 For roadmap details, see [`ROADMAP.md`](ROADMAP.md).
 
