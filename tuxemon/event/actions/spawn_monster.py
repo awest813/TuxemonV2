@@ -281,21 +281,41 @@ def _inherit_parental_moves(
         return
 
     unique_moves = []
-    seen_slugs = set()
+    seen_slugs = {move.slug for move in child.moves.current_moves}
     for move in inherited_moves:
         if move.slug not in seen_slugs:
             unique_moves.append(move)
             seen_slugs.add(move.slug)
+
+    if not unique_moves:
+        logger.debug("No unique parental moves available for inheritance")
+        return
+
+    available_slots = max(
+        getattr(child, "max_moves", 0) - len(child.moves.current_moves),
+        0,
+    )
+
+    if available_slots > 0:
+        for move in unique_moves[:available_slots]:
+            child.moves.add_move(move)
+            logger.debug(
+                f"Move inherited from parent: move='{move.slug}', slot=appended"
+            )
+
+    overflow_moves = unique_moves[available_slots:]
+    if not overflow_moves:
+        return
 
     child_slots = len(child.moves.current_moves)
     if child_slots == 0:
         logger.debug("Child has no move slots available for inherited moves")
         return
 
-    slot_count = min(child_slots, len(unique_moves))
+    slot_count = min(child_slots, len(overflow_moves))
     replacement_slots = random.sample(range(child_slots), k=slot_count)
 
-    for slot, move in zip(replacement_slots, unique_moves):
+    for slot, move in zip(replacement_slots, overflow_moves):
         child.moves.replace_move(slot, move)
         logger.debug(
             f"Move inherited from parent: move='{move.slug}', slot={slot}"
