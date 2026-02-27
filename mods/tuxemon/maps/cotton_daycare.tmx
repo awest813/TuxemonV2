@@ -150,6 +150,7 @@
     <property name="act20" value="set_variable breeder_state:5"/>
     <property name="cond10" value="is variable_set breeder_state:6"/>
     <property name="cond20" value="not step_tracker player,steps_breeder,5000"/>
+    <property name="cond30" value="not step_tracker player,steps_breeder,0"/>
    </properties>
   </object>
   <object id="31" name="breeder state 6b" type="event" x="144" y="112" width="16" height="16">
