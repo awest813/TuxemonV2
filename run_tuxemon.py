@@ -7,9 +7,13 @@ import logging
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from tuxemon.prepare import DisplayContext, headless_init, pygame_init
-from tuxemon.user_config import CONFIG, TuxemonConfig
+from tuxemon.fork_status import print_status
+
+if TYPE_CHECKING:
+    from tuxemon.prepare import DisplayContext
+    from tuxemon.user_config import TuxemonConfig
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +52,12 @@ def build_parser() -> ArgumentParser:
         default=False,
         help="Run in headless mode (no graphical interface).",
     )
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        default=False,
+        help="Print a local fork progress snapshot and exit.",
+    )
 
     return parser
 
@@ -66,7 +76,9 @@ def parse_args(argv: list[str] | None = None) -> Namespace:
     return args
 
 
-def init_display(platform: str = "pygame") -> DisplayContext:
+def init_display(platform: str = "pygame") -> "DisplayContext":
+    from tuxemon.prepare import headless_init, pygame_init
+
     if platform == "pygame":
         return pygame_init()
     if platform == "headless":
@@ -74,7 +86,7 @@ def init_display(platform: str = "pygame") -> DisplayContext:
     raise ValueError(f"Unsupported platform: {platform}")
 
 
-def apply_config_from_args(config: TuxemonConfig, args: Namespace) -> None:
+def apply_config_from_args(config: "TuxemonConfig", args: Namespace) -> None:
     if args.mod:
         config.mods.insert(0, args.mod)
 
@@ -112,10 +124,16 @@ def handle_fatal_error(e: Exception) -> None:
 
 def launch_game(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
+
+    if args.status:
+        print_status(Path(__file__).resolve().parent)
+        return
+
     platform = "headless" if args.headless else "pygame"
     context = init_display(platform)
 
     from tuxemon import main as tuxemon_main
+    from tuxemon.user_config import CONFIG
 
     config = CONFIG.copy()
 
