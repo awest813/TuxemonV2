@@ -73,6 +73,8 @@ class Monster:
         "taste_cold": str,
         "taste_warm": str,
         "steps": float,
+        "is_egg": bool,
+        "hatch_steps": float,
     }
 
     def __init__(
@@ -157,6 +159,9 @@ class Monster:
 
         self.body = Body()
 
+        self.is_egg: bool = False
+        self.hatch_steps: float = 0.0
+
     def _init_assets(self, db_data: MonsterModel) -> None:
         """Store only metadata for assets. No loading, no SpriteLoader."""
         self.flair_slugs = set(db_data.flairs or [])
@@ -186,7 +191,9 @@ class Monster:
         )
 
     @classmethod
-    def spawn_base(cls, slug: str, level: int) -> Monster:
+    def spawn_base(
+        cls, slug: str, level: int, as_egg: bool = False
+    ) -> Monster:
         """Creates a fresh monster at a given level with initialized stats."""
         db_data = MonsterModel.lookup(slug, db)
         monster = cls(slug, db_data)
@@ -196,6 +203,11 @@ class Monster:
         monster.moves.set_moves(monster)
         monster.set_stats()
         monster.current_hp = monster.hp
+
+        if as_egg:
+            monster.is_egg = True
+            monster.hatch_steps = 2000.0
+
         return monster
 
     @classmethod
