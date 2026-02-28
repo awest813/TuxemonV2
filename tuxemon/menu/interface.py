@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
-from pygame import SRCALPHA
+from pygame import BLEND_RGBA_ADD, BLEND_RGBA_MULT, SRCALPHA
 from pygame import draw as pg_draw
 from pygame.rect import Rect
 from pygame.surface import Surface
@@ -238,6 +238,10 @@ class MenuItem(Generic[T], Sprite):
             If None, position must be set later. Defaults to None.
     """
 
+    DISABLED_DIM_MULTIPLIER = (160, 160, 160, 255)
+    DISABLED_ALPHA = 170
+    FOCUS_HIGHLIGHT_ADD = (26, 26, 26, 0)
+
     def __init__(
         self,
         image: Surface | None,
@@ -269,13 +273,23 @@ class MenuItem(Generic[T], Sprite):
         if self._image is None:
             return
 
-        if self._in_focus:
-            # Add visual effect for focus here
-            pass
+        styled_image = self._image.copy()
 
         if not self._enabled:
-            # Add visual effect for not enabled here
-            pass
+            # Dim and soften disabled entries so unavailable actions are obvious.
+            styled_image.fill(
+                self.DISABLED_DIM_MULTIPLIER,
+                special_flags=BLEND_RGBA_MULT,
+            )
+            styled_image.set_alpha(self.DISABLED_ALPHA)
+        elif self._in_focus:
+            # Slight brightening makes the focused choice easier to track.
+            styled_image.fill(
+                self.FOCUS_HIGHLIGHT_ADD,
+                special_flags=BLEND_RGBA_ADD,
+            )
+
+        self._image = styled_image
 
     @property
     def enabled(self) -> bool:
@@ -283,8 +297,10 @@ class MenuItem(Generic[T], Sprite):
 
     @enabled.setter
     def enabled(self, value: bool) -> None:
-        if self._enabled != value:
-            self._enabled = value
+        new_value = bool(value)
+        if self._enabled != new_value:
+            self._enabled = new_value
+            self._needs_update = True
 
     @property
     def in_focus(self) -> bool:
@@ -292,7 +308,10 @@ class MenuItem(Generic[T], Sprite):
 
     @in_focus.setter
     def in_focus(self, value: bool) -> None:
-        self._in_focus = bool(value)
+        new_value = bool(value)
+        if self._in_focus != new_value:
+            self._in_focus = new_value
+            self._needs_update = True
 
     def __repr__(self) -> str:
         return (

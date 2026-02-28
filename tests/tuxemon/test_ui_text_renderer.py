@@ -6,7 +6,7 @@ import pygame
 from pygame.surface import Surface
 
 from tuxemon.scaling import DefaultScaling
-from tuxemon.ui.text_renderer import TextRenderer
+from tuxemon.ui.text_renderer import TextRenderer, load_font_with_fallback
 
 
 class TestTextRenderer(unittest.TestCase):
@@ -71,3 +71,17 @@ class TestTextRenderer(unittest.TestCase):
             surface.get_flags() & pygame.SRCALPHA, pygame.SRCALPHA
         )
         self.assertEqual(surface.get_alpha(), 255)
+
+    def test_load_font_with_fallback_when_file_missing(self):
+        missing_font = "/tmp/definitely_missing_font_file.ttf"
+        font = load_font_with_fallback(missing_font, 14)
+        self.assertGreater(font.get_height(), 0)
+
+    def test_text_renderer_uses_font_fallback_when_file_missing(self):
+        renderer = TextRenderer(
+            DefaultScaling(1),
+            (255, 255, 255),
+            font_filename="/tmp/also_missing_font.ttf",
+        )
+        surface = renderer.shadow_text("Fallback works")
+        self.assertIsInstance(surface, Surface)

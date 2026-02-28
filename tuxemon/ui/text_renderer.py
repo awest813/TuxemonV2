@@ -2,6 +2,7 @@
 # Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
 from __future__ import annotations
 
+import logging
 import math
 from typing import TYPE_CHECKING
 
@@ -14,6 +15,22 @@ from tuxemon.platform.const.graphics import FONT_SHADOW_COLOR, FONT_SIZE
 
 if TYPE_CHECKING:
     from tuxemon.scaling import ScalingStrategy
+
+
+logger = logging.getLogger(__name__)
+
+
+def load_font_with_fallback(font_filename: str | None, font_size: int) -> Font:
+    """Load a font file and gracefully fall back to pygame's default font."""
+    try:
+        return Font(font_filename, font_size)
+    except (FileNotFoundError, OSError, TypeError, ValueError) as err:
+        logger.warning(
+            "Unable to load font %r (%s). Falling back to default font.",
+            font_filename,
+            err,
+        )
+        return Font(None, font_size)
 
 
 class TextRenderer:
@@ -30,7 +47,7 @@ class TextRenderer:
         if font_shadow_color is None:
             font_shadow_color = FONT_SHADOW_COLOR
         self.font_shadow_color = font_shadow_color
-        self.font = font or Font(
+        self.font = font or load_font_with_fallback(
             font_filename, self.scaling.scale_int(FONT_SIZE)
         )
 

@@ -63,7 +63,7 @@ from tuxemon.sprite import (
 from tuxemon.state.state import State
 from tuxemon.tools import transform_resource_filename
 from tuxemon.ui.graphic_box import GraphicBox
-from tuxemon.ui.text_renderer import TextRenderer
+from tuxemon.ui.text_renderer import TextRenderer, load_font_with_fallback
 from tuxemon.user_config import CONFIG
 
 if TYPE_CHECKING:
@@ -726,7 +726,9 @@ class Menu(Generic[T], State):
         else:
             self.font_size = self.client.context.scaling.scale_int(size)
 
-        self.font = Font(font, self.font_size)
+        self.font = load_font_with_fallback(font, self.font_size)
+        if hasattr(self, "_text_renderer"):
+            self._text_renderer.font = self.font
         return self.font
 
     def calc_internal_rect(self) -> Rect:
