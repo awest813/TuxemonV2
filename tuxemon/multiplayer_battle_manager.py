@@ -979,10 +979,17 @@ class MultiplayerBattleManager:
 
     def load_log(self, data: dict[str, Any]) -> None:
         pending_data = data.get("pending_challenges", [])
-        self.pending_challenges = [
-            BattleChallenge.from_dict(challenge_data)
-            for challenge_data in pending_data
-        ]
+        pending_challenges: list[BattleChallenge] = []
+        for challenge_data in pending_data:
+            if not isinstance(challenge_data, Mapping):
+                continue
+            try:
+                pending_challenges.append(
+                    BattleChallenge.from_dict(challenge_data)
+                )
+            except (KeyError, TypeError, ValueError):
+                continue
+        self.pending_challenges = pending_challenges
         raw_history = data.get("battle_history", data.get("completed_battles", []))
         history: list[BattleRecord] = []
         for entry in raw_history:

@@ -201,6 +201,44 @@ def test_load_log_purges_expired_pending_offers(manager, npc_manager):
     ).hex
 
 
+def test_load_log_skips_malformed_trade_history_and_pending_offers(
+    manager, npc_manager
+):
+    now = datetime.now(timezone.utc)
+    valid_record = {
+        "from_player": "Alice",
+        "to_player": "Bob",
+        "from_player_id": str(uuid4()),
+        "to_player_id": str(uuid4()),
+        "monster_given": "alpha",
+        "monster_received": "beta",
+        "monster_given_id": str(uuid4()),
+        "monster_received_id": str(uuid4()),
+        "timestamp": now.isoformat(),
+    }
+    valid_offer = {
+        "proposing_player_id": str(uuid4()),
+        "proposing_monster_id": str(uuid4()),
+        "receiving_player_id": str(uuid4()),
+        "requested_monster_id": str(uuid4()),
+        "offer_id": str(uuid4()),
+        "timestamp": now.isoformat(),
+        "expires_at": (now + timedelta(minutes=1)).isoformat(),
+    }
+
+    manager.load_log(
+        {
+            "trade_history": [valid_record, {"bad": "entry"}, "nope"],
+            "pending_offers": [valid_offer, {"offer_id": "invalid"}, 99],
+        }
+    )
+
+    assert len(manager.global_trade_log) == 1
+    assert manager.global_trade_log[0].from_player == "Alice"
+    assert len(manager.pending_offers) == 1
+    assert manager.pending_offers[0].offer_id == UUID(valid_offer["offer_id"])
+
+
 def test_accept_trade_expired_offer(
     manager, npc_manager, players_and_monsters
 ):
