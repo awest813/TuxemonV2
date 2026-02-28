@@ -4,7 +4,7 @@ This roadmap reflects the current state of the branch and outlines practical fol
 
 ## Status Overview
 
-- Overall checklist completion: **21/29**
+- Overall checklist completion: **24/29**
 - Snapshot command: `python run_tuxemon.py --status`
 - Rebrand phase: **Phase A complete** (documentation and messaging aligned; compatibility-first migration policy published)
 - Latest recorded status during this update:
@@ -62,17 +62,23 @@ The original baseline milestones are complete; this expanded plan now tracks reb
   - Turn synchronization, timeout/reconnect policy, and authoritative conflict resolution are implemented and routed through the multiplayer client/server flow.
   - Active battle sessions are persisted across save/load boundaries with stale-session cleanup and malformed-data tolerance.
   - Added regression coverage for networking payload normalization, movement/map/facing routing, and duel challenge lifecycle handling.
-- [~] **Network-state UX clarity**
+- [x] **Network-state UX clarity**
   - Added manager-level feedback helpers for trade lifecycle outcomes (pending/accepted/expired/failed) with retry guidance.
-  - Remaining: wire these messages through gameplay UI screens and localization entries.
+  - Feedback messages wired through localization pipeline with translation keys in `en_US/base.po`.
+  - Added `format_params` support for dynamic feedback messages (reconnect timers, turn numbers).
+  - Network manager consumes feedback and renders via `T.format()`/`T.translate()` → `open_dialog()`.
 
 ### Phase 2 — Quality and Reliability
-- [ ] **Automated data validation expansion**
-  - Enforce stronger checks for content integrity (monster definitions, map references, localization keys).
-  - Integrate validation into CI checks for pull requests.
-- [ ] **Save compatibility test matrix**
-  - Add regression tests for old/new save migrations around trade and multiplayer logs.
-  - Include malformed-history fixtures to preserve tolerant loading behavior.
+- [x] **Automated data validation expansion**
+  - Added `tuxemon/database/content_validator.py` for cross-reference validation of monster/technique/NPC/evolution refs.
+  - Validates technique slugs in movesets, evolution targets, history refs, and NPC party monsters.
+  - Optional strict mode checks locale coverage for all content slugs.
+  - Integrated `validate-content` CI job in `test.yml` for pull request gating.
+- [x] **Save compatibility test matrix**
+  - Added `tests/tuxemon/test_save_compatibility.py` with 24 regression tests.
+  - Covers save upgrader v0→current, monster/technique renames, SaveData model defaults.
+  - Trade log fixtures: valid entries, malformed entries, naive timestamps, roundtrip.
+  - Battle log fixtures: legacy key compat, malformed tolerance, expired purging, roundtrip.
 - [ ] **Debugging workflow standardization**
   - Document a shared triage flow (status snapshot, narrow repro command, targeted test run, full regression pass).
   - Define minimum diagnostic output to include in bugfix PR descriptions.
