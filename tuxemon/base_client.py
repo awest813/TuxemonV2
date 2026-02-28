@@ -37,6 +37,7 @@ from tuxemon.map.transition import MapTransition
 from tuxemon.map.view import AbstractRenderer, NullRenderer
 from tuxemon.menu.alert import AlertManager
 from tuxemon.movement import MovementManager, Pathfinder
+from tuxemon.multiplayer_battle_manager import MultiplayerBattleManager
 from tuxemon.network.manager import NetworkManager
 from tuxemon.npc_manager import NPCManager
 from tuxemon.park_tracker import ParkSession
@@ -180,6 +181,7 @@ class BaseClient(ABC):
 
         # Various Sessions
         self.trade_manager = TradeManager(self.npc_manager)
+        self.multiplayer_battle_manager = MultiplayerBattleManager()
         self.environment_manager = EnvironmentManager(self.context)
         self.encounter_manager = EncounterManager()
         self.park_session = ParkSession()
