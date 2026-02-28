@@ -495,12 +495,26 @@ class TradeManager:
 
     def load_log(self, data: Mapping[str, Any]) -> None:
         trade_data = data.get("trade_history", [])
-        self.global_trade_log = [TradeRecord.from_dict(r) for r in trade_data]
+        history: list[TradeRecord] = []
+        for entry in trade_data:
+            if not isinstance(entry, Mapping):
+                continue
+            try:
+                history.append(TradeRecord.from_dict(dict(entry)))
+            except (KeyError, TypeError, ValueError):
+                continue
+        self.global_trade_log = history
 
         pending_data = data.get("pending_offers", [])
-        self.pending_offers = [
-            TradeOffer.from_dict(o) for o in pending_data
-        ]
+        offers: list[TradeOffer] = []
+        for entry in pending_data:
+            if not isinstance(entry, Mapping):
+                continue
+            try:
+                offers.append(TradeOffer.from_dict(entry))
+            except (KeyError, TypeError, ValueError):
+                continue
+        self.pending_offers = offers
         self.purge_expired_offers()
 
         ttl_seconds = data.get("default_offer_ttl_seconds")

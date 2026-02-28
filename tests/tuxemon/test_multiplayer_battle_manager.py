@@ -218,6 +218,34 @@ def test_load_log_completed_battles_compat_and_malformed_entries() -> None:
     assert manager.battle_history[0].resolution == BattleResolution.ACCEPTED
 
 
+def test_load_log_skips_malformed_pending_challenges() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+    valid_pending = {
+        "challenger_player_id": str(challenger),
+        "challenged_player_id": str(challenged),
+        "challenge_id": str(uuid4()),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "expires_at": (
+            datetime.now(timezone.utc) + timedelta(minutes=1)
+        ).isoformat(),
+    }
+
+    manager.load_log(
+        {
+            "pending_challenges": [
+                valid_pending,
+                {"challenge_id": "invalid"},
+                "not-a-challenge",
+            ],
+        }
+    )
+
+    assert len(manager.pending_challenges) == 1
+    assert manager.pending_challenges[0].challenge_id.hex == valid_pending["challenge_id"].replace("-", "")
+
+
 def test_turn_submission_synchronizes_and_increments_turn() -> None:
     manager = MultiplayerBattleManager()
     challenger = uuid4()
