@@ -251,6 +251,18 @@ class MultiplayerBattleManager:
             None,
         )
 
+    def get_active_battle_session_for_challenge(
+        self, challenge_id: UUID
+    ) -> ActiveBattleSession | None:
+        return next(
+            (
+                battle_session
+                for battle_session in self.active_battle_sessions
+                if battle_session.challenge_id == challenge_id
+            ),
+            None,
+        )
+
     def purge_stale_battle_sessions(self, now: datetime | None = None) -> int:
         current_time = now or datetime.now(timezone.utc)
         active_sessions = []
@@ -663,6 +675,11 @@ class MultiplayerBattleManager:
 
         self.pending_challenges.remove(challenge)
         self._add_battle_record(challenge, BattleResolution.ACCEPTED)
+        self.start_battle_session(
+            challenge.challenge_id,
+            challenge.challenger_player_id,
+            challenge.challenged_player_id,
+        )
         self.event_bus.publish("battle_challenge_accepted", challenge)
         return BattleChallengeResult.SUCCESS
 
