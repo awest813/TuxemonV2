@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import os
+import tempfile
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from functools import partial
@@ -221,7 +223,7 @@ class PygameMenuState(State):
     def _create_image_from_surface(
         self, surface: Surface, position: str = POSITION_CENTER
     ) -> BaseImage:
-        temp_path = "/tmp/tuxemon_sprite.png"
+        temp_path = os.path.join(tempfile.gettempdir(), "tuxemon_sprite.png")
         image.save(surface, temp_path)
 
         return BaseImage(
