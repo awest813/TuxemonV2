@@ -4,7 +4,7 @@ This roadmap reflects the current state of the branch and outlines practical fol
 
 ## Status Overview
 
-- Overall checklist completion: **28/29**
+- Overall checklist completion: **29/29** (all alpha-gate milestones complete)
 - Snapshot command: `python run_tuxemon.py --status`
 - Rebrand phase: **Phase A complete** (documentation and messaging aligned; compatibility-first migration policy published)
 - Latest recorded status during this update:
@@ -90,9 +90,11 @@ The original baseline milestones are complete; this expanded plan now tracks reb
   - Defined dependency layer rules and backward-compatible migration strategy.
 
 ### Phase 3 — Content and Balance
-- [ ] **Progression balancing pass**
-  - Tune encounter pacing, move curves, and economy to reduce mid-game spikes.
-  - Add benchmark scenarios for repeatable balancing decisions.
+- [x] **Progression balancing pass**
+  - Added `scripts/balance_report.py` for generating progression balance reports with spike detection.
+  - Analysis covers: monster catch rates by stage, technique power distribution, moveset power curves, economy pricing, encounter level coverage.
+  - Added 16 balance benchmark tests encoding expected progression properties.
+  - Current data shows smooth power curve (1.06 → 1.39 → 1.61 → 1.86 → 2.20 → 2.56 across level brackets).
 - [x] **Content throughput tooling**
   - Added `scripts/scaffold_monster.py` for bootstrapping new monster definitions with all required fields, auto-assigned IDs, and locale stubs.
   - Added `scripts/scaffold_locale.py` for adding, checking, and batch-importing locale entries.
@@ -102,8 +104,9 @@ The original baseline milestones are complete; this expanded plan now tracks reb
 - [x] **Onboarding and architecture docs refresh**
   - Added `docs/architecture_overview.md` with walkthroughs for battle, save, and content loading subsystems.
   - Published a “first contribution” path for code and content contributors.
-- [ ] **Roadmap maintenance cadence**
-  - Update roadmap snapshot and phase progress at a regular cadence (e.g., monthly).
+- [x] **Roadmap maintenance cadence**
+  - Added `docs/roadmap_snapshot_template.md` with structured format for monthly snapshots.
+  - Template covers: status, content/balance/validation snapshots, changes, priorities, known issues.
 
 ---
 
@@ -130,6 +133,49 @@ This sequence narrows the remaining work into explicit alpha gates with clear ex
 - Refresh architecture/onboarding docs for battle, saves, and content loading paths.
 - Establish monthly roadmap/status updates and release-note templates for alpha previews.
 - Exit criteria: new contributors can ship a first change quickly, and alpha release process is documented end-to-end.
+
+---
+
+## Phase 5 — Post-Alpha Feature Expansion
+
+With all alpha gates satisfied, this phase targets the feature depth gaps identified in `docs/pokemon_gold_silver_feature_gap.md` and community-driven priorities.
+
+### Milestone A — World Reactivity
+- [ ] **Time-based encounter and schedule system**
+  - Expand day/night encounter variation across routes.
+  - Add weekday-based NPC schedules and event windows.
+  - Add at least one recurring weekly event activity.
+- [ ] **Phone ecosystem depth**
+  - Wire phone contacts into rematch triggers, item tips, and rare encounter alerts.
+  - Make phone calls materially change route choice and gameplay loops.
+
+### Milestone B — Combat Replayability
+- [ ] **Battle facility (Battle Tower equivalent)**
+  - Add a repeatable challenge format with scaling difficulty and rank progression.
+  - Define ruleset (level caps, item restrictions) and reward structure.
+- [ ] **Friendship/happiness evolution system**
+  - Implement friendship stat that changes with party presence, items, and battle outcomes.
+  - Tie friendship thresholds to evolution triggers and move interactions.
+- [ ] **Evolution variety expansion**
+  - Add non-level evolution methods: item-based, trade-based, time-based, friendship-based.
+  - Track % of evolutions using non-level methods as a parity metric.
+
+### Milestone C — Longevity and Completion
+- [ ] **Postgame expansion arc**
+  - Add substantial content beyond main story credits (region-scale or equivalent chapter).
+  - Design durable completion incentives (journal milestones, rare unlocks, economy sinks).
+- [ ] **Trainer rematch system**
+  - Enable trainer rematches with scaling levels and improved rosters.
+  - Integrate with phone contact system for rematch scheduling.
+
+### Success Metrics (from GS feature gap analysis)
+- % of routes with time-dependent encounter/availability changes
+- \# of meaningful phone call triggers per in-game week
+- Postgame playtime median after credits
+- \# of viable repeatable challenge formats (tower/contest/rematch ladders)
+- % of monster evolutions using non-level methods
+
+---
 
 ## Definition of Done for Future Milestones
 
