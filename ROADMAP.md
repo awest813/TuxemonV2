@@ -67,6 +67,10 @@ The original baseline milestones are complete; this expanded plan now tracks reb
   - Feedback messages wired through localization pipeline with translation keys in `en_US/base.po`.
   - Added `format_params` support for dynamic feedback messages (reconnect timers, turn numbers).
   - Network manager consumes feedback and renders via `T.format()`/`T.translate()` → `open_dialog()`.
+- [ ] **Online tournaments foundation kickoff**
+  - Published initial phased tournament roadmap in `docs/online_tournaments_roadmap.md`.
+  - Next implementation target: complete Phase 0 (rules/flows) and Phase 1 (domain model + persistence) milestones.
+  - Alpha intent: single-elimination MVP orchestration built on existing challenge + battle session systems.
 
 ### Phase 2 — Quality and Reliability
 - [x] **Automated data validation expansion**
@@ -109,6 +113,7 @@ This sequence narrows the remaining work into explicit alpha gates with clear ex
 ### Alpha Gate 1 — Stable Online Foundations
 - Complete multiplayer battle execution protocol (authoritative turn sync, reconnect, and timeout handling).
 - Integrate new trade/challenge feedback pathways into player-visible UI flows for pending/accepted/expired outcomes.
+- Start online tournaments execution from the published phased plan (`docs/online_tournaments_roadmap.md`) and deliver M1 foundation milestones.
 - Exit criteria: online actions have deterministic outcomes, player-facing status text, and regression tests for disconnect/retry scenarios.
 
 ### Alpha Gate 2 — Save and Data Confidence
