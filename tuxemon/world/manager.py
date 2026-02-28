@@ -206,7 +206,7 @@ class WorldMenuManager:
         return [
             item
             for item in self.menu_items
-            if not self.item_exists(item.label, current_menu)
+            if not self.item_exists(item.key, current_menu)
         ]
 
     def build_current_menu_items(self, player: NPC) -> list[MenuItem]:

@@ -53,9 +53,9 @@ class TextRenderer:
         Returns:
             A Surface containing the rendered text with its shadow applied.
         """
-        if not fg:
+        if fg is None:
             fg = self.font_color
-        if not bg:
+        if bg is None:
             bg = self.font_shadow_color
         font_color = self.font.render(text, True, fg)
         shadow_color = self.font.render(text, True, bg)

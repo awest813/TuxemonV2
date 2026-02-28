@@ -78,6 +78,12 @@ class TestTextArea(unittest.TestCase):
             self.text_area.image.get_at((0, 0)), pygame.Color(255, 0, 0, 255)
         )
 
+
+    def test_set_background_color_with_int_color(self):
+        self.text_area.rect = pygame.Rect(0, 0, 10, 10)
+        self.text_area.set_background(background_color=0)
+        self.assertIsNotNone(self.text_area.image)
+
     def test_set_background_image(self):
         surf = pygame.Surface((10, 10))
         surf.fill((0, 255, 0))
