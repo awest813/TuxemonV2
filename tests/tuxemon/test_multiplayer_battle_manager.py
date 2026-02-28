@@ -447,6 +447,52 @@ def test_get_turn_submission_feedback_messages() -> None:
     assert unauthorized.retryable is False
 
 
+def test_get_challenge_action_feedback_messages() -> None:
+    manager = MultiplayerBattleManager()
+
+    proposed = manager.get_challenge_action_feedback(
+        BattleChallengeResult.SUCCESS,
+        action="propose",
+    )
+    assert proposed.state == OnlineActionState.PENDING
+    assert proposed.retryable is False
+
+    accepted = manager.get_challenge_action_feedback(
+        BattleChallengeResult.SUCCESS,
+        action="accept",
+    )
+    assert accepted.state == OnlineActionState.ACCEPTED
+    assert accepted.retryable is False
+
+    cancelled = manager.get_challenge_action_feedback(
+        BattleChallengeResult.SUCCESS,
+        action="cancel",
+    )
+    assert cancelled.state == OnlineActionState.CANCELLED
+    assert cancelled.retryable is False
+
+    rejected = manager.get_challenge_action_feedback(
+        BattleChallengeResult.REJECTED,
+        action="reject",
+    )
+    assert rejected.state == OnlineActionState.REJECTED
+    assert rejected.retryable is True
+
+    duplicate = manager.get_challenge_action_feedback(
+        BattleChallengeResult.DUPLICATE,
+        action="propose",
+    )
+    assert duplicate.state == OnlineActionState.FAILED
+    assert duplicate.retryable is False
+
+    missing = manager.get_challenge_action_feedback(
+        BattleChallengeResult.NOT_FOUND,
+        action="cancel",
+    )
+    assert missing.state == OnlineActionState.NOT_FOUND
+    assert missing.retryable is True
+
+
 def test_get_battle_session_feedback_states() -> None:
     manager = MultiplayerBattleManager()
     challenger = uuid4()
