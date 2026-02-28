@@ -5066,6 +5066,31 @@ msgstr "Battle request was cancelled."
 msgid "battle_challenge_not_found"
 msgstr "Battle request not found. Please refresh and try again."
 
+# Phone notifications
+msgid "phone_rematch_available"
+msgstr "{trainer} wants a rematch! (Battle #{rematch_number}, +{level_bonus} levels)"
+
+msgid "phone_tip_potion"
+msgstr "{trainer} says: Don't forget to stock up on potions before heading out!"
+
+msgid "phone_tip_capture"
+msgstr "{trainer} says: Weaken monsters before throwing a capture device for better odds."
+
+msgid "phone_tip_status"
+msgstr "{trainer} says: Status effects can turn the tide of a tough battle."
+
+msgid "phone_tip_type_advantage"
+msgstr "{trainer} says: Type advantages deal extra damage. Learn the matchups!"
+
+msgid "phone_alert_rare_sighting"
+msgstr "{trainer} says: I spotted a rare monster near {location}!"
+
+msgid "phone_alert_swarm"
+msgstr "{trainer} says: There's a monster swarm forming near {location}!"
+
+msgid "phone_alert_weather_change"
+msgstr "{trainer} says: The weather is changing near {location}. New encounters ahead!"
+
 msgid "swap"
 msgstr "Swap"
 
