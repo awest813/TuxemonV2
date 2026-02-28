@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import patch
 
-from tuxemon.world.manager import WorldMenuManager
+from tuxemon.world.manager import MenuItem, WorldMenuManager
 
 
 class DummyMissionController:
@@ -43,6 +43,31 @@ class TestWorldMenuManager(unittest.TestCase):
         self.assertNotIn("menu_save", keys)
         self.assertNotIn("menu_load", keys)
         self.assertNotIn("exit", keys)
+
+
+    @patch("tuxemon.world.manager.T.translate")
+    def test_merge_persistent_items_avoids_duplicate_key(self, mock_translate):
+        translations = {
+            "menu_options": "Options",
+            "menu_monster": "Monster",
+            "menu_bag": "Bag",
+            "menu_player": "Player",
+        }
+        mock_translate.side_effect = lambda key: translations.get(key, key)
+
+        manager = WorldMenuManager(DummyClient())
+        manager.menu_renderer = type(
+            "Renderer", (), {"open_monster_menu": lambda self: None}
+        )()
+
+        manager.menu_items.append(
+            MenuItem("menu_options", "OPTIONS", lambda: None)
+        )
+
+        items = manager.build_current_menu_items(DummyPlayer())
+        keys = [item.key for item in items]
+
+        self.assertEqual(keys.count("menu_options"), 1)
 
     @patch("tuxemon.world.manager.T.translate", side_effect=lambda key: key)
     def test_system_menu_contains_system_actions(self, _mock_translate):

@@ -166,18 +166,18 @@ class TextArea(Sprite):
     ) -> None:
         self.image = Surface(self.rect.size, SRCALPHA)
 
-        if background_color:
+        if background_color is not None:
             self.image.fill(background_color)
-        if background_image:
+        if background_image is not None:
             self.image.blit(background_image, (0, 0))
 
     def _start_text_animation(self) -> None:
         self.drawing_text = True
         self.image = Surface(self.rect.size, SRCALPHA)
 
-        if self.background_color:
+        if self.background_color is not None:
             self.image.fill(self.background_color)
-        if self.background_image:
+        if self.background_image is not None:
             self.image.blit(self.background_image, (0, 0))
 
         self.diagnostics.draw_outline(self.image)
@@ -304,7 +304,7 @@ def draw_text(
     if rect_obj.width <= 0 or rect_obj.height <= 0:
         return
 
-    if not font_color:
+    if font_color is None:
         font_color = FONT_COLOR
 
     if text_renderer is None:
