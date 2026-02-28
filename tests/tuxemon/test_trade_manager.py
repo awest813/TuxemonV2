@@ -2,7 +2,7 @@
 # Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -148,6 +148,59 @@ def test_save_and_load_log(manager, npc_manager, sample_record):
     assert new_manager.global_trade_log[0].from_player == "Better"
 
 
+def test_save_and_load_log_persists_pending_offers_and_ttl(
+    manager, npc_manager, players_and_monsters
+):
+    _, player_b, monster_a, monster_b = players_and_monsters
+    manager.default_offer_ttl_seconds = 123
+    manager.propose_trade(monster_a, monster_b, expires_in_seconds=123)
+
+    saved = manager.save_log()
+    new_manager = TradeManager(npc_manager)
+    new_manager.event_bus = MagicMock()
+    new_manager.load_log(saved)
+
+    assert new_manager.default_offer_ttl_seconds == 123
+    received = new_manager.get_received_offers_for_player(player_b.instance_id)
+    assert len(received) == 1
+    assert received[0].requested_monster_id == monster_b.instance_id
+
+
+def test_load_log_purges_expired_pending_offers(manager, npc_manager):
+    now = datetime.now(timezone.utc)
+    valid_offer = {
+        "proposing_player_id": str(uuid4()),
+        "proposing_monster_id": str(uuid4()),
+        "receiving_player_id": str(uuid4()),
+        "requested_monster_id": str(uuid4()),
+        "offer_id": str(uuid4()),
+        "timestamp": now.isoformat(),
+        "expires_at": (now + timedelta(minutes=1)).isoformat(),
+    }
+    expired_offer = {
+        "proposing_player_id": str(uuid4()),
+        "proposing_monster_id": str(uuid4()),
+        "receiving_player_id": str(uuid4()),
+        "requested_monster_id": str(uuid4()),
+        "offer_id": str(uuid4()),
+        "timestamp": now.isoformat(),
+        "expires_at": (now - timedelta(minutes=1)).isoformat(),
+    }
+
+    new_manager = TradeManager(npc_manager)
+    new_manager.load_log(
+        {
+            "trade_history": [],
+            "pending_offers": [valid_offer, expired_offer],
+        }
+    )
+
+    assert len(new_manager.pending_offers) == 1
+    assert new_manager.pending_offers[0].offer_id.hex == UUID(
+        valid_offer["offer_id"]
+    ).hex
+
+
 def test_accept_trade_expired_offer(
     manager, npc_manager, players_and_monsters
 ):
@@ -213,6 +266,100 @@ def test_purge_expired_offers_removes_only_expired(
     assert len(manager.pending_offers) == 1
     offers = manager.get_pending_offers_for_player(player_a.instance_id)
     assert len(offers) == 1
+
+
+def test_get_received_offers_for_player(manager, players_and_monsters):
+    player_a, player_b, monster_a, monster_b = players_and_monsters
+    manager.propose_trade(monster_a, monster_b)
+
+    received = manager.get_received_offers_for_player(player_b.instance_id)
+
+    assert len(received) == 1
+    assert received[0].receiving_player_id == player_b.instance_id
+    assert (
+        manager.get_received_offers_for_player(player_a.instance_id) == []
+    )
+
+
+def test_cancel_trade_offer_success(manager, players_and_monsters):
+    player_a, _, monster_a, monster_b = players_and_monsters
+    manager.event_bus = MagicMock()
+    manager.propose_trade(monster_a, monster_b)
+    offer = manager.pending_offers[0]
+    manager.event_bus.publish.reset_mock()
+
+    result = manager.cancel_trade_offer(
+        offer.offer_id, requesting_player_id=player_a.instance_id
+    )
+
+    assert result == TradeResult.SUCCESS
+    assert manager.pending_offers == []
+    manager.event_bus.publish.assert_called_once_with(
+        "trade_offer_cancelled", offer
+    )
+
+
+def test_cancel_trade_offer_unauthorized(manager, players_and_monsters):
+    _, _, monster_a, monster_b = players_and_monsters
+    manager.propose_trade(monster_a, monster_b)
+    offer = manager.pending_offers[0]
+
+    result = manager.cancel_trade_offer(
+        offer.offer_id, requesting_player_id=uuid4()
+    )
+
+    assert result == TradeResult.UNAUTHORIZED
+    assert offer in manager.pending_offers
+
+
+def test_accept_trade_unauthorized_actor(
+    manager, npc_manager, players_and_monsters
+):
+    player_a, _, monster_a, monster_b = players_and_monsters
+    all_monsters = [monster_a, monster_b]
+    npc_manager.get_monster_by_iid.side_effect = lambda iid: next(
+        (m for m in all_monsters if m.instance_id == iid), None
+    )
+    manager.propose_trade(monster_a, monster_b)
+    offer = manager.pending_offers[0]
+
+    result = manager.accept_trade(
+        offer.offer_id, accepting_player_id=player_a.instance_id
+    )
+
+    assert result == TradeResult.UNAUTHORIZED
+    assert offer in manager.pending_offers
+
+
+def test_reject_trade_offer_success(manager, players_and_monsters):
+    _, player_b, monster_a, monster_b = players_and_monsters
+    manager.event_bus = MagicMock()
+    manager.propose_trade(monster_a, monster_b)
+    offer = manager.pending_offers[0]
+    manager.event_bus.publish.reset_mock()
+
+    result = manager.reject_trade_offer(
+        offer.offer_id, rejecting_player_id=player_b.instance_id
+    )
+
+    assert result == TradeResult.REJECTED
+    assert manager.pending_offers == []
+    manager.event_bus.publish.assert_called_once_with(
+        "trade_offer_rejected", offer
+    )
+
+
+def test_reject_trade_offer_unauthorized(manager, players_and_monsters):
+    player_a, _, monster_a, monster_b = players_and_monsters
+    manager.propose_trade(monster_a, monster_b)
+    offer = manager.pending_offers[0]
+
+    result = manager.reject_trade_offer(
+        offer.offer_id, rejecting_player_id=player_a.instance_id
+    )
+
+    assert result == TradeResult.UNAUTHORIZED
+    assert offer in manager.pending_offers
 
 
 def test_get_trade_history_filtered(manager, sample_record):
