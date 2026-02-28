@@ -46,6 +46,23 @@ class TurnSubmissionResult(Enum):
     WAITING = "waiting"
 
 
+class OnlineActionState(Enum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
+    EXPIRED = "expired"
+    FAILED = "failed"
+    NOT_FOUND = "not_found"
+
+
+@dataclass
+class OnlineActionFeedback:
+    state: OnlineActionState
+    message: str
+    retryable: bool
+
+
 @dataclass
 class BattleChallenge:
     challenger_player_id: UUID
@@ -434,6 +451,89 @@ class MultiplayerBattleManager:
             for challenge in self.pending_challenges
             if challenge.challenged_player_id == player_id
         ]
+
+    def get_challenge_feedback(
+        self, challenge_id: UUID, player_id: UUID
+    ) -> OnlineActionFeedback:
+        challenge = self._find_challenge(challenge_id)
+        if challenge is not None:
+            if player_id not in {
+                challenge.challenger_player_id,
+                challenge.challenged_player_id,
+            }:
+                return OnlineActionFeedback(
+                    state=OnlineActionState.FAILED,
+                    message="You are not authorized to view this battle request.",
+                    retryable=False,
+                )
+
+            expires_at = challenge.expires_at
+            if expires_at is not None:
+                seconds_left = max(
+                    0,
+                    int(
+                        (
+                            expires_at - datetime.now(timezone.utc)
+                        ).total_seconds()
+                    ),
+                )
+                return OnlineActionFeedback(
+                    state=OnlineActionState.PENDING,
+                    message=(
+                        "Battle request is pending. "
+                        f"Time remaining: {seconds_left} seconds."
+                    ),
+                    retryable=False,
+                )
+
+            return OnlineActionFeedback(
+                state=OnlineActionState.PENDING,
+                message="Battle request is pending.",
+                retryable=False,
+            )
+
+        for record in reversed(self.battle_history):
+            if record.challenge_id != challenge_id:
+                continue
+            if player_id not in {
+                record.challenger_player_id,
+                record.challenged_player_id,
+            }:
+                return OnlineActionFeedback(
+                    state=OnlineActionState.FAILED,
+                    message="You are not authorized to view this battle request.",
+                    retryable=False,
+                )
+
+            if record.resolution == BattleResolution.ACCEPTED:
+                return OnlineActionFeedback(
+                    state=OnlineActionState.ACCEPTED,
+                    message="Battle request accepted. Preparing battle session.",
+                    retryable=False,
+                )
+            if record.resolution == BattleResolution.EXPIRED:
+                return OnlineActionFeedback(
+                    state=OnlineActionState.EXPIRED,
+                    message="Battle request expired. Send a new request to retry.",
+                    retryable=True,
+                )
+            if record.resolution == BattleResolution.REJECTED:
+                return OnlineActionFeedback(
+                    state=OnlineActionState.REJECTED,
+                    message="Battle request was declined. You can try again.",
+                    retryable=True,
+                )
+            return OnlineActionFeedback(
+                state=OnlineActionState.CANCELLED,
+                message="Battle request was cancelled.",
+                retryable=True,
+            )
+
+        return OnlineActionFeedback(
+            state=OnlineActionState.NOT_FOUND,
+            message="Battle request not found. Please refresh and try again.",
+            retryable=True,
+        )
 
     def _find_challenge(self, challenge_id: UUID) -> BattleChallenge | None:
         return next(
