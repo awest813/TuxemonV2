@@ -9,10 +9,11 @@
 - [x] Weather System
 
 ### Planned
-- [ ] Advanced Breeding Mechanics
+- [x] Advanced Breeding Mechanics
   - [x] Taste mutation inheritance is now applied to offspring
   - [x] Dual-parent move inheritance now applies one move candidate from each parent
   - [x] Inherited parental moves now fill open child move capacity before replacing existing moves
+  - [x] Offspring IVs now inherit per-stat parent values with bounded mutation
 - [ ] Online Trading
   - [x] Added trade-offer TTL defaults, expiration cleanup, and player-centric pending-offer queries
   - [x] Added pending-offer inbox queries plus participant-authorized offer cancellation
