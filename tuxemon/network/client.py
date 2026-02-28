@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from enum import Enum, auto
 from itertools import count
 from typing import TYPE_CHECKING, Any, TypedDict
@@ -12,7 +13,10 @@ import pygame as pg
 from tuxemon.entity.npc import NPC
 from tuxemon.network.event_dispatcher import EventDispatcher
 from tuxemon.network.networking import EventData, update_client
-from tuxemon.network.websocket_client import WebsocketClientWrapper
+from tuxemon.network.websocket_client import (
+    ConnectionState,
+    WebsocketClientWrapper,
+)
 from tuxemon.session import local_session
 from tuxemon.states import world_state as world
 
@@ -59,6 +63,7 @@ class TuxemonClient:
         self.available_games: list[tuple[str, int]] = []
         self.server_list: list[str] = []
         self.selected_game: tuple[str, int] | None = None
+        self.pending_feedback: list[tuple[str, ...]] = []
 
         self.populated: bool = False
         self.listening: bool = False
@@ -77,6 +82,18 @@ class TuxemonClient:
     def send_event(self, event_data: dict[str, Any]) -> None:
         """Helper to send a high-level event dict over the network."""
         self.client.send_event(event_data)
+
+    def queue_feedback(self, *message_keys: str) -> None:
+        """Queue translated message keys for player-facing network feedback."""
+        keys = tuple(key for key in message_keys if key)
+        if keys:
+            self.pending_feedback.append(keys)
+
+    def consume_feedback(self) -> list[tuple[str, ...]]:
+        """Return and clear pending network feedback messages."""
+        feedback = self.pending_feedback
+        self.pending_feedback = []
+        return feedback
 
     def connect_to_host(self, ip_address: str, port: int) -> None:
         """
@@ -384,6 +401,8 @@ class ConnectionManager:
     def __init__(self, client: TuxemonClient):
         self.client = client
         self.state = ConnState.DISCONNECTED
+        self._registration_deadline: float | None = None
+        self._register_timeout_seconds = 5.0
 
     def update(self) -> None:
         """
@@ -394,9 +413,42 @@ class ConnectionManager:
             return
 
         if self.state is ConnState.REGISTERING:
-            if self.client.client.registered and not self.client.populated:
-                self.client.sync_manager.populate_player()
+            if self.client.client.registered:
+                if not self.client.populated:
+                    self.client.sync_manager.populate_player()
                 self.state = ConnState.READY
+                self._registration_deadline = None
+                return
+            if self._registration_timed_out():
+                logger.info(
+                    "Connection attempt failed before player registration."
+                )
+                self._handle_connection_loss("multiplayer_connect_failed")
+            return
+
+        if (
+            self.state is ConnState.READY
+            and self.client.client.state is ConnectionState.DISCONNECTED
+        ):
+            logger.info("Connection dropped after registration.")
+            self._handle_connection_loss("multiplayer_connection_lost")
+
+    def _registration_timed_out(self) -> bool:
+        if self._registration_deadline is None:
+            return False
+        if self.client.client.state is not ConnectionState.DISCONNECTED:
+            return False
+        if self.client.client.registered:
+            return False
+        return time.monotonic() >= self._registration_deadline
+
+    def _handle_connection_loss(self, message_key: str) -> None:
+        self.client.client.disconnect()
+        self.client.client.registry = {}
+        self.client.populated = False
+        self.client.listening = False
+        self.client.queue_feedback(message_key, "multiplayer_retry_hint")
+        self.disconnect()
 
     def connect_to_host(self, ip: str, port: int) -> None:
         """
@@ -407,8 +459,12 @@ class ConnectionManager:
             return
 
         logger.info(f"Connecting to WS server: {ip}:{port}")
+        self._registration_deadline = (
+            time.monotonic() + self._register_timeout_seconds
+        )
         self.client.client.start_connection(ip, port)
         self.state = ConnState.REGISTERING
 
     def disconnect(self) -> None:
         self.state = ConnState.DISCONNECTED
+        self._registration_deadline = None
