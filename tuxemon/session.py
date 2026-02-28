@@ -152,6 +152,9 @@ class Session(AbstractSession["BaseClient"]):
         self.world.set_state(self, save_data.world_state or WorldSave())
         self.set_state(save_data.session_state or SessionSave())
         self.client.shop_manager.load_from_dict(save_data.shop_stock)
+        self.client.multiplayer_battle_manager.load_log(
+            save_data.multiplayer_battles
+        )
         self.client.npc_manager.load_persistent_npc_states(
             self, save_data.persistent_state or []
         )
