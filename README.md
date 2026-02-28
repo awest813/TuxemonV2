@@ -29,9 +29,11 @@ Snapshot at the time of this README update:
 - NPCs: 122
 - Maps: 224
 - Localization catalogs (`.po`): 14
-- Roadmap checklist completion: **17/29**
+- Roadmap checklist completion: **18/29**
 
 For milestone details, see [`ROADMAP.md`](ROADMAP.md).
+
+For naming conventions and staged compatibility policy, see [`docs/rebrand_transition.md`](docs/rebrand_transition.md).
 
 ---
 
