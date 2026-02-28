@@ -39,6 +39,7 @@ class MultiplayerMenu(PygameMenuState):
         menu: list[tuple[str, MenuGameObj]] = []
         menu.append(("multiplayer_host_game", self.host_game))
         menu.append(("multiplayer_scan_games", self.load_server_list))
+        menu.append(("multiplayer_join_last_game", self.join_last_server))
         menu.append(("multiplayer_join_game", self.join_by_ip))
 
         add_menu_items(self.menu, menu)
@@ -94,6 +95,10 @@ class MultiplayerMenu(PygameMenuState):
             prompt=T.translate("multiplayer_join_prompt"),
             callback=self._join_by_ip_input,
         )
+
+    def join_last_server(self) -> None:
+        """Attempts to reconnect to the most recently selected server."""
+        self.join()
 
     def _parse_target_server(
         self, raw_target: str

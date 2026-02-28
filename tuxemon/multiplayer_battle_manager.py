@@ -582,8 +582,8 @@ class MultiplayerBattleManager:
             return OnlineActionFeedback(
                 state=OnlineActionState.FAILED,
                 message=(
-                    "A pending battle request already exists for these players. "
-                    "Wait for resolution or cancel it before retrying."
+                    "A pending request or active battle already exists for "
+                    "these players. Wait for resolution before retrying."
                 ),
                 retryable=False,
             )
@@ -854,13 +854,42 @@ class MultiplayerBattleManager:
             None,
         )
 
+    @staticmethod
+    def _participants_match(
+        first_player_a: UUID,
+        first_player_b: UUID,
+        second_player_a: UUID,
+        second_player_b: UUID,
+    ) -> bool:
+        return {first_player_a, first_player_b} == {
+            second_player_a,
+            second_player_b,
+        }
+
     def _has_duplicate_pending(
         self, challenger_player_id: UUID, challenged_player_id: UUID
     ) -> bool:
         return any(
-            challenge.challenger_player_id == challenger_player_id
-            and challenge.challenged_player_id == challenged_player_id
+            self._participants_match(
+                challenge.challenger_player_id,
+                challenge.challenged_player_id,
+                challenger_player_id,
+                challenged_player_id,
+            )
             for challenge in self.pending_challenges
+        )
+
+    def _has_active_battle_between_players(
+        self, challenger_player_id: UUID, challenged_player_id: UUID
+    ) -> bool:
+        return any(
+            self._participants_match(
+                battle_session.challenger_player_id,
+                battle_session.challenged_player_id,
+                challenger_player_id,
+                challenged_player_id,
+            )
+            for battle_session in self.active_battle_sessions
         )
 
     def propose_challenge(
@@ -871,11 +900,14 @@ class MultiplayerBattleManager:
         ttl_seconds: int | None = None,
     ) -> BattleChallengeResult:
         self.purge_expired_challenges()
+        self.purge_stale_battle_sessions()
 
         if challenger_player_id == challenged_player_id:
             return BattleChallengeResult.SELF_CHALLENGE
 
         if self._has_duplicate_pending(
+            challenger_player_id, challenged_player_id
+        ) or self._has_active_battle_between_players(
             challenger_player_id, challenged_player_id
         ):
             return BattleChallengeResult.DUPLICATE
