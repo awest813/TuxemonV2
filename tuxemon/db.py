@@ -978,6 +978,13 @@ class MonsterEvolutionItemModel(BaseModel):
         None,
         description="Complex conditions based on the player's party required for evolution.",
     )
+    daytime: bool | None = Field(
+        None,
+        description=(
+            "Time-of-day condition for evolution. "
+            "True requires daytime (06:00-17:59), False requires nighttime."
+        ),
+    )
 
     @field_validator("moves")
     def move_exists(cls, v: Sequence[str]) -> Sequence[str]:

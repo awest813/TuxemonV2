@@ -29,6 +29,18 @@ bond_range: [0, 100]
 bond_modifiers:
   # Bond penalty when the monster faints in battle
   fainted: -10
+  # Bond gain when monster wins a battle
+  battle_won: 3
+  # Bond gain for walking with the monster in the party (per step milestone)
+  party_walk: 1
+  # Bond gain when an item is used on the monster
+  item_used: 2
+  # Bond reset when monster is traded to a new owner
+  traded: -15
+  # Bond gain when monster levels up
+  level_up: 5
+  # Bond gain when monster is healed at a healing station
+  healed: 1
 
 # Allowed range for Individual Values (IVs)
 iv_range: [0, 15]

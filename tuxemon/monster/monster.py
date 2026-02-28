@@ -583,6 +583,20 @@ class Monster:
 
         return level_delta
 
+    def apply_bond_event(self, event: str) -> None:
+        """Apply a named bond modifier and check for bond-triggered evolution."""
+        old_bond = self.bond_handler.bond
+        self.bond_handler.apply_bond_modifier(event)
+        new_bond = self.bond_handler.bond
+        if new_bond != old_bond and not self.waiting_to_evolve:
+            slug = self.evolution_handler.get_eligible_evolution_slug()
+            if slug:
+                self.waiting_to_evolve = True
+                logger.debug(
+                    f"{self.name} bond changed ({old_bond}->{new_bond}), "
+                    f"ready to evolve into {slug}!"
+                )
+
     def set_experience_modifier(self, modifier: float) -> None:
         """Sets the experience modifier for this monster."""
         self.experience_handler.set_experience_modifier(modifier)

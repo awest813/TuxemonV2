@@ -209,3 +209,23 @@ def check_bond(
     _value = evolution_item.bond.value
     _bond = monster.bond_handler.bond
     conditions.append(compare(_operator.value, _bond, _value))
+
+
+def check_daytime(
+    monster: Monster,
+    evolution_item: MonsterEvolutionItemModel,
+    conditions: list[bool],
+) -> None:
+    """
+    Append a check for time-of-day evolution conditions.
+    Uses the owner's world time snapshot if available, falls back to system clock.
+    """
+    if evolution_item.daytime is None:
+        return
+
+    from tuxemon.time_handler import TimeHandler
+
+    handler = TimeHandler()
+    snapshot = handler.get_time_snapshot()
+    is_day = snapshot.daytime == "true"
+    conditions.append(is_day == evolution_item.daytime)

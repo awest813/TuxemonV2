@@ -283,7 +283,7 @@ def test_apply_penalties_sets_hp_and_bond(setup_combat):
     reward_system.apply_penalties(monster)
 
     assert monster.current_hp == 0
-    monster.bond_handler.apply_bond_modifier.assert_called_with("fainted")
+    monster.apply_bond_event.assert_called_with("fainted")
 
 
 def test_award_rewards_fainted_winner_gets_none(setup_combat):

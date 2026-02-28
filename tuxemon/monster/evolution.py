@@ -12,6 +12,7 @@ from tuxemon.db import (
 )
 from tuxemon.monster.evolution_conditions import (
     check_bond,
+    check_daytime,
     check_location_items_moves,
     check_party_conditions,
     check_simple_conditions,
@@ -178,6 +179,7 @@ class Evolution:
         check_variables(self.monster, evolution_item, conditions)
         check_steps(self.monster, evolution_item, conditions)
         check_bond(self.monster, evolution_item, conditions)
+        check_daytime(self.monster, evolution_item, conditions)
 
         if evolution_item.party_conditions is not None:
             conditions.append(

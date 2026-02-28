@@ -53,7 +53,7 @@ class RewardSystem:
         monster.current_hp = 0
         owner = monster.get_owner()
         if owner.bag.find_item("friendship_scroll"):
-            monster.bond_handler.apply_bond_modifier("fainted")
+            monster.apply_bond_event("fainted")
 
     def award_rewards(
         self, loser: Monster, winners: set[Monster] | None = None
@@ -124,6 +124,9 @@ class RewardCalculator:
 
         calculate_tps(winner, loser)
         levels = winner.give_experience(awarded_exp)
+        winner.apply_bond_event("battle_won")
+        if isinstance(levels, int) and levels > 0:
+            winner.apply_bond_event("level_up")
 
         return RewardDataEntry(
             winner=winner,
