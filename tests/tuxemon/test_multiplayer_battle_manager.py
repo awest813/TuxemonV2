@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 from tuxemon.multiplayer_battle_manager import (
+    BattleResolution,
     BattleChallengeResult,
     MultiplayerBattleManager,
 )
@@ -97,6 +98,36 @@ def test_accept_reject_and_expired_challenge() -> None:
         == BattleChallengeResult.REJECTED
     )
 
+    history = manager.get_battle_history_for_player(challenged)
+    assert [record.resolution for record in history] == [
+        BattleResolution.EXPIRED,
+        BattleResolution.REJECTED,
+    ]
+
+
+def test_cancel_adds_history_and_limit_is_enforced() -> None:
+    manager = MultiplayerBattleManager()
+    manager.max_battle_history_entries = 2
+    challenger = uuid4()
+    challenged = uuid4()
+
+    manager.propose_challenge(challenger, challenged)
+    first = manager.pending_challenges[0]
+    manager.cancel_challenge(first.challenge_id, requesting_player_id=challenger)
+
+    manager.propose_challenge(challenger, challenged)
+    second = manager.pending_challenges[0]
+    manager.reject_challenge(second.challenge_id, rejecting_player_id=challenged)
+
+    manager.propose_challenge(challenger, challenged)
+    third = manager.pending_challenges[0]
+    manager.accept_challenge(third.challenge_id, accepting_player_id=challenged)
+
+    assert [record.challenge_id for record in manager.battle_history] == [
+        second.challenge_id,
+        third.challenge_id,
+    ]
+
 
 def test_save_and_load_log_purges_expired() -> None:
     manager = MultiplayerBattleManager()
@@ -104,6 +135,9 @@ def test_save_and_load_log_purges_expired() -> None:
     challenged = uuid4()
     manager.default_challenge_ttl_seconds = 45
 
+    manager.propose_challenge(challenger, challenged)
+    active = manager.pending_challenges[0]
+    manager.reject_challenge(active.challenge_id, rejecting_player_id=challenged)
     manager.propose_challenge(challenger, challenged)
     active = manager.pending_challenges[0]
     expired = active.to_dict() | {
@@ -123,5 +157,34 @@ def test_save_and_load_log_purges_expired() -> None:
     restored.load_log(serialized)
 
     assert restored.default_challenge_ttl_seconds == 45
+    assert restored.battle_history[0].resolution == BattleResolution.REJECTED
     assert len(restored.pending_challenges) == 1
     assert restored.pending_challenges[0].challenge_id == active.challenge_id
+
+
+def test_load_log_completed_battles_compat_and_malformed_entries() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+    manager.propose_challenge(challenger, challenged)
+    challenge = manager.pending_challenges[0]
+
+    manager.load_log(
+        {
+            "pending_challenges": [],
+            "completed_battles": [
+                {
+                    "challenge_id": str(challenge.challenge_id),
+                    "challenger_player_id": str(challenger),
+                    "challenged_player_id": str(challenged),
+                    "resolution": BattleResolution.ACCEPTED.value,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                },
+                {"bad": "data"},
+                "not-a-record",
+            ],
+        }
+    )
+
+    assert len(manager.battle_history) == 1
+    assert manager.battle_history[0].resolution == BattleResolution.ACCEPTED

@@ -30,6 +30,13 @@ class BattleChallengeResult(Enum):
     REJECTED = "rejected"
 
 
+class BattleResolution(Enum):
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
+    EXPIRED = "expired"
+
+
 @dataclass
 class BattleChallenge:
     challenger_player_id: UUID
@@ -69,13 +76,62 @@ class BattleChallenge:
         )
 
 
+@dataclass
+class BattleRecord:
+    challenge_id: UUID
+    challenger_player_id: UUID
+    challenged_player_id: UUID
+    resolution: BattleResolution
+    timestamp: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "challenge_id": str(self.challenge_id),
+            "challenger_player_id": str(self.challenger_player_id),
+            "challenged_player_id": str(self.challenged_player_id),
+            "resolution": self.resolution.value,
+            "timestamp": self.timestamp.isoformat(),
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, str]) -> BattleRecord:
+        return cls(
+            challenge_id=UUID(data["challenge_id"]),
+            challenger_player_id=UUID(data["challenger_player_id"]),
+            challenged_player_id=UUID(data["challenged_player_id"]),
+            resolution=BattleResolution(data["resolution"]),
+            timestamp=_coerce_utc_timestamp(data["timestamp"]),
+        )
+
+
 class MultiplayerBattleManager:
     """Tracks and resolves online battle challenges between players."""
 
     def __init__(self) -> None:
         self.pending_challenges: list[BattleChallenge] = []
+        self.battle_history: list[BattleRecord] = []
+        self.max_battle_history_entries = 100
         self.default_challenge_ttl_seconds = 180
         self.event_bus = get_event_bus()
+
+    def _add_battle_record(
+        self, challenge: BattleChallenge, resolution: BattleResolution
+    ) -> None:
+        record = BattleRecord(
+            challenge_id=challenge.challenge_id,
+            challenger_player_id=challenge.challenger_player_id,
+            challenged_player_id=challenge.challenged_player_id,
+            resolution=resolution,
+        )
+        self.battle_history.append(record)
+
+        max_entries = max(1, self.max_battle_history_entries)
+        if len(self.battle_history) > max_entries:
+            self.battle_history = self.battle_history[-max_entries:]
+
+        self.event_bus.publish("battle_challenge_resolved", record)
 
     def _is_challenge_expired(
         self, challenge: BattleChallenge, now: datetime | None = None
@@ -92,10 +148,24 @@ class MultiplayerBattleManager:
         for challenge in self.pending_challenges:
             if self._is_challenge_expired(challenge, current_time):
                 removed += 1
+                self._add_battle_record(challenge, BattleResolution.EXPIRED)
                 continue
             active_challenges.append(challenge)
         self.pending_challenges = active_challenges
         return removed
+
+    def get_battle_history_for_player(
+        self, player_id: UUID, limit: int | None = None
+    ) -> list[BattleRecord]:
+        records = [
+            record
+            for record in self.battle_history
+            if record.challenger_player_id == player_id
+            or record.challenged_player_id == player_id
+        ]
+        if limit is not None and limit >= 0:
+            return records[-limit:]
+        return records
 
     def get_pending_challenges_for_player(
         self, player_id: UUID
@@ -183,6 +253,7 @@ class MultiplayerBattleManager:
             return BattleChallengeResult.UNAUTHORIZED
 
         self.pending_challenges.remove(challenge)
+        self._add_battle_record(challenge, BattleResolution.CANCELLED)
         self.event_bus.publish("battle_challenge_cancelled", challenge)
         return BattleChallengeResult.SUCCESS
 
@@ -201,9 +272,11 @@ class MultiplayerBattleManager:
 
         if self._is_challenge_expired(challenge):
             self.pending_challenges.remove(challenge)
+            self._add_battle_record(challenge, BattleResolution.EXPIRED)
             return BattleChallengeResult.EXPIRED
 
         self.pending_challenges.remove(challenge)
+        self._add_battle_record(challenge, BattleResolution.ACCEPTED)
         self.event_bus.publish("battle_challenge_accepted", challenge)
         return BattleChallengeResult.SUCCESS
 
@@ -221,6 +294,7 @@ class MultiplayerBattleManager:
             return BattleChallengeResult.UNAUTHORIZED
 
         self.pending_challenges.remove(challenge)
+        self._add_battle_record(challenge, BattleResolution.REJECTED)
         self.event_bus.publish("battle_challenge_rejected", challenge)
         return BattleChallengeResult.REJECTED
 
@@ -229,6 +303,10 @@ class MultiplayerBattleManager:
             "pending_challenges": [
                 challenge.to_dict() for challenge in self.pending_challenges
             ],
+            "battle_history": [
+                record.to_dict() for record in self.battle_history
+            ],
+            "max_battle_history_entries": self.max_battle_history_entries,
             "default_challenge_ttl_seconds": self.default_challenge_ttl_seconds,
         }
 
@@ -238,6 +316,24 @@ class MultiplayerBattleManager:
             BattleChallenge.from_dict(challenge_data)
             for challenge_data in pending_data
         ]
+        raw_history = data.get("battle_history", data.get("completed_battles", []))
+        history: list[BattleRecord] = []
+        for entry in raw_history:
+            if not isinstance(entry, Mapping):
+                continue
+            try:
+                history.append(
+                    BattleRecord.from_dict(dict(entry))
+                )
+            except (KeyError, TypeError, ValueError):
+                continue
+        self.battle_history = history
+        self.max_battle_history_entries = int(
+            data.get(
+                "max_battle_history_entries",
+                self.max_battle_history_entries,
+            )
+        )
         self.default_challenge_ttl_seconds = int(
             data.get(
                 "default_challenge_ttl_seconds",
