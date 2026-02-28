@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
+from pygame import SRCALPHA
 from pygame import draw as pg_draw
 from pygame.rect import Rect
 from pygame.surface import Surface
@@ -119,11 +120,29 @@ class Bar:
 
         inner = self.calc_inner_rect(rect)
         if self.bg_color:
-            pg_draw.rect(surface, self.bg_color, inner)
+            pg_draw.rect(surface, self.bg_color, inner, border_radius=2)
+
+        # Add a subtle gloss overlay to make bars easier to read.
+        gloss = Surface(inner.size, SRCALPHA)
+        pg_draw.rect(gloss, (255, 255, 255, 25), gloss.get_rect(), border_radius=2)
+        gloss_height = max(1, inner.height // 2)
+        pg_draw.rect(
+            gloss,
+            (255, 255, 255, 40),
+            Rect(1, 1, max(1, inner.width - 2), gloss_height),
+            border_radius=2,
+        )
+        surface.blit(gloss, inner.topleft)
+
         if self.value > 0:
-            inner.width = int(inner.width * self.value)
-            pg_draw.rect(surface, self.fg_color, inner)
+            fill = inner.copy()
+            fill.width = int(inner.width * self.value)
+            if fill.width > 0:
+                pg_draw.rect(surface, self.get_fill_color(), fill, border_radius=2)
         self.border.draw(surface, rect)
+
+    def get_fill_color(self) -> ColorLike:
+        return self.fg_color
 
     def set_color(
         self,
@@ -161,6 +180,13 @@ class HpBar(Bar):
             HP_COLOR_BG,
         )
 
+    def get_fill_color(self) -> ColorLike:
+        if self.value > 0.5:
+            return (88, 224, 116)
+        if self.value > 0.2:
+            return (246, 195, 72)
+        return (230, 92, 92)
+
 
 class ExpBar(Bar):
     """EXP bar for UI elements."""
@@ -179,6 +205,10 @@ class ExpBar(Bar):
             XP_COLOR_FG,
             XP_COLOR_BG,
         )
+
+    def get_fill_color(self) -> ColorLike:
+        # Slightly brighter blue improves contrast against dark HUD themes.
+        return (82, 176, 255)
 
 
 T = TypeVar("T", covariant=True)
