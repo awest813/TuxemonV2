@@ -448,6 +448,10 @@ def test_get_challenge_feedback_for_history_and_missing() -> None:
     assert accepted_feedback.state == OnlineActionState.ACCEPTED
     assert accepted_feedback.retryable is False
 
+    active_session = manager.active_battle_sessions[0]
+    active_session.last_activity_at = datetime.now(timezone.utc) - timedelta(
+        seconds=active_session.turn_timeout_seconds + 1
+    )
     manager.propose_challenge(challenger, challenged)
     expired = manager.pending_challenges[0]
     expired.expires_at = datetime(2000, 1, 1, tzinfo=timezone.utc)
