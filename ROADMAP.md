@@ -4,7 +4,7 @@ This roadmap reflects the current state of the branch and outlines practical fol
 
 ## Status Overview
 
-- Overall checklist completion: **20/29**
+- Overall checklist completion: **21/29**
 - Snapshot command: `python run_tuxemon.py --status`
 - Rebrand phase: **Phase A complete** (documentation and messaging aligned; compatibility-first migration policy published)
 - Latest recorded status during this update:
@@ -58,9 +58,10 @@ The original baseline milestones are complete; this expanded plan now tracks reb
   - Added contributor guidance for describing rebrand impact in PRs in `CONTRIBUTING.md`.
 
 ### Phase 1 — Network and UX
-- [ ] **Multiplayer battle execution protocol**
-  - Define turn synchronization, timeout/reconnect policy, and authoritative conflict resolution.
-  - Persist active battle sessions safely across save/load boundaries.
+- [x] **Multiplayer battle execution protocol**
+  - Turn synchronization, timeout/reconnect policy, and authoritative conflict resolution are implemented and routed through the multiplayer client/server flow.
+  - Active battle sessions are persisted across save/load boundaries with stale-session cleanup and malformed-data tolerance.
+  - Added regression coverage for networking payload normalization, movement/map/facing routing, and duel challenge lifecycle handling.
 - [~] **Network-state UX clarity**
   - Added manager-level feedback helpers for trade lifecycle outcomes (pending/accepted/expired/failed) with retry guidance.
   - Remaining: wire these messages through gameplay UI screens and localization entries.
