@@ -155,6 +155,12 @@ class Session(AbstractSession["BaseClient"]):
         self.client.multiplayer_battle_manager.load_log(
             save_data.multiplayer_battles
         )
+        self.client.battle_tower_manager.set_state(
+            save_data.battle_tower
+        )
+        self.client.trainer_rematch_manager.set_state(
+            save_data.trainer_rematches
+        )
         self.client.npc_manager.load_persistent_npc_states(
             self, save_data.persistent_state or []
         )

@@ -204,3 +204,32 @@ class TestSummary:
         assert summary["total_wins"] == 3
         assert summary["next_opponent_level"] >= 10
         assert "rules" in summary
+
+
+class TestEdgeCases:
+    def test_from_dict_with_invalid_types(self):
+        state = BattleTowerState.from_dict({
+            "current_rank": "not_a_number",
+            "current_streak": None,
+            "best_streak": [],
+        })
+        assert state.current_rank == 0
+        assert state.current_streak == 0
+        assert state.best_streak == 0
+
+    def test_from_dict_clamps_negative_values(self):
+        state = BattleTowerState.from_dict({
+            "current_rank": -5,
+            "total_wins": -1,
+        })
+        assert state.current_rank == 0
+        assert state.total_wins == 0
+
+    def test_pool_smaller_than_party_size(self):
+        m = BattleTowerManager(
+            monster_pool=["alpha"],
+            rules=BattleTowerRules(party_size=3),
+        )
+        m.state.current_rank = 10
+        opp = m.generate_opponent()
+        assert len(opp.monster_slugs) == 1

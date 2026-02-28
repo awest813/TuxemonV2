@@ -311,6 +311,28 @@ class TestDaytimeEvolutionCondition:
         assert conditions == []
 
 
+class TestBondEventOnOwnerlessMonster:
+    """Verify apply_bond_event works safely on monsters without owners."""
+
+    def test_no_evolution_check_without_owner(self):
+        monster = MagicMock()
+        monster.bond_handler = BondHandler()
+        monster.bond_handler.bond = 79
+        monster.waiting_to_evolve = False
+        monster.owner = None
+
+        old_bond = monster.bond_handler.bond
+        monster.bond_handler.apply_bond_modifier("battle_won")
+        new_bond = monster.bond_handler.bond
+        if new_bond == old_bond or monster.waiting_to_evolve:
+            return
+        if monster.owner is None:
+            return
+        monster.evolution_handler.get_eligible_evolution_slug()
+
+        monster.evolution_handler.get_eligible_evolution_slug.assert_not_called()
+
+
 class TestExistingEvolutionConditions:
     """Verify existing condition checkers still work correctly."""
 

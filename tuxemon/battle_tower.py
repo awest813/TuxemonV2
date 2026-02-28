@@ -64,12 +64,18 @@ class BattleTowerState:
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> BattleTowerState:
+        def _safe_int(key: str, default: int = 0) -> int:
+            try:
+                return int(data.get(key, default))
+            except (TypeError, ValueError):
+                return default
+
         return cls(
-            current_rank=int(data.get("current_rank", 0)),
-            current_streak=int(data.get("current_streak", 0)),
-            best_streak=int(data.get("best_streak", 0)),
-            total_wins=int(data.get("total_wins", 0)),
-            total_losses=int(data.get("total_losses", 0)),
+            current_rank=max(0, _safe_int("current_rank")),
+            current_streak=max(0, _safe_int("current_streak")),
+            best_streak=max(0, _safe_int("best_streak")),
+            total_wins=max(0, _safe_int("total_wins")),
+            total_losses=max(0, _safe_int("total_losses")),
         )
 
 
@@ -119,10 +125,16 @@ class BattleTowerManager:
     def _pick_monsters(self, count: int) -> list[str]:
         """Select monsters for an opponent's party."""
         if not self._monster_pool:
+            logger.warning("Battle Tower: no monster pool configured")
             return []
         pool = list(self._monster_pool)
         if self.rules.allow_duplicates:
             return [random.choice(pool) for _ in range(count)]
+        if count > len(pool):
+            logger.warning(
+                "Battle Tower: requested %d monsters but pool has %d",
+                count, len(pool),
+            )
         random.shuffle(pool)
         return pool[:count]
 
@@ -163,8 +175,13 @@ class BattleTowerManager:
 
     def record_loss(self) -> dict[str, int]:
         """Record a loss and reset streak."""
+        old_streak = self.state.current_streak
         self.state.current_streak = 0
         self.state.total_losses += 1
+        logger.info(
+            "Battle Tower loss: streak %d reset, total losses %d",
+            old_streak, self.state.total_losses,
+        )
         return {
             "streak": 0,
             "rank": self.state.current_rank,

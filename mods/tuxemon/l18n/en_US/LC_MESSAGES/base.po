@@ -5091,6 +5091,31 @@ msgstr "{trainer} says: There's a monster swarm forming near {location}!"
 msgid "phone_alert_weather_change"
 msgstr "{trainer} says: The weather is changing near {location}. New encounters ahead!"
 
+# Glitched monster variants
+msgid "d0llf1n"
+msgstr "D0llf1n"
+
+msgid "d0llf1n_description"
+msgstr "A glitched variant that flickers in and out of reality."
+
+msgid "f7u1t3ra"
+msgstr "F7u1t3ra"
+
+msgid "f7u1t3ra_description"
+msgstr "A glitched variant whose form shifts unpredictably."
+
+msgid "l3gk0"
+msgstr "L3gk0"
+
+msgid "l3gk0_description"
+msgstr "A glitched variant that leaves pixelated trails behind it."
+
+msgid "r0ck1tt3n"
+msgstr "R0ck1tt3n"
+
+msgid "r0ck1tt3n_description"
+msgstr "A glitched variant crackling with corrupted energy."
+
 msgid "swap"
 msgstr "Swap"
 

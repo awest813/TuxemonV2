@@ -499,6 +499,33 @@ class TestMultiplayerBattleLogCompatibility:
 # ---------------------------------------------------------------------------
 
 
+class TestNewManagerSaveFields:
+    def test_battle_tower_defaults_to_empty(self):
+        data = _v3_save_data()
+        save = SaveData(**data)
+        assert save.battle_tower == {}
+
+    def test_trainer_rematches_defaults_to_empty(self):
+        data = _v3_save_data()
+        save = SaveData(**data)
+        assert save.trainer_rematches == {}
+
+    def test_battle_tower_persists(self):
+        tower_state = {"battle_tower": {"current_rank": 3, "current_streak": 5}}
+        data = _v3_save_data(battle_tower=tower_state)
+        save = SaveData(**data)
+        assert save.battle_tower == tower_state
+
+    def test_trainer_rematches_persists(self):
+        rematch_state = {
+            "trainer_rematches": {"rival": {"rematch_count": 2}},
+            "level_scaling": 3,
+        }
+        data = _v3_save_data(trainer_rematches=rematch_state)
+        save = SaveData(**data)
+        assert save.trainer_rematches == rematch_state
+
+
 class TestCombinedSaveData:
     def test_save_data_with_trade_and_battle_logs(self, npc_manager):
         now = datetime.now(timezone.utc)

@@ -92,6 +92,8 @@ def get_save_data(session: Session) -> SaveData:
         session_state=session_state,
         shop_stock=session.client.shop_manager.dump_to_dict(),
         multiplayer_battles=session.client.multiplayer_battle_manager.save_log(),
+        battle_tower=session.client.battle_tower_manager.get_state(),
+        trainer_rematches=session.client.trainer_rematch_manager.get_state(),
         persistent_state=persistent_npcs,
     )
 

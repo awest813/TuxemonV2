@@ -39,6 +39,12 @@ def test_get_save_data_includes_multiplayer_battles(monkeypatch) -> None:
             multiplayer_battle_manager=SimpleNamespace(
                 save_log=MagicMock(return_value=multiplayer_log)
             ),
+            battle_tower_manager=SimpleNamespace(
+                get_state=MagicMock(return_value={})
+            ),
+            trainer_rematch_manager=SimpleNamespace(
+                get_state=MagicMock(return_value={})
+            ),
         ),
     )
 
@@ -61,6 +67,8 @@ def test_session_load_state_restores_multiplayer_log() -> None:
     session._client = SimpleNamespace(
         shop_manager=SimpleNamespace(load_from_dict=MagicMock()),
         multiplayer_battle_manager=multiplayer_manager,
+        battle_tower_manager=SimpleNamespace(set_state=MagicMock()),
+        trainer_rematch_manager=SimpleNamespace(set_state=MagicMock()),
         npc_manager=SimpleNamespace(load_persistent_npc_states=MagicMock()),
     )
 

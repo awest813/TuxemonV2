@@ -117,11 +117,11 @@ class TrainerRematchManager:
         return min(bonus, self.max_level_bonus)
 
     def get_rematch_level(
-        self, trainer_slug: str, base_level: int
+        self, trainer_slug: str, base_level: int, max_level: int = 100
     ) -> int:
-        """Calculate the effective level for a rematch opponent."""
+        """Calculate the effective level for a rematch opponent, capped at max_level."""
         bonus = self.get_level_bonus(trainer_slug)
-        return base_level + bonus
+        return min(base_level + bonus, max_level)
 
     def get_available_rematches(
         self, now: float | None = None
@@ -171,12 +171,21 @@ class TrainerRematchManager:
                         continue
             self._entries = entries
 
-        if "level_scaling" in data:
-            self.level_scaling = int(data["level_scaling"])
-        if "max_level_bonus" in data:
-            self.max_level_bonus = int(data["max_level_bonus"])
-        if "default_cooldown" in data:
-            self.default_cooldown = float(data["default_cooldown"])
+        try:
+            if "level_scaling" in data:
+                self.level_scaling = max(0, int(data["level_scaling"]))
+        except (TypeError, ValueError):
+            pass
+        try:
+            if "max_level_bonus" in data:
+                self.max_level_bonus = max(0, int(data["max_level_bonus"]))
+        except (TypeError, ValueError):
+            pass
+        try:
+            if "default_cooldown" in data:
+                self.default_cooldown = max(0.0, float(data["default_cooldown"]))
+        except (TypeError, ValueError):
+            pass
 
     def get_summary(self) -> dict[str, Any]:
         """Return a summary of all tracked trainers."""

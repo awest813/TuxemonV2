@@ -17,9 +17,9 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-WEEKDAYS = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}
-STAGES_OF_DAY = {"dawn", "morning", "afternoon", "dusk", "night"}
-SEASONS = {"spring", "summer", "autumn", "winter"}
+WEEKDAYS: frozenset[str] = frozenset({"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"})
+STAGES_OF_DAY: frozenset[str] = frozenset({"dawn", "morning", "afternoon", "dusk", "night"})
+SEASONS: frozenset[str] = frozenset({"spring", "summer", "autumn", "winter"})
 
 
 @dataclass

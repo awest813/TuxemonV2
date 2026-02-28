@@ -159,3 +159,41 @@ class TestSummary:
         assert summary["total_trainers"] == 1
         assert "rival" in summary["trainers"]
         assert summary["trainers"]["rival"]["rematch_count"] == 1
+
+
+class TestEdgeCases:
+    def test_level_capped_at_max(self, manager):
+        for i in range(50):
+            manager.record_defeat("rival", now=float(i * 1000))
+        level = manager.get_rematch_level("rival", base_level=90)
+        assert level <= 100
+
+    def test_level_capped_with_custom_max(self, manager):
+        manager.record_defeat("rival", now=0.0)
+        level = manager.get_rematch_level("rival", base_level=48, max_level=50)
+        assert level == 50
+
+    def test_set_state_with_invalid_config_values(self, manager):
+        manager.set_state({
+            "level_scaling": "bad",
+            "max_level_bonus": None,
+            "default_cooldown": [],
+        })
+        assert manager.level_scaling == 3
+        assert manager.max_level_bonus == 30
+        assert manager.default_cooldown == 300
+
+    def test_set_state_clamps_negative_config(self, manager):
+        manager.set_state({
+            "level_scaling": -5,
+            "default_cooldown": -100.0,
+        })
+        assert manager.level_scaling == 0
+        assert manager.default_cooldown == 0.0
+
+    def test_cooldown_for_unknown_trainer(self, manager):
+        remaining = manager.get_cooldown_remaining("unknown")
+        assert remaining == 0.0
+
+    def test_rematch_count_for_unknown_trainer(self, manager):
+        assert manager.get_rematch_count("unknown") == 0
