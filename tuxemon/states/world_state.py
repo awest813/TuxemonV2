@@ -8,7 +8,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     ClassVar,
-    no_type_check,
 )
 
 from pygame.surface import Surface
@@ -23,6 +22,7 @@ from tuxemon.event.eventmiddleware import (
     WorldCommandMiddleware,
 )
 from tuxemon.faction.manager import FactionManager
+from tuxemon.locale.locale import T
 from tuxemon.platform.events import PlayerInput
 from tuxemon.prepare import DEV_TOOLS
 from tuxemon.save_state import WorldSave
@@ -189,7 +189,6 @@ class WorldState(State):
             return None
         return event
 
-    @no_type_check  # only used by multiplayer which is disabled
     def check_interactable_space(self) -> bool:
         """
         Checks to see if any Npc objects around the player are interactable.
@@ -219,7 +218,7 @@ class WorldState(State):
                     tile = (player_tile_pos[0] - 1, player_tile_pos[1])
                 elif direction == Direction.RIGHT:
                     tile = (player_tile_pos[0] + 1, player_tile_pos[1])
-                for npc in self.client.npc_manager.npcs:
+                for npc in self.client.npc_manager.npcs.values():
                     tile_pos = (
                         int(round(npc.tile_pos[0])),
                         int(round(npc.tile_pos[1])),
@@ -231,7 +230,6 @@ class WorldState(State):
 
         return False
 
-    @no_type_check  # FIXME: dead code
     def handle_interaction(
         self, event_data: EventData, registry: Mapping[str, Any]
     ) -> None:
@@ -241,37 +239,51 @@ class WorldState(State):
         :param event_data: Information on the type of interaction and who sent it.
         :param registry:
 
-        :type event_data: Dictionary
-        :type registry: Dictionary
+        :type event_data: EventData
+        :type registry: Mapping
         """
-        target = registry[event_data["target"]]["sprite"]
-        target_name = str(target.name)
-        update_client(target, event_data["char_dict"], self.client)
-        if event_data["interaction"] == "DUEL":
-            if not event_data["response"]:
-                self.interaction_menu.visible = True
-                self.interaction_menu.interactable = True
-                self.interaction_menu.player = target
-                self.interaction_menu.interaction = "DUEL"
-                self.interaction_menu.menu_items = [
-                    target_name + " would like to Duel!",
-                    "Accept",
-                    "Decline",
-                ]
-            else:
-                if self.wants_duel:
-                    if event_data["response"] == "Accept":
-                        pd = self.player.__dict__
-                        event_data = {
-                            "type": "CLIENT_INTERACTION",
-                            "interaction": "START_DUEL",
-                            "target": [event_data["target"]],
-                            "response": None,
-                            "char_dict": {
-                                "monsters": pd["monsters"],
-                                "inventory": pd["inventory"],
-                            },
-                        }
-                        self.client.server.notify_client_interaction(
-                            "cuuid", event_data
-                        )
+        source_cuuid = event_data.cuuid
+        if source_cuuid is None:
+            logger.warning("Missing source id for multiplayer interaction.")
+            return
+
+        source_entry = registry.get(source_cuuid)
+        if not isinstance(source_entry, Mapping):
+            logger.warning(
+                "Unknown multiplayer source id in interaction: %s",
+                source_cuuid,
+            )
+            return
+
+        source_sprite = source_entry.get("sprite")
+        if source_sprite is None:
+            logger.warning(
+                "Missing source sprite in interaction for id: %s",
+                source_cuuid,
+            )
+            return
+
+        update_client(source_sprite, event_data.char_dict, self.client)
+
+        interaction = (event_data.interaction or "").upper()
+        if interaction == "DUEL":
+            if event_data.response is None:
+                from tuxemon.tools import open_dialog
+
+                duel_text = T.format(
+                    "multiplayer_duel",
+                    {"name": str(source_sprite.name)},
+                )
+                open_dialog(self.client, [duel_text])
+
+            network_client = self.client.network_manager.client
+            if network_client is not None:
+                network_client.route_combat(event_data)
+            return
+
+        if interaction:
+            logger.info(
+                "Received unsupported multiplayer interaction '%s' from %s",
+                interaction,
+                source_cuuid,
+            )

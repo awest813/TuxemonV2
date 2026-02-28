@@ -1,10 +1,13 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
 from unittest.mock import MagicMock
+from uuid import uuid4
 
 import pygame as pg
 import pytest
 
+from tuxemon.multiplayer_battle_manager import MultiplayerBattleManager
+from tuxemon.network.networking import EventData
 from tuxemon.network.client import ConnState, TuxemonClient
 from tuxemon.network.websocket_client import ConnectionState
 
@@ -273,3 +276,85 @@ def test_connection_manager_dropped_connection_sets_feedback(client):
     assert client.consume_feedback() == [
         ("multiplayer_connection_lost", "multiplayer_retry_hint")
     ]
+
+
+def test_route_combat_duel_propose_creates_pending_challenge(
+    client, monkeypatch
+):
+    local_player_id = uuid4()
+    remote_player_id = uuid4()
+    remote_sprite = MagicMock(instance_id=remote_player_id)
+    client.client.registry = {"remote": {"sprite": remote_sprite}}
+    client.game.multiplayer_battle_manager = MultiplayerBattleManager()
+    monkeypatch.setattr(
+        "tuxemon.session.local_session._player",
+        MagicMock(instance_id=local_player_id),
+    )
+
+    duel_event = EventData.from_dict(
+        {
+            "type": "CLIENT_INTERACTION",
+            "event_number": 1,
+            "cuuid": "remote",
+            "interaction": "DUEL",
+        }
+    )
+    client.route_combat(duel_event)
+
+    manager = client.game.multiplayer_battle_manager
+    assert len(manager.pending_challenges) == 1
+    challenge = manager.pending_challenges[0]
+    assert challenge.challenger_player_id == remote_player_id
+    assert challenge.challenged_player_id == local_player_id
+
+
+def test_route_combat_duel_accept_starts_session(client, monkeypatch):
+    local_player_id = uuid4()
+    remote_player_id = uuid4()
+    remote_sprite = MagicMock(instance_id=remote_player_id)
+    client.client.registry = {"remote": {"sprite": remote_sprite}}
+    client.game.multiplayer_battle_manager = MultiplayerBattleManager()
+    monkeypatch.setattr(
+        "tuxemon.session.local_session._player",
+        MagicMock(instance_id=local_player_id),
+    )
+
+    manager = client.game.multiplayer_battle_manager
+    manager.propose_challenge(local_player_id, remote_player_id)
+    assert len(manager.pending_challenges) == 1
+
+    accept_event = EventData.from_dict(
+        {
+            "type": "CLIENT_INTERACTION",
+            "event_number": 2,
+            "cuuid": "remote",
+            "interaction": "DUEL",
+            "response": "Accept",
+        }
+    )
+    client.route_combat(accept_event)
+
+    assert manager.pending_challenges == []
+    assert len(manager.active_battle_sessions) == 1
+
+
+def test_route_combat_submit_turn_payload_returns_feedback(client):
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+    battle_session = manager.start_battle_session(uuid4(), challenger, challenged)
+    client.game.multiplayer_battle_manager = manager
+
+    client.route_combat(
+        {
+            "action": "submit_turn",
+            "session_id": str(battle_session.session_id),
+            "player_id": str(challenger),
+            "turn": battle_session.current_turn,
+            "turn_action": {"move": "scratch"},
+        }
+    )
+
+    assert str(challenger) in battle_session.turn_actions
+    feedback = client.consume_feedback()
+    assert feedback
