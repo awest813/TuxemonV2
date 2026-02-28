@@ -475,3 +475,108 @@ def test_execute_scripted_trade_replace_failure(
     result = manager.execute_scripted_trade(monster_a, "new_slug")
     assert result == TradeResult.NOT_FOUND
     assert manager.global_trade_log == []
+
+
+def test_load_log_supports_naive_offer_timestamps(manager, npc_manager):
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    naive_now = now.replace(tzinfo=None)
+    offer = {
+        "proposing_player_id": str(uuid4()),
+        "proposing_monster_id": str(uuid4()),
+        "receiving_player_id": str(uuid4()),
+        "requested_monster_id": str(uuid4()),
+        "offer_id": str(uuid4()),
+        "timestamp": naive_now.isoformat(),
+        "expires_at": (naive_now + timedelta(minutes=1)).isoformat(),
+    }
+
+    new_manager = TradeManager(npc_manager)
+    new_manager.load_log({"trade_history": [], "pending_offers": [offer]})
+
+    assert len(new_manager.pending_offers) == 1
+    assert new_manager.pending_offers[0].timestamp.tzinfo is not None
+    assert new_manager.pending_offers[0].expires_at is not None
+    assert new_manager.pending_offers[0].expires_at.tzinfo is not None
+
+
+def test_load_log_supports_naive_trade_record_timestamp(manager, npc_manager):
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    record = {
+        "from_player": "Better",
+        "to_player": "Call",
+        "from_player_id": str(uuid4()),
+        "to_player_id": str(uuid4()),
+        "monster_given": "flamey_slug",
+        "monster_received": "splashy_slug",
+        "monster_given_id": str(uuid4()),
+        "monster_received_id": str(uuid4()),
+        "timestamp": now.replace(tzinfo=None).isoformat(),
+    }
+
+    new_manager = TradeManager(npc_manager)
+    new_manager.load_log({"trade_history": [record], "pending_offers": []})
+
+    assert len(new_manager.global_trade_log) == 1
+    assert new_manager.global_trade_log[0].timestamp.tzinfo is not None
+
+
+def test_load_log_supports_zulu_offer_timestamps(manager, npc_manager):
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    offer = {
+        "proposing_player_id": str(uuid4()),
+        "proposing_monster_id": str(uuid4()),
+        "receiving_player_id": str(uuid4()),
+        "requested_monster_id": str(uuid4()),
+        "offer_id": str(uuid4()),
+        "timestamp": now.isoformat().replace("+00:00", "Z"),
+        "expires_at": (now + timedelta(minutes=1)).isoformat().replace(
+            "+00:00", "Z"
+        ),
+    }
+
+    new_manager = TradeManager(npc_manager)
+    new_manager.load_log({"trade_history": [], "pending_offers": [offer]})
+
+    assert len(new_manager.pending_offers) == 1
+    assert new_manager.pending_offers[0].timestamp.tzinfo is not None
+
+
+def test_load_log_skips_invalid_offer_timestamp_expiry(manager, npc_manager):
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    offer = {
+        "proposing_player_id": str(uuid4()),
+        "proposing_monster_id": str(uuid4()),
+        "receiving_player_id": str(uuid4()),
+        "requested_monster_id": str(uuid4()),
+        "offer_id": str(uuid4()),
+        "timestamp": now.isoformat(),
+        "expires_at": "not-a-timestamp",
+    }
+
+    new_manager = TradeManager(npc_manager)
+    new_manager.load_log({"trade_history": [], "pending_offers": [offer]})
+
+    assert len(new_manager.pending_offers) == 1
+    assert new_manager.pending_offers[0].expires_at is None
+
+
+def test_load_log_defaults_invalid_trade_record_timestamp(
+    manager, npc_manager
+):
+    record = {
+        "from_player": "Better",
+        "to_player": "Call",
+        "from_player_id": str(uuid4()),
+        "to_player_id": str(uuid4()),
+        "monster_given": "flamey_slug",
+        "monster_received": "splashy_slug",
+        "monster_given_id": str(uuid4()),
+        "monster_received_id": str(uuid4()),
+        "timestamp": "not-a-timestamp",
+    }
+
+    new_manager = TradeManager(npc_manager)
+    new_manager.load_log({"trade_history": [record], "pending_offers": []})
+
+    assert len(new_manager.global_trade_log) == 1
+    assert new_manager.global_trade_log[0].timestamp.tzinfo is not None

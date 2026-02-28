@@ -18,4 +18,5 @@
   - [x] Added pending-offer inbox queries plus participant-authorized offer cancellation
   - [x] Session 1/3: Added receiver-authorized offer acceptance/rejection flow and rejection lifecycle event
   - [x] Session 2/3: Persisted pending trade offers and TTL defaults across save/load with expired-offer cleanup
+  - [x] Session 3/3: Hardened trade save-data timestamp parsing (naive/UTC-Z/invalid values) to prevent load-time crashes
 - [ ] Multiplayer Battles
