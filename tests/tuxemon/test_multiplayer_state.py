@@ -145,6 +145,38 @@ def test_join_connects_and_shows_connecting_status():
     )
 
 
+def test_join_last_server_uses_previous_selection():
+    state = make_menu_state()
+    state.network.client.selected_game = ("127.0.0.1", 40081)
+
+    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
+        "tuxemon.states.multiplayer.T.translate",
+        side_effect=lambda key: key,
+    ):
+        state.join_last_server()
+
+    assert state.network.client.connected_to == ("127.0.0.1", 40081)
+    mock_dialog.assert_called_once_with(
+        state.client, ["multiplayer_connecting_status"]
+    )
+
+
+def test_join_last_server_warns_when_no_previous_selection():
+    state = make_menu_state()
+
+    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
+        "tuxemon.states.multiplayer.T.translate",
+        side_effect=lambda key: key,
+    ):
+        state.join_last_server()
+
+    assert state.network.client.connected_to is None
+    mock_dialog.assert_called_once_with(
+        state.client,
+        ["multiplayer_join_missing_target", "multiplayer_retry_hint"],
+    )
+
+
 def test_join_by_ip_pushes_input_menu_with_callback():
     state = make_menu_state()
 

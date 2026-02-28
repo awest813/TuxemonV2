@@ -41,6 +41,9 @@ def test_reject_self_challenge_and_duplicate() -> None:
     assert manager.propose_challenge(challenger, challenged) == (
         BattleChallengeResult.DUPLICATE
     )
+    assert manager.propose_challenge(challenged, challenger) == (
+        BattleChallengeResult.DUPLICATE
+    )
 
 
 def test_cancel_challenge_requires_participant() -> None:
@@ -130,6 +133,33 @@ def test_accept_creates_active_battle_session() -> None:
             challenge.challenge_id
         )
         == battle_session
+    )
+
+
+def test_duplicate_challenge_blocked_while_active_session_exists() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+
+    manager.propose_challenge(challenger, challenged)
+    challenge = manager.pending_challenges[0]
+    manager.accept_challenge(
+        challenge.challenge_id, accepting_player_id=challenged
+    )
+
+    assert manager.propose_challenge(challenger, challenged) == (
+        BattleChallengeResult.DUPLICATE
+    )
+    assert manager.propose_challenge(challenged, challenger) == (
+        BattleChallengeResult.DUPLICATE
+    )
+
+    battle_session = manager.active_battle_sessions[0]
+    battle_session.last_activity_at = datetime.now(timezone.utc) - timedelta(
+        seconds=battle_session.turn_timeout_seconds + 1
+    )
+    assert manager.propose_challenge(challenger, challenged) == (
+        BattleChallengeResult.SUCCESS
     )
 
 
@@ -418,6 +448,10 @@ def test_get_challenge_feedback_for_history_and_missing() -> None:
     assert accepted_feedback.state == OnlineActionState.ACCEPTED
     assert accepted_feedback.retryable is False
 
+    active_session = manager.active_battle_sessions[0]
+    active_session.last_activity_at = datetime.now(timezone.utc) - timedelta(
+        seconds=active_session.turn_timeout_seconds + 1
+    )
     manager.propose_challenge(challenger, challenged)
     expired = manager.pending_challenges[0]
     expired.expires_at = datetime(2000, 1, 1, tzinfo=timezone.utc)
