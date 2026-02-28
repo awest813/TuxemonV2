@@ -20,7 +20,8 @@
   - [x] Session 1/3: Added receiver-authorized offer acceptance/rejection flow and rejection lifecycle event
   - [x] Session 2/3: Persisted pending trade offers and TTL defaults across save/load with expired-offer cleanup
   - [x] Session 3/3: Added legacy timestamp compatibility for trade history/offers to keep older save data loadable
-- [ ] Multiplayer Battles
-  - [x] Session 1/3: Added multiplayer battle challenge lifecycle (propose/cancel/accept/reject), TTL expiry, and save/load support
-  - [x] Session 2/3: Integrated multiplayer battle challenge logs into game save/load flow so pending challenges and defaults persist in SaveData
-  - [x] Session 3/3: Added legacy challenge-log key compatibility and malformed-entry tolerance during multiplayer battle log loading
+- [x] Multiplayer Battles
+  - [x] Session 1/4: Added multiplayer battle challenge lifecycle (propose/cancel/accept/reject), TTL expiry, and save/load support
+  - [x] Session 2/4: Integrated multiplayer battle challenge logs into game save/load flow so pending challenges and defaults persist in SaveData
+  - [x] Session 3/4: Added legacy challenge-log key compatibility and malformed-entry tolerance during multiplayer battle log loading
+  - [x] Session 4/4: Added persisted multiplayer battle resolution history (accepted/rejected/cancelled/expired) with player queries and bounded history retention
