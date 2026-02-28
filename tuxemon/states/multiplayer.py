@@ -90,8 +90,72 @@ class MultiplayerMenu(PygameMenuState):
     def join_by_ip(self) -> None:
         """Pushes an input menu to get the IP/Port from the user."""
         self.client.push_state(
-            "InputMenu", prompt=T.translate("multiplayer_join_prompt")
+            "InputMenu",
+            prompt=T.translate("multiplayer_join_prompt"),
+            callback=self._join_by_ip_input,
         )
+
+    def _parse_target_server(
+        self, raw_target: str
+    ) -> tuple[str, int] | None:
+        """Parse and normalize an input target into host + port."""
+        assert self.network.client
+        target = raw_target.strip()
+        if not target:
+            return None
+
+        default_port = int(getattr(self.network.client, "server_port", 40081))
+
+        if target.startswith("["):
+            host_end = target.find("]")
+            if host_end <= 1:
+                return None
+            host = target[1:host_end].strip()
+            suffix = target[host_end + 1 :].strip()
+            if not suffix:
+                return host, default_port
+            if not suffix.startswith(":"):
+                return None
+            port_token = suffix[1:].strip()
+        else:
+            host, port_token = target, ""
+            if target.count(":") == 1:
+                maybe_host, maybe_port = target.split(":", 1)
+                if not maybe_host.strip() or not maybe_port.strip().isdigit():
+                    return None
+                host, port_token = maybe_host.strip(), maybe_port.strip()
+
+        if not host:
+            return None
+
+        if not port_token:
+            return host, default_port
+
+        if not port_token.isdigit():
+            return None
+
+        port = int(port_token)
+        if port < 1 or port > 65535:
+            return None
+
+        return host, port
+
+    def _join_by_ip_input(self, target: str) -> None:
+        """Handle InputMenu confirmation for manual host entry."""
+        assert self.network.client
+        parsed_target = self._parse_target_server(target)
+        if parsed_target is None:
+            open_dialog(
+                self.client,
+                [
+                    T.translate("multiplayer_join_missing_target"),
+                    T.translate("multiplayer_retry_hint"),
+                ],
+            )
+            return
+
+        self.network.client.selected_game = parsed_target
+        self.join()
 
     def join(self) -> None:
         """
