@@ -21,3 +21,4 @@
   - [x] Session 2/3: Persisted pending trade offers and TTL defaults across save/load with expired-offer cleanup
   - [x] Session 3/3: Added legacy timestamp compatibility for trade history/offers to keep older save data loadable
 - [ ] Multiplayer Battles
+  - [x] Session 1/3: Added multiplayer battle challenge lifecycle (propose/cancel/accept/reject), TTL expiry, and save/load support
