@@ -207,29 +207,27 @@ class WorldState(State):
             self.client.map_manager.collision_lines_map,
         )
         if not collisions:
-            pass
-        else:
-            for direction in collisions:
-                if self.player.facing == direction:
-                    if direction == Direction.UP:
-                        tile = (player_tile_pos[0], player_tile_pos[1] - 1)
-                    elif direction == Direction.DOWN:
-                        tile = (player_tile_pos[0], player_tile_pos[1] + 1)
-                    elif direction == Direction.LEFT:
-                        tile = (player_tile_pos[0] - 1, player_tile_pos[1])
-                    elif direction == Direction.RIGHT:
-                        tile = (player_tile_pos[0] + 1, player_tile_pos[1])
-                    for npc in self.client.npc_manager.npcs:
-                        tile_pos = (
-                            int(round(npc.tile_pos[0])),
-                            int(round(npc.tile_pos[1])),
-                        )
-                        if tile_pos == tile:
-                            logger.info("Opening interaction menu!")
-                            self.client.push_state("InteractionMenu")
-                            return True
-                        else:
-                            continue
+            return False
+
+        for direction in collisions:
+            if self.player.facing == direction:
+                if direction == Direction.UP:
+                    tile = (player_tile_pos[0], player_tile_pos[1] - 1)
+                elif direction == Direction.DOWN:
+                    tile = (player_tile_pos[0], player_tile_pos[1] + 1)
+                elif direction == Direction.LEFT:
+                    tile = (player_tile_pos[0] - 1, player_tile_pos[1])
+                elif direction == Direction.RIGHT:
+                    tile = (player_tile_pos[0] + 1, player_tile_pos[1])
+                for npc in self.client.npc_manager.npcs:
+                    tile_pos = (
+                        int(round(npc.tile_pos[0])),
+                        int(round(npc.tile_pos[1])),
+                    )
+                    if tile_pos == tile:
+                        logger.info("Opening interaction menu!")
+                        self.client.push_state("InteractionMenu")
+                        return True
 
         return False
 
@@ -263,7 +261,6 @@ class WorldState(State):
             else:
                 if self.wants_duel:
                     if event_data["response"] == "Accept":
-                        world = self.client.current_state
                         pd = self.player.__dict__
                         event_data = {
                             "type": "CLIENT_INTERACTION",
