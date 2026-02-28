@@ -4932,6 +4932,140 @@ msgstr "Try scanning servers again or enter an address."
 msgid "multiplayer_join_unavailable_host"
 msgstr "Stop hosting before joining another game."
 
+# Trade feedback
+msgid "trade_action_success"
+msgstr "Trade {action} completed successfully."
+
+msgid "trade_rejected"
+msgstr "Trade offer was rejected."
+
+msgid "trade_expired"
+msgstr "Trade offer expired before it could be completed."
+
+msgid "trade_not_found"
+msgstr "Trade offer or monster is no longer available."
+
+msgid "trade_same_owner"
+msgstr "You cannot trade with yourself."
+
+msgid "trade_unauthorized"
+msgstr "You are not authorized to perform this trade action."
+
+msgid "trade_failed"
+msgstr "Trade action failed."
+
+msgid "trade_offer_not_found"
+msgstr "Trade offer could not be found."
+
+msgid "trade_offer_view_unauthorized"
+msgstr "You are not authorized to view this trade offer."
+
+msgid "trade_offer_expired"
+msgstr "This trade offer has expired."
+
+msgid "trade_offer_pending"
+msgstr "Trade offer is pending response."
+
+# Battle turn feedback
+msgid "battle_turn_resolved"
+msgstr "Turn submitted. Resolving actions for this round."
+
+msgid "battle_turn_waiting"
+msgstr "Turn submitted. Waiting for the other player."
+
+msgid "battle_session_not_found"
+msgstr "Battle session not found. Refresh and reconnect."
+
+msgid "battle_session_expired"
+msgstr "Battle session expired. Reconnect and restart the battle."
+
+msgid "battle_turn_mismatch"
+msgstr "Turn mismatch detected. Sync battle state and try again."
+
+msgid "battle_turn_duplicate"
+msgstr "Turn already submitted for this round."
+
+msgid "battle_turn_unauthorized"
+msgstr "You are not authorized to submit turns for this session."
+
+# Battle challenge feedback
+msgid "battle_request_sent"
+msgstr "Battle request sent. Waiting for the other player."
+
+msgid "battle_request_accepted"
+msgstr "Battle request accepted. Preparing battle session."
+
+msgid "battle_request_cancelled"
+msgstr "Battle request cancelled."
+
+msgid "battle_request_processed"
+msgstr "Battle request processed successfully."
+
+msgid "battle_request_declined"
+msgstr "Battle request declined. You can send another request."
+
+msgid "battle_request_expired"
+msgstr "Battle request expired. Send a new request to retry."
+
+msgid "battle_request_duplicate"
+msgstr "A pending request or active battle already exists for these players. Wait for resolution before retrying."
+
+msgid "battle_self_challenge"
+msgstr "You cannot challenge yourself."
+
+msgid "battle_request_unauthorized"
+msgstr "You are not authorized to manage this battle request."
+
+msgid "battle_request_not_found"
+msgstr "Battle request not found. Refresh and try again."
+
+# Battle session feedback
+msgid "battle_session_view_unauthorized"
+msgstr "You are not authorized to view this battle session."
+
+msgid "battle_session_timed_out"
+msgstr "Battle session timed out due to inactivity."
+
+msgid "battle_reconnect_expired"
+msgstr "Battle session expired while waiting for reconnection."
+
+msgid "battle_reconnect_self"
+msgstr "Connection lost. Reconnect to resume this battle ({seconds}s remaining)."
+
+msgid "battle_reconnect_other"
+msgstr "Waiting for the other player to reconnect ({seconds}s remaining)."
+
+msgid "battle_session_turn_waiting"
+msgstr "Turn submitted. Waiting for the other player."
+
+msgid "battle_session_active"
+msgstr "Battle is active on turn {turn}. Submit your action."
+
+# Battle challenge status feedback
+msgid "battle_challenge_view_unauthorized"
+msgstr "You are not authorized to view this battle request."
+
+msgid "battle_challenge_pending_timed"
+msgstr "Battle request is pending. Time remaining: {seconds} seconds."
+
+msgid "battle_challenge_pending"
+msgstr "Battle request is pending."
+
+msgid "battle_challenge_accepted"
+msgstr "Battle request accepted. Preparing battle session."
+
+msgid "battle_challenge_expired"
+msgstr "Battle request expired. Send a new request to retry."
+
+msgid "battle_challenge_rejected"
+msgstr "Battle request was declined. You can try again."
+
+msgid "battle_challenge_cancelled"
+msgstr "Battle request was cancelled."
+
+msgid "battle_challenge_not_found"
+msgstr "Battle request not found. Please refresh and try again."
+
 msgid "swap"
 msgstr "Swap"
 

@@ -52,6 +52,7 @@ class TradeActionFeedback:
     state: TradeActionState
     message: str
     retryable: bool
+    format_params: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -197,48 +198,49 @@ class TradeManager:
         if trade_result == TradeResult.SUCCESS:
             return TradeActionFeedback(
                 state=TradeActionState.ACCEPTED,
-                message=f"Trade {action_name} completed successfully.",
+                message="trade_action_success",
                 retryable=False,
+                format_params={"action": action_name},
             )
 
         if trade_result == TradeResult.REJECTED:
             return TradeActionFeedback(
                 state=TradeActionState.REJECTED,
-                message="Trade offer was rejected.",
+                message="trade_rejected",
                 retryable=True,
             )
 
         if trade_result == TradeResult.EXPIRED:
             return TradeActionFeedback(
                 state=TradeActionState.EXPIRED,
-                message="Trade offer expired before it could be completed.",
+                message="trade_expired",
                 retryable=True,
             )
 
         if trade_result == TradeResult.NOT_FOUND:
             return TradeActionFeedback(
                 state=TradeActionState.NOT_FOUND,
-                message="Trade offer or monster is no longer available.",
+                message="trade_not_found",
                 retryable=True,
             )
 
         if trade_result == TradeResult.SAME_OWNER:
             return TradeActionFeedback(
                 state=TradeActionState.FAILED,
-                message="You cannot trade with yourself.",
+                message="trade_same_owner",
                 retryable=False,
             )
 
         if trade_result == TradeResult.UNAUTHORIZED:
             return TradeActionFeedback(
                 state=TradeActionState.FAILED,
-                message="You are not authorized to perform this trade action.",
+                message="trade_unauthorized",
                 retryable=False,
             )
 
         return TradeActionFeedback(
             state=TradeActionState.FAILED,
-            message="Trade action failed.",
+            message="trade_failed",
             retryable=True,
         )
 
@@ -251,27 +253,27 @@ class TradeManager:
         if offer is None:
             return TradeActionFeedback(
                 state=TradeActionState.NOT_FOUND,
-                message="Trade offer could not be found.",
+                message="trade_offer_not_found",
                 retryable=True,
             )
 
         if player_id not in {offer.proposing_player_id, offer.receiving_player_id}:
             return TradeActionFeedback(
                 state=TradeActionState.FAILED,
-                message="You are not authorized to view this trade offer.",
+                message="trade_offer_view_unauthorized",
                 retryable=False,
             )
 
         if self._is_offer_expired(offer):
             return TradeActionFeedback(
                 state=TradeActionState.EXPIRED,
-                message="This trade offer has expired.",
+                message="trade_offer_expired",
                 retryable=True,
             )
 
         return TradeActionFeedback(
             state=TradeActionState.PENDING,
-            message="Trade offer is pending response.",
+            message="trade_offer_pending",
             retryable=False,
         )
 

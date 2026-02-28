@@ -423,13 +423,15 @@ def test_get_challenge_feedback_for_pending_and_unauthorized() -> None:
     feedback = manager.get_challenge_feedback(challenge.challenge_id, challenger)
     assert feedback.state == OnlineActionState.PENDING
     assert feedback.retryable is False
-    assert "pending" in feedback.message.lower()
+    assert feedback.message == "battle_challenge_pending_timed"
+    assert "seconds" in feedback.format_params
 
     unauthorized = manager.get_challenge_feedback(
         challenge.challenge_id, stranger
     )
     assert unauthorized.state == OnlineActionState.FAILED
     assert unauthorized.retryable is False
+    assert unauthorized.message == "battle_challenge_view_unauthorized"
 
 
 def test_get_challenge_feedback_for_history_and_missing() -> None:
@@ -475,38 +477,45 @@ def test_get_turn_submission_feedback_messages() -> None:
     success = manager.get_turn_submission_feedback(TurnSubmissionResult.SUCCESS)
     assert success.state == OnlineActionState.ACCEPTED
     assert success.retryable is False
+    assert success.message == "battle_turn_resolved"
 
     waiting = manager.get_turn_submission_feedback(TurnSubmissionResult.WAITING)
     assert waiting.state == OnlineActionState.PENDING
     assert waiting.retryable is False
+    assert waiting.message == "battle_turn_waiting"
 
     not_found = manager.get_turn_submission_feedback(
         TurnSubmissionResult.NOT_FOUND
     )
     assert not_found.state == OnlineActionState.NOT_FOUND
     assert not_found.retryable is True
+    assert not_found.message == "battle_session_not_found"
 
     expired = manager.get_turn_submission_feedback(TurnSubmissionResult.EXPIRED)
     assert expired.state == OnlineActionState.EXPIRED
     assert expired.retryable is True
+    assert expired.message == "battle_session_expired"
 
     mismatch = manager.get_turn_submission_feedback(
         TurnSubmissionResult.TURN_MISMATCH
     )
     assert mismatch.state == OnlineActionState.FAILED
     assert mismatch.retryable is True
+    assert mismatch.message == "battle_turn_mismatch"
 
     duplicate = manager.get_turn_submission_feedback(
         TurnSubmissionResult.DUPLICATE
     )
     assert duplicate.state == OnlineActionState.FAILED
     assert duplicate.retryable is False
+    assert duplicate.message == "battle_turn_duplicate"
 
     unauthorized = manager.get_turn_submission_feedback(
         TurnSubmissionResult.UNAUTHORIZED
     )
     assert unauthorized.state == OnlineActionState.FAILED
     assert unauthorized.retryable is False
+    assert unauthorized.message == "battle_turn_unauthorized"
 
 
 def test_get_challenge_action_feedback_messages() -> None:
@@ -518,6 +527,7 @@ def test_get_challenge_action_feedback_messages() -> None:
     )
     assert proposed.state == OnlineActionState.PENDING
     assert proposed.retryable is False
+    assert proposed.message == "battle_request_sent"
 
     accepted = manager.get_challenge_action_feedback(
         BattleChallengeResult.SUCCESS,
@@ -525,6 +535,7 @@ def test_get_challenge_action_feedback_messages() -> None:
     )
     assert accepted.state == OnlineActionState.ACCEPTED
     assert accepted.retryable is False
+    assert accepted.message == "battle_request_accepted"
 
     cancelled = manager.get_challenge_action_feedback(
         BattleChallengeResult.SUCCESS,
@@ -532,6 +543,7 @@ def test_get_challenge_action_feedback_messages() -> None:
     )
     assert cancelled.state == OnlineActionState.CANCELLED
     assert cancelled.retryable is False
+    assert cancelled.message == "battle_request_cancelled"
 
     rejected = manager.get_challenge_action_feedback(
         BattleChallengeResult.REJECTED,
@@ -539,6 +551,7 @@ def test_get_challenge_action_feedback_messages() -> None:
     )
     assert rejected.state == OnlineActionState.REJECTED
     assert rejected.retryable is True
+    assert rejected.message == "battle_request_declined"
 
     duplicate = manager.get_challenge_action_feedback(
         BattleChallengeResult.DUPLICATE,
@@ -546,6 +559,7 @@ def test_get_challenge_action_feedback_messages() -> None:
     )
     assert duplicate.state == OnlineActionState.FAILED
     assert duplicate.retryable is False
+    assert duplicate.message == "battle_request_duplicate"
 
     missing = manager.get_challenge_action_feedback(
         BattleChallengeResult.NOT_FOUND,
@@ -553,6 +567,7 @@ def test_get_challenge_action_feedback_messages() -> None:
     )
     assert missing.state == OnlineActionState.NOT_FOUND
     assert missing.retryable is True
+    assert missing.message == "battle_request_not_found"
 
 
 def test_get_battle_session_feedback_states() -> None:
@@ -567,7 +582,8 @@ def test_get_battle_session_feedback_states() -> None:
     )
     assert active_feedback.state == OnlineActionState.PENDING
     assert active_feedback.retryable is False
-    assert "submit your action" in active_feedback.message.lower()
+    assert active_feedback.message == "battle_session_active"
+    assert active_feedback.format_params == {"turn": "1"}
 
     manager.submit_turn_action(
         battle_session.session_id,
@@ -580,17 +596,19 @@ def test_get_battle_session_feedback_states() -> None:
     )
     assert waiting_feedback.state == OnlineActionState.PENDING
     assert waiting_feedback.retryable is False
-    assert "waiting for the other player" in waiting_feedback.message.lower()
+    assert waiting_feedback.message == "battle_session_turn_waiting"
 
     unauthorized = manager.get_battle_session_feedback(
         battle_session.session_id, stranger
     )
     assert unauthorized.state == OnlineActionState.FAILED
     assert unauthorized.retryable is False
+    assert unauthorized.message == "battle_session_view_unauthorized"
 
     missing = manager.get_battle_session_feedback(uuid4(), challenger)
     assert missing.state == OnlineActionState.NOT_FOUND
     assert missing.retryable is True
+    assert missing.message == "battle_session_not_found"
 
 
 def test_get_battle_session_feedback_connection_and_timeout() -> None:
@@ -614,7 +632,8 @@ def test_get_battle_session_feedback_connection_and_timeout() -> None:
     )
     assert waiting_reconnect.state == OnlineActionState.PENDING
     assert waiting_reconnect.retryable is False
-    assert "reconnect" in waiting_reconnect.message.lower()
+    assert waiting_reconnect.message == "battle_reconnect_other"
+    assert "seconds" in waiting_reconnect.format_params
 
     expired_reconnect = manager.get_battle_session_feedback(
         battle_session.session_id,
@@ -624,6 +643,7 @@ def test_get_battle_session_feedback_connection_and_timeout() -> None:
     )
     assert expired_reconnect.state == OnlineActionState.EXPIRED
     assert expired_reconnect.retryable is True
+    assert expired_reconnect.message == "battle_session_timed_out"
 
     timeout_session = manager.start_battle_session(uuid4(), challenger, challenged)
     timeout_session.last_activity_at = datetime.now(timezone.utc) - timedelta(
@@ -635,6 +655,7 @@ def test_get_battle_session_feedback_connection_and_timeout() -> None:
     )
     assert timed_out_feedback.state == OnlineActionState.EXPIRED
     assert timed_out_feedback.retryable is True
+    assert timed_out_feedback.message == "battle_session_timed_out"
 
 
 def test_turn_submission_rejects_expired_battle_session() -> None:
