@@ -431,6 +431,92 @@ class MultiplayerBattleManager:
             retryable=False,
         )
 
+    def get_battle_session_feedback(
+        self,
+        session_id: UUID,
+        player_id: UUID,
+        *,
+        now: datetime | None = None,
+    ) -> OnlineActionFeedback:
+        battle_session = self._find_battle_session(session_id)
+        if battle_session is None:
+            return OnlineActionFeedback(
+                state=OnlineActionState.NOT_FOUND,
+                message="Battle session not found. Refresh and reconnect.",
+                retryable=True,
+            )
+
+        if player_id not in {
+            battle_session.challenger_player_id,
+            battle_session.challenged_player_id,
+        }:
+            return OnlineActionFeedback(
+                state=OnlineActionState.FAILED,
+                message="You are not authorized to view this battle session.",
+                retryable=False,
+            )
+
+        current_time = now or datetime.now(timezone.utc)
+        if current_time > battle_session.last_activity_at + timedelta(
+            seconds=battle_session.turn_timeout_seconds
+        ):
+            return OnlineActionFeedback(
+                state=OnlineActionState.EXPIRED,
+                message="Battle session timed out due to inactivity.",
+                retryable=True,
+            )
+
+        for participant_id_str, disconnected_at in battle_session.disconnected_at.items():
+            if disconnected_at is None:
+                continue
+
+            disconnected_time = _coerce_utc_timestamp(disconnected_at)
+            grace_ends_at = disconnected_time + timedelta(
+                seconds=battle_session.reconnect_grace_seconds
+            )
+            if current_time > grace_ends_at:
+                return OnlineActionFeedback(
+                    state=OnlineActionState.EXPIRED,
+                    message="Battle session expired while waiting for reconnection.",
+                    retryable=True,
+                )
+
+            seconds_left = max(0, int((grace_ends_at - current_time).total_seconds()))
+            if participant_id_str == str(player_id):
+                return OnlineActionFeedback(
+                    state=OnlineActionState.PENDING,
+                    message=(
+                        "Connection lost. Reconnect to resume this battle "
+                        f"({seconds_left}s remaining)."
+                    ),
+                    retryable=True,
+                )
+
+            return OnlineActionFeedback(
+                state=OnlineActionState.PENDING,
+                message=(
+                    "Waiting for the other player to reconnect "
+                    f"({seconds_left}s remaining)."
+                ),
+                retryable=False,
+            )
+
+        if str(player_id) in battle_session.turn_actions:
+            return OnlineActionFeedback(
+                state=OnlineActionState.PENDING,
+                message="Turn submitted. Waiting for the other player.",
+                retryable=False,
+            )
+
+        return OnlineActionFeedback(
+            state=OnlineActionState.PENDING,
+            message=(
+                f"Battle is active on turn {battle_session.current_turn}. "
+                "Submit your action."
+            ),
+            retryable=False,
+        )
+
     def _add_battle_record(
         self, challenge: BattleChallenge, resolution: BattleResolution
     ) -> None:

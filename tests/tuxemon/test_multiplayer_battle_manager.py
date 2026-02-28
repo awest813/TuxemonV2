@@ -410,3 +410,85 @@ def test_get_turn_submission_feedback_messages() -> None:
     )
     assert unauthorized.state == OnlineActionState.FAILED
     assert unauthorized.retryable is False
+
+
+def test_get_battle_session_feedback_states() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+    stranger = uuid4()
+    battle_session = manager.start_battle_session(uuid4(), challenger, challenged)
+
+    active_feedback = manager.get_battle_session_feedback(
+        battle_session.session_id, challenger
+    )
+    assert active_feedback.state == OnlineActionState.PENDING
+    assert active_feedback.retryable is False
+    assert "submit your action" in active_feedback.message.lower()
+
+    manager.submit_turn_action(
+        battle_session.session_id,
+        challenger,
+        turn=1,
+        action={"move": "scratch"},
+    )
+    waiting_feedback = manager.get_battle_session_feedback(
+        battle_session.session_id, challenger
+    )
+    assert waiting_feedback.state == OnlineActionState.PENDING
+    assert waiting_feedback.retryable is False
+    assert "waiting for the other player" in waiting_feedback.message.lower()
+
+    unauthorized = manager.get_battle_session_feedback(
+        battle_session.session_id, stranger
+    )
+    assert unauthorized.state == OnlineActionState.FAILED
+    assert unauthorized.retryable is False
+
+    missing = manager.get_battle_session_feedback(uuid4(), challenger)
+    assert missing.state == OnlineActionState.NOT_FOUND
+    assert missing.retryable is True
+
+
+def test_get_battle_session_feedback_connection_and_timeout() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+    battle_session = manager.start_battle_session(uuid4(), challenger, challenged)
+
+    disconnect_now = datetime.now(timezone.utc)
+    manager.set_player_connection_state(
+        battle_session.session_id,
+        challenged,
+        connected=False,
+        now=disconnect_now,
+    )
+
+    waiting_reconnect = manager.get_battle_session_feedback(
+        battle_session.session_id,
+        challenger,
+        now=disconnect_now + timedelta(seconds=5),
+    )
+    assert waiting_reconnect.state == OnlineActionState.PENDING
+    assert waiting_reconnect.retryable is False
+    assert "reconnect" in waiting_reconnect.message.lower()
+
+    expired_reconnect = manager.get_battle_session_feedback(
+        battle_session.session_id,
+        challenger,
+        now=disconnect_now
+        + timedelta(seconds=battle_session.reconnect_grace_seconds + 1),
+    )
+    assert expired_reconnect.state == OnlineActionState.EXPIRED
+    assert expired_reconnect.retryable is True
+
+    timeout_session = manager.start_battle_session(uuid4(), challenger, challenged)
+    timeout_session.last_activity_at = datetime.now(timezone.utc) - timedelta(
+        seconds=timeout_session.turn_timeout_seconds + 1
+    )
+    timed_out_feedback = manager.get_battle_session_feedback(
+        timeout_session.session_id,
+        challenger,
+    )
+    assert timed_out_feedback.state == OnlineActionState.EXPIRED
+    assert timed_out_feedback.retryable is True
