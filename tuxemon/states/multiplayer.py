@@ -100,11 +100,25 @@ class MultiplayerMenu(PygameMenuState):
         """
         assert self.network.client
         if self.network.is_host():
+            open_dialog(
+                self.client,
+                [T.translate("multiplayer_join_unavailable_host")],
+            )
             return
-        else:
-            if self.network.client.selected_game:
-                ip, port = self.network.client.selected_game
-                self.network.client.connect_to_host(ip, port)
+
+        if not self.network.client.selected_game:
+            open_dialog(
+                self.client,
+                [
+                    T.translate("multiplayer_join_missing_target"),
+                    T.translate("multiplayer_retry_hint"),
+                ],
+            )
+            return
+
+        ip, port = self.network.client.selected_game
+        self.network.client.connect_to_host(ip, port)
+        open_dialog(self.client, [T.translate("multiplayer_connecting_status")])
 
 
 class MultiplayerSelect(PopUpMenu[tuple[str, int]]):
