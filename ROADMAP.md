@@ -22,4 +22,3 @@
   - [x] Session 3/3: Added legacy timestamp compatibility for trade history/offers to keep older save data loadable
 - [ ] Multiplayer Battles
   - [x] Session 1/3: Added multiplayer battle challenge lifecycle (propose/cancel/accept/reject), TTL expiry, and save/load support
-  - [x] Session 2/3: Integrated multiplayer battle challenge logs into game save/load flow so pending challenges and defaults persist in SaveData
