@@ -137,6 +137,26 @@ class WorldMenuManager:
         callback = self._get_change_state_callback(state, **kwargs)
         return MenuItem(key, label, callback)
 
+    def build_system_menu_items(self) -> list[MenuItem]:
+        """Builds the system submenu entries for world-side utilities."""
+        system_menu: list[MenuItem] = []
+
+        if self.menu_flags.is_enabled("menu_save"):
+            system_menu.append(self._menu_item("menu_save", "SaveMenuState"))
+
+        if self.menu_flags.is_enabled("menu_load"):
+            system_menu.append(self._menu_item("menu_load", "LoadMenuState"))
+
+        system_menu.append(self._menu_item("menu_options", "ControlState"))
+        system_menu.append(
+            MenuItem(
+                "exit",
+                T.translate("exit").upper(),
+                self._get_exit_game_callback(),
+            )
+        )
+        return system_menu
+
     def _insert_item_specific_entries_in_menu(
         self, player: NPC, current_menu: list[MenuItem]
     ) -> None:
@@ -237,19 +257,11 @@ class WorldMenuManager:
                 )
             )
 
-        if self.menu_flags.is_enabled("menu_save"):
-            current_menu.append(self._menu_item("menu_save", "SaveMenuState"))
-
-        if self.menu_flags.is_enabled("menu_load"):
-            current_menu.append(self._menu_item("menu_load", "LoadMenuState"))
-
-        current_menu.append(self._menu_item("menu_options", "ControlState"))
-
         current_menu.append(
-            MenuItem(
-                "exit",
-                T.translate("exit").upper(),
-                self._get_exit_game_callback(),
+            self._menu_item(
+                "menu_options",
+                "WorldSystemMenuState",
+                menu_manager=self,
             )
         )
 
