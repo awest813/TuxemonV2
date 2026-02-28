@@ -161,6 +161,15 @@ contributed code.
 - Interactive tests go in the "scripts" folder
 - Unit tests go in the "tests" folder
 
+## Rebrand Transition Expectations (OpenCapsuleMon)
+- Use **OpenCapsuleMon** for player-facing wording in docs and release messaging.
+- Keep existing runtime/module names (`run_tuxemon.py`, `tuxemon.*`) unless your PR also includes compatibility shims.
+- For naming-related changes, add a short **Rebrand impact** note in your PR description that covers:
+  - what changed,
+  - what remains backward compatible,
+  - any planned follow-up rename work.
+- Reference [`docs/rebrand_transition.md`](docs/rebrand_transition.md) for the staged migration policy and deprecation windows.
+
 ## General Pull Request Guidelines
 - You must target the development branch
 - You should work from a feature branch to avoid merge complications

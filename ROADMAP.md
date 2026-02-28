@@ -4,7 +4,7 @@ This roadmap reflects the current state of the branch and outlines practical fol
 
 ## Status Overview
 
-- Overall checklist completion: **17/29**
+- Overall checklist completion: **18/29**
 - Snapshot command: `python run_tuxemon.py --status`
 - Rebrand phase: **Kickoff** (project identity/messaging alignment in progress)
 - Latest recorded status during this update:
@@ -47,9 +47,9 @@ This roadmap reflects the current state of the branch and outlines practical fol
 The original baseline milestones are complete; this expanded plan now tracks rebrand execution plus polish and scale work as player-facing priorities.
 
 ### Phase 0 — Rebrand Foundation (Highest Priority)
-- [ ] **Project identity alignment**
-  - Update key documentation and contributor messaging to OpenCapsuleMon naming.
-  - Define naming conventions for transition-safe references (when to keep `tuxemon` internals).
+- [x] **Project identity alignment**
+  - Updated key documentation and contributor messaging to OpenCapsuleMon naming (`README.md`, `CONTRIBUTING.md`).
+  - Defined transition-safe naming conventions in `docs/rebrand_transition.md` (when to keep `tuxemon` internals).
 - [ ] **Compatibility-first naming migration plan**
   - Publish a staged rename strategy for binaries, modules, and package metadata.
   - Define deprecation windows and alias policy so existing workflows are not broken.
