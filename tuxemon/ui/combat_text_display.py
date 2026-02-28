@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from pygame.rect import Rect
 from pygame.surface import Surface
+from pygame import SRCALPHA, draw as pg_draw
 
 from tuxemon.sprite import Sprite
 
@@ -43,6 +44,14 @@ class CombatTextDisplay:
 
         line1_rect = self._get_rect(owner, "hud_line1")
         line2_rect = self._get_rect(owner, "hud_line2")
+
+        # Add a small translucent strip to improve readability on bright backgrounds.
+        strip_top = min(line1_rect.top, line2_rect.top)
+        strip_bottom = max(line1_rect.bottom, line2_rect.bottom)
+        text_strip = Rect(0, strip_top - 2, hud.image.get_width(), (strip_bottom - strip_top) + 4)
+        overlay = Surface(text_strip.size, SRCALPHA)
+        pg_draw.rect(overlay, (10, 20, 32, 110), overlay.get_rect(), border_radius=4)
+        hud.image.blit(overlay, text_strip.topleft)
 
         hud.image.blit(self._shadow_text(label_data["line1"]), line1_rect)
         if label_data["line2"]:
