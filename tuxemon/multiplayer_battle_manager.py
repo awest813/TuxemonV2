@@ -44,6 +44,7 @@ class TurnSubmissionResult(Enum):
     TURN_MISMATCH = "turn_mismatch"
     DUPLICATE = "duplicate"
     WAITING = "waiting"
+    EXPIRED = "expired"
 
 
 class OnlineActionState(Enum):
@@ -251,6 +252,109 @@ class MultiplayerBattleManager:
             None,
         )
 
+    @staticmethod
+    def _participant_ids_for_session(
+        battle_session: ActiveBattleSession,
+    ) -> tuple[UUID, UUID]:
+        return (
+            battle_session.challenger_player_id,
+            battle_session.challenged_player_id,
+        )
+
+    def _is_battle_session_expired(
+        self,
+        battle_session: ActiveBattleSession,
+        *,
+        now: datetime | None = None,
+    ) -> bool:
+        current_time = now or datetime.now(timezone.utc)
+        if current_time > battle_session.last_activity_at + timedelta(
+            seconds=battle_session.turn_timeout_seconds
+        ):
+            return True
+
+        for disconnected_at in battle_session.disconnected_at.values():
+            if disconnected_at is None:
+                continue
+            disconnected_time = _coerce_utc_timestamp(disconnected_at)
+            if current_time > disconnected_time + timedelta(
+                seconds=battle_session.reconnect_grace_seconds
+            ):
+                return True
+
+        return False
+
+    @staticmethod
+    def _resolve_turn_actions_authoritatively(
+        battle_session: ActiveBattleSession,
+    ) -> list[BattleTurnAction]:
+        """Build a deterministic resolution order owned by the server."""
+
+        def conflict_sort_key(turn_action: BattleTurnAction) -> tuple[int, int, str, str]:
+            raw_priority = turn_action.action.get("priority", 0)
+            priority = raw_priority if isinstance(raw_priority, int) else 0
+            raw_speed = turn_action.action.get("speed", 0)
+            speed = raw_speed if isinstance(raw_speed, int) else 0
+            return (
+                -priority,
+                -speed,
+                turn_action.submitted_at.isoformat(),
+                str(turn_action.player_id),
+            )
+
+        return sorted(
+            battle_session.turn_actions.values(),
+            key=conflict_sort_key,
+        )
+
+    def _normalize_loaded_battle_session(
+        self,
+        battle_session: ActiveBattleSession,
+    ) -> ActiveBattleSession | None:
+        participant_ids = {
+            str(battle_session.challenger_player_id),
+            str(battle_session.challenged_player_id),
+        }
+
+        if battle_session.current_turn < 1:
+            battle_session.current_turn = 1
+
+        battle_session.turn_timeout_seconds = max(
+            1, int(battle_session.turn_timeout_seconds)
+        )
+        battle_session.reconnect_grace_seconds = max(
+            1, int(battle_session.reconnect_grace_seconds)
+        )
+
+        normalized_disconnects = {
+            player_id: battle_session.disconnected_at.get(player_id)
+            for player_id in participant_ids
+        }
+        for player_id, disconnected_at in normalized_disconnects.items():
+            if disconnected_at is None:
+                continue
+            try:
+                _coerce_utc_timestamp(disconnected_at)
+            except ValueError:
+                normalized_disconnects[player_id] = None
+        battle_session.disconnected_at = normalized_disconnects
+
+        normalized_actions: dict[str, BattleTurnAction] = {}
+        for player_id, action in battle_session.turn_actions.items():
+            if player_id not in participant_ids:
+                continue
+            if action.turn != battle_session.current_turn:
+                continue
+            if str(action.player_id) != player_id:
+                continue
+            normalized_actions[player_id] = action
+        battle_session.turn_actions = normalized_actions
+
+        if self._is_battle_session_expired(battle_session):
+            return None
+
+        return battle_session
+
     def get_active_battle_session_for_challenge(
         self, challenge_id: UUID
     ) -> ActiveBattleSession | None:
@@ -269,23 +373,7 @@ class MultiplayerBattleManager:
         removed = 0
 
         for battle_session in self.active_battle_sessions:
-            timed_out = (
-                current_time
-                > battle_session.last_activity_at
-                + timedelta(seconds=battle_session.turn_timeout_seconds)
-            )
-            disconnected_timed_out = False
-            for timestamp in battle_session.disconnected_at.values():
-                if timestamp is None:
-                    continue
-                disconnected_time = _coerce_utc_timestamp(timestamp)
-                if current_time > disconnected_time + timedelta(
-                    seconds=battle_session.reconnect_grace_seconds
-                ):
-                    disconnected_timed_out = True
-                    break
-
-            if timed_out or disconnected_timed_out:
+            if self._is_battle_session_expired(battle_session, now=current_time):
                 removed += 1
                 self.event_bus.publish("multiplayer_battle_session_expired", battle_session)
                 continue
@@ -353,11 +441,11 @@ class MultiplayerBattleManager:
         if battle_session is None:
             return TurnSubmissionResult.NOT_FOUND
 
-        if player_id not in {
-            battle_session.challenger_player_id,
-            battle_session.challenged_player_id,
-        }:
+        if player_id not in set(self._participant_ids_for_session(battle_session)):
             return TurnSubmissionResult.UNAUTHORIZED
+
+        if self._is_battle_session_expired(battle_session):
+            return TurnSubmissionResult.EXPIRED
 
         if turn != battle_session.current_turn:
             return TurnSubmissionResult.TURN_MISMATCH
@@ -376,16 +464,24 @@ class MultiplayerBattleManager:
         if len(battle_session.turn_actions) < 2:
             return TurnSubmissionResult.WAITING
 
-        actions_in_order = [
-            battle_session.turn_actions[key]
-            for key in sorted(battle_session.turn_actions.keys())
-        ]
+        actions_in_order = self._resolve_turn_actions_authoritatively(
+            battle_session
+        )
         self.event_bus.publish(
             "multiplayer_battle_turn_resolved",
             {
                 "session_id": str(battle_session.session_id),
                 "turn": battle_session.current_turn,
                 "actions": [action.to_dict() for action in actions_in_order],
+                "conflict_policy": {
+                    "ordering": [
+                        "priority_desc",
+                        "speed_desc",
+                        "submitted_at_asc",
+                        "player_id_asc",
+                    ],
+                    "authoritative": "server",
+                },
             },
         )
         battle_session.current_turn += 1
@@ -411,6 +507,12 @@ class MultiplayerBattleManager:
             return OnlineActionFeedback(
                 state=OnlineActionState.NOT_FOUND,
                 message="Battle session not found. Refresh and reconnect.",
+                retryable=True,
+            )
+        if submission_result == TurnSubmissionResult.EXPIRED:
+            return OnlineActionFeedback(
+                state=OnlineActionState.EXPIRED,
+                message="Battle session expired. Reconnect and restart the battle.",
                 retryable=True,
             )
         if submission_result == TurnSubmissionResult.TURN_MISMATCH:
@@ -457,9 +559,7 @@ class MultiplayerBattleManager:
             )
 
         current_time = now or datetime.now(timezone.utc)
-        if current_time > battle_session.last_activity_at + timedelta(
-            seconds=battle_session.turn_timeout_seconds
-        ):
+        if self._is_battle_session_expired(battle_session, now=current_time):
             return OnlineActionFeedback(
                 state=OnlineActionState.EXPIRED,
                 message="Battle session timed out due to inactivity.",
@@ -845,7 +945,14 @@ class MultiplayerBattleManager:
             except (KeyError, TypeError, ValueError):
                 continue
 
-        self.active_battle_sessions = sessions
+        deduped_sessions: dict[UUID, ActiveBattleSession] = {}
+        for session in sessions:
+            normalized = self._normalize_loaded_battle_session(session)
+            if normalized is None:
+                continue
+            deduped_sessions[normalized.challenge_id] = normalized
+
+        self.active_battle_sessions = list(deduped_sessions.values())
         self.default_turn_timeout_seconds = int(
             data.get(
                 "default_turn_timeout_seconds",
