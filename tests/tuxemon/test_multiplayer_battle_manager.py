@@ -107,6 +107,32 @@ def test_accept_reject_and_expired_challenge() -> None:
     ]
 
 
+def test_accept_creates_active_battle_session() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+
+    manager.propose_challenge(challenger, challenged)
+    challenge = manager.pending_challenges[0]
+
+    result = manager.accept_challenge(
+        challenge.challenge_id, accepting_player_id=challenged
+    )
+
+    assert result == BattleChallengeResult.SUCCESS
+    assert len(manager.active_battle_sessions) == 1
+    battle_session = manager.active_battle_sessions[0]
+    assert battle_session.challenge_id == challenge.challenge_id
+    assert battle_session.challenger_player_id == challenger
+    assert battle_session.challenged_player_id == challenged
+    assert (
+        manager.get_active_battle_session_for_challenge(
+            challenge.challenge_id
+        )
+        == battle_session
+    )
+
+
 def test_cancel_adds_history_and_limit_is_enforced() -> None:
     manager = MultiplayerBattleManager()
     manager.max_battle_history_entries = 2
