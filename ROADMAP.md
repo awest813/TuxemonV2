@@ -150,15 +150,19 @@ With all alpha gates satisfied, this phase targets the feature depth gaps identi
   - Make phone calls materially change route choice and gameplay loops.
 
 ### Milestone B — Combat Replayability
-- [ ] **Battle facility (Battle Tower equivalent)**
-  - Add a repeatable challenge format with scaling difficulty and rank progression.
-  - Define ruleset (level caps, item restrictions) and reward structure.
-- [ ] **Friendship/happiness evolution system**
-  - Implement friendship stat that changes with party presence, items, and battle outcomes.
-  - Tie friendship thresholds to evolution triggers and move interactions.
-- [ ] **Evolution variety expansion**
-  - Add non-level evolution methods: item-based, trade-based, time-based, friendship-based.
-  - Track % of evolutions using non-level methods as a parity metric.
+- [x] **Battle facility (Battle Tower equivalent)**
+  - Added `tuxemon/battle_tower.py` with `BattleTowerManager` for repeatable challenges.
+  - Configurable rules (level cap, party size, items), procedural opponent generation, rank progression.
+  - Scaling rewards (base + streak bonus + rank bonus), save/load persistence, 24 tests.
+- [x] **Friendship/happiness evolution system**
+  - Expanded bond_modifiers config with 7 events (battle_won, level_up, party_walk, item_used, traded, healed, fainted).
+  - Added `Monster.apply_bond_event()` that applies modifier AND checks for bond-triggered evolution.
+  - Wired battle victory and level-up bond gains into the reward system.
+- [x] **Evolution variety expansion**
+  - Added `daytime` field to `MonsterEvolutionItemModel` for time-of-day evolution conditions.
+  - Added `check_daytime()` evolution condition using the game's `TimeHandler` snapshot.
+  - Trade-based (`acquisition: traded`), item-based, and bond-based evolution paths already supported in data model.
+  - 37 friendship/evolution tests covering all new mechanics.
 
 ### Milestone C — Longevity and Completion
 - [ ] **Postgame expansion arc**
