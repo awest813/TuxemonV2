@@ -533,6 +533,78 @@ class MultiplayerBattleManager:
             retryable=False,
         )
 
+    def get_challenge_action_feedback(
+        self,
+        challenge_result: BattleChallengeResult,
+        *,
+        action: str,
+    ) -> OnlineActionFeedback:
+        """Return player-facing feedback for challenge lifecycle actions."""
+        if challenge_result == BattleChallengeResult.SUCCESS:
+            if action == "propose":
+                return OnlineActionFeedback(
+                    state=OnlineActionState.PENDING,
+                    message="Battle request sent. Waiting for the other player.",
+                    retryable=False,
+                )
+            if action == "accept":
+                return OnlineActionFeedback(
+                    state=OnlineActionState.ACCEPTED,
+                    message="Battle request accepted. Preparing battle session.",
+                    retryable=False,
+                )
+            if action == "cancel":
+                return OnlineActionFeedback(
+                    state=OnlineActionState.CANCELLED,
+                    message="Battle request cancelled.",
+                    retryable=False,
+                )
+
+            return OnlineActionFeedback(
+                state=OnlineActionState.ACCEPTED,
+                message="Battle request processed successfully.",
+                retryable=False,
+            )
+
+        if challenge_result == BattleChallengeResult.REJECTED:
+            return OnlineActionFeedback(
+                state=OnlineActionState.REJECTED,
+                message="Battle request declined. You can send another request.",
+                retryable=True,
+            )
+        if challenge_result == BattleChallengeResult.EXPIRED:
+            return OnlineActionFeedback(
+                state=OnlineActionState.EXPIRED,
+                message="Battle request expired. Send a new request to retry.",
+                retryable=True,
+            )
+        if challenge_result == BattleChallengeResult.DUPLICATE:
+            return OnlineActionFeedback(
+                state=OnlineActionState.FAILED,
+                message=(
+                    "A pending battle request already exists for these players. "
+                    "Wait for resolution or cancel it before retrying."
+                ),
+                retryable=False,
+            )
+        if challenge_result == BattleChallengeResult.SELF_CHALLENGE:
+            return OnlineActionFeedback(
+                state=OnlineActionState.FAILED,
+                message="You cannot challenge yourself.",
+                retryable=False,
+            )
+        if challenge_result == BattleChallengeResult.UNAUTHORIZED:
+            return OnlineActionFeedback(
+                state=OnlineActionState.FAILED,
+                message="You are not authorized to manage this battle request.",
+                retryable=False,
+            )
+        return OnlineActionFeedback(
+            state=OnlineActionState.NOT_FOUND,
+            message="Battle request not found. Refresh and try again.",
+            retryable=True,
+        )
+
     def get_battle_session_feedback(
         self,
         session_id: UUID,
