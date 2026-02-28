@@ -39,7 +39,7 @@ class TextRenderer:
         text: str,
         bg: ColorLike | None = None,
         fg: ColorLike | None = None,
-        offset: tuple[float, float] = (0.5, 0.5),
+        offset: tuple[float, float] = (0.5, 0.75),
     ) -> Surface:
         """
         Render shadowed text using the current font and shadow color settings.

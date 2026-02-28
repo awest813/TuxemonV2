@@ -5,12 +5,22 @@ GFX_HP_BAR: str = "gfx/ui/monster/hp_bar.png"
 GFX_XP_BAR: str = "gfx/ui/monster/exp_bar.png"
 MISSING_IMAGE: str = "gfx/sprites/battle/missing.png"
 
-# Colors (RGB tuples)
-HP_COLOR_FG = (10, 240, 25)  # dark saturated green
-HP_COLOR_BG = (245, 10, 25)  # dark saturated red
-XP_COLOR_FG = (31, 239, 255)  # light washed cyan
+# ── Color Palette ─────────────────────────────────────────────────────
+# Primary monster-bar colors
+HP_COLOR_FG = (56, 212, 92)  # vibrant green (higher saturation, clearer)
+HP_COLOR_BG = (220, 50, 50)  # softer red (less eye-straining than pure red)
+XP_COLOR_FG = (64, 180, 240)  # sky blue (more legible than washed cyan)
 XP_COLOR_BG = None
 
+# HP bar dynamic tier colors (used by HpBar.get_fill_color)
+HP_TIER_HIGH = (72, 208, 104)  # green — above 50%
+HP_TIER_MID = (240, 188, 56)  # amber — 20%-50%
+HP_TIER_LOW = (216, 72, 72)  # soft red — below 20%
+
+# EXP bar fill color
+XP_FILL_COLOR = (96, 176, 240)  # polished sky-blue fill
+
+# Base colors
 BLACK_COLOR = (0, 0, 0)
 WHITE_COLOR = (255, 255, 255)
 RED_COLOR = (255, 0, 0)
@@ -19,14 +29,18 @@ FUCHSIA_COLOR = (255, 0, 255)
 SEA_BLUE_COLOR = (0, 105, 148)
 DARKGRAY_COLOR = (169, 169, 169)
 DIMGRAY_COLOR = (105, 105, 105)
-UNAVAILABLE_COLOR = (220, 220, 220)
-UNAVAILABLE_COLOR_SHOP = (51, 51, 51)
 TRANSPARENT_COLOR = (255, 255, 255, 0)
-BACKGROUND_COLOR = (248, 248, 248)  # Guyabano
-FONT_COLOR = BLACK_COLOR
-FONT_SHADOW_COLOR = (192, 192, 192)  # silver
-SCROLLBAR_COLOR = (237, 246, 248)
-SCROLLBAR_SLIDER_COLOR = (197, 232, 234)
+
+# UI surface colors
+BACKGROUND_COLOR = (244, 244, 240)  # warm off-white (less sterile than pure gray)
+FONT_COLOR = (16, 16, 24)  # near-black with slight warmth
+FONT_SHADOW_COLOR = (176, 176, 184)  # neutral mid-gray shadow
+UNAVAILABLE_COLOR = (200, 200, 204)  # disabled item gray
+UNAVAILABLE_COLOR_SHOP = (64, 64, 68)  # shop-unavailable dark gray
+
+# Scrollbar
+SCROLLBAR_COLOR = (228, 236, 240)  # light cool-gray track
+SCROLLBAR_SLIDER_COLOR = (160, 208, 216)  # teal-tinted slider
 
 # Gradient Paths
 GRAD_BLACK: str = "gfx/ui/background/gradient_black.png"
@@ -71,10 +85,20 @@ BG_ITEMS: str = ITEM_MENU
 BG_MOVES: str = ITEM_MENU
 
 # Font Sizes
-# Note: These values are relative size indices, not pixel counts.
-FONT_SIZE_SMALLER = 3
-FONT_SIZE_SMALL = 4
-FONT_SIZE = 5
-FONT_SIZE_BIG = 6
-FONT_SIZE_BIGGER = 7
-FONT_SIZE_BIGGEST = 8
+# Relative size indices that are multiplied by the display scale factor
+# to produce final pixel sizes.  Bump by +1 when ``large_gui`` is active.
+FONT_SIZE_SMALLER = 3  # fine print, labels
+FONT_SIZE_SMALL = 4  # secondary text, descriptions
+FONT_SIZE = 5  # default body text
+FONT_SIZE_BIG = 6  # headings, menu titles
+FONT_SIZE_BIGGER = 7  # prominent headings
+FONT_SIZE_BIGGEST = 8  # splash / title screen
+
+# Line spacing applied between text lines (scaled at render time)
+DEFAULT_LINE_SPACING = 10
+# Menu widget padding (horizontal, vertical) in unscaled pixels
+MENU_WIDGET_PADDING = (12, 22)
+
+# Gloss overlay alpha values for bar rendering
+BAR_GLOSS_ALPHA = 30
+BAR_HIGHLIGHT_ALPHA = 50

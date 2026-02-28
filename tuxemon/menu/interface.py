@@ -11,14 +11,20 @@ from pygame.surface import Surface
 
 from tuxemon.graphics import ColorLike, load_and_scale
 from tuxemon.platform.const.graphics import (
+    BAR_GLOSS_ALPHA,
+    BAR_HIGHLIGHT_ALPHA,
     BLACK_COLOR,
     GFX_HP_BAR,
     GFX_XP_BAR,
     HP_COLOR_BG,
     HP_COLOR_FG,
+    HP_TIER_HIGH,
+    HP_TIER_LOW,
+    HP_TIER_MID,
     WHITE_COLOR,
     XP_COLOR_BG,
     XP_COLOR_FG,
+    XP_FILL_COLOR,
 )
 from tuxemon.sprite import Sprite
 from tuxemon.ui.graphic_box import GraphicBox
@@ -122,13 +128,17 @@ class Bar:
         if self.bg_color:
             pg_draw.rect(surface, self.bg_color, inner, border_radius=2)
 
-        # Add a subtle gloss overlay to make bars easier to read.
         gloss = Surface(inner.size, SRCALPHA)
-        pg_draw.rect(gloss, (255, 255, 255, 25), gloss.get_rect(), border_radius=2)
+        pg_draw.rect(
+            gloss,
+            (255, 255, 255, BAR_GLOSS_ALPHA),
+            gloss.get_rect(),
+            border_radius=2,
+        )
         gloss_height = max(1, inner.height // 2)
         pg_draw.rect(
             gloss,
-            (255, 255, 255, 40),
+            (255, 255, 255, BAR_HIGHLIGHT_ALPHA),
             Rect(1, 1, max(1, inner.width - 2), gloss_height),
             border_radius=2,
         )
@@ -182,10 +192,10 @@ class HpBar(Bar):
 
     def get_fill_color(self) -> ColorLike:
         if self.value > 0.5:
-            return (88, 224, 116)
+            return HP_TIER_HIGH
         if self.value > 0.2:
-            return (246, 195, 72)
-        return (230, 92, 92)
+            return HP_TIER_MID
+        return HP_TIER_LOW
 
 
 class ExpBar(Bar):
@@ -207,8 +217,7 @@ class ExpBar(Bar):
         )
 
     def get_fill_color(self) -> ColorLike:
-        # Slightly brighter blue improves contrast against dark HUD themes.
-        return (82, 176, 255)
+        return XP_FILL_COLOR
 
 
 T = TypeVar("T", covariant=True)
