@@ -61,11 +61,11 @@ class NuPhoneBanking(PygameMenuState):
 
         self.client.push_state(
             "NumberPickerState",
-            min_value=0,
+            min_value=1,
             max_value=max_value,
             callback=callback,
             title=title,
-            step=100,
+            step=1 if max_value < 100 else 100,
             escape_key_exits=True,
         )
 
