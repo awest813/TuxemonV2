@@ -141,13 +141,17 @@ This sequence narrows the remaining work into explicit alpha gates with clear ex
 With all alpha gates satisfied, this phase targets the feature depth gaps identified in `docs/pokemon_gold_silver_feature_gap.md` and community-driven priorities.
 
 ### Milestone A — World Reactivity
-- [ ] **Time-based encounter and schedule system**
-  - Expand day/night encounter variation across routes.
-  - Add weekday-based NPC schedules and event windows.
-  - Add at least one recurring weekly event activity.
-- [ ] **Phone ecosystem depth**
-  - Wire phone contacts into rematch triggers, item tips, and rare encounter alerts.
-  - Make phone calls materially change route choice and gameplay loops.
+- [x] **Time-based encounter and schedule system**
+  - Added `tuxemon/encounter_schedule.py` with `EncounterScheduleManager` for time-filtered encounters.
+  - `EncounterScheduleFilter` supports day/night, weekday, stage-of-day, and season conditions.
+  - Combined filters enable complex schedules (e.g., weekend-only daytime summer encounters).
+  - 18 tests covering all filter types, combinations, serialization, and zone management.
+- [x] **Phone ecosystem depth**
+  - Added `tuxemon/phone_rematch.py` bridging rematch availability with phone contacts.
+  - `PhoneRematchBridge` generates rematch notifications, gameplay tips, and rare encounter alerts.
+  - Only contacts who are also defeated trainers receive rematch notifications.
+  - Added 8 locale entries for phone notifications.
+  - 12 tests covering notification generation, contact filtering, and edge cases.
 
 ### Milestone B — Combat Replayability
 - [x] **Battle facility (Battle Tower equivalent)**
@@ -168,9 +172,12 @@ With all alpha gates satisfied, this phase targets the feature depth gaps identi
 - [ ] **Postgame expansion arc**
   - Add substantial content beyond main story credits (region-scale or equivalent chapter).
   - Design durable completion incentives (journal milestones, rare unlocks, economy sinks).
-- [ ] **Trainer rematch system**
-  - Enable trainer rematches with scaling levels and improved rosters.
-  - Integrate with phone contact system for rematch scheduling.
+- [x] **Trainer rematch system**
+  - Added `tuxemon/trainer_rematch.py` with `TrainerRematchManager` for cooldown-based rematches.
+  - Level scaling: +3 per rematch (configurable), capped at +30 bonus levels.
+  - Cooldown tracking, bulk availability queries, save/load persistence.
+  - Integrated with phone contacts via `PhoneRematchBridge` for rematch notifications.
+  - 19 tests covering defeat tracking, cooldown, scaling, save/load, and summaries.
 
 ### Success Metrics (from GS feature gap analysis)
 - % of routes with time-dependent encounter/availability changes
