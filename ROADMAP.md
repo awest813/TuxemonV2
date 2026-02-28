@@ -7,7 +7,7 @@ This roadmap reflects the current state of the fork and outlines practical follo
 - Overall checklist completion: **17/25**
 - Snapshot command: `python run_tuxemon.py --status`
 - Latest recorded status during this update:
-  - Branch `work`, commit `370a0d4d`
+  - Branch `work`, commit `c1ec2529`
   - Monsters 411, Techniques 274, Items 221, NPCs 122, Maps 224, Localizations 14
 
 ---
@@ -60,6 +60,9 @@ The original baseline milestones are complete; this expanded plan now tracks pol
 - [ ] **Save compatibility test matrix**
   - Add regression tests for old/new save migrations around trade and multiplayer logs.
   - Include malformed-history fixtures to preserve tolerant loading behavior.
+- [ ] **Debugging workflow standardization**
+  - Document a shared triage flow (status snapshot, narrow repro command, targeted test run, full regression pass).
+  - Define minimum diagnostic output to include in bugfix PR descriptions.
 
 ### Phase 3 — Content and Balance
 - [ ] **Progression balancing pass**
