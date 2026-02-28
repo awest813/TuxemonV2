@@ -65,14 +65,17 @@ class TextPaginator:
                 line = line.strip()
 
             if self.max_line_length:
-                wrapped_lines.extend(
-                    textwrap.wrap(
-                        line,
-                        width=self.max_line_length,
-                        break_long_words=True,
-                        break_on_hyphens=False,
+                if line:
+                    wrapped_lines.extend(
+                        textwrap.wrap(
+                            line,
+                            width=self.max_line_length,
+                            break_long_words=True,
+                            break_on_hyphens=False,
+                        )
                     )
-                )
+                else:
+                    wrapped_lines.append("")
             else:
                 wrapped_lines.append(line)
 
@@ -82,11 +85,16 @@ class TextPaginator:
         """
         Removes blank lines from the beginning and end of the input.
         """
-        trimmed_front = list(dropwhile(lambda l: not l.strip(), lines))
+        trimmed_front = list(
+            dropwhile(lambda text_line: not text_line.strip(), lines)
+        )
         trimmed_back = list(
             reversed(
                 list(
-                    dropwhile(lambda l: not l.strip(), reversed(trimmed_front))
+                    dropwhile(
+                        lambda text_line: not text_line.strip(),
+                        reversed(trimmed_front),
+                    )
                 )
             )
         )
