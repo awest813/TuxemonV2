@@ -35,6 +35,11 @@ class MenuOptions:
         """Initializes the menu with a sequence of choice options."""
         self.options = list(options)
 
+    @staticmethod
+    def _normalize_key(key: str) -> str:
+        """Normalizes keys for stable lookups regardless of caller casing/spacing."""
+        return key.lower().strip()
+
     def add(self, option: ChoiceOption, position: int | None = None) -> None:
         """Adds a new option to the menu, optionally at a specific index."""
         if position is None:
@@ -44,12 +49,16 @@ class MenuOptions:
 
     def remove(self, key: str) -> None:
         """Removes the option with the specified key from the menu."""
-        self.options = [opt for opt in self.options if opt.key != key]
+        normalized_key = self._normalize_key(key)
+        self.options = [
+            opt for opt in self.options if opt.key != normalized_key
+        ]
 
     def replace(self, key: str, new_option: ChoiceOption) -> None:
         """Replaces an option with the given key using a new option."""
+        normalized_key = self._normalize_key(key)
         for i, opt in enumerate(self.options):
-            if opt.key == key:
+            if opt.key == normalized_key:
                 self.options[i] = new_option
                 break
 
@@ -85,12 +94,18 @@ class MenuOptions:
 
     def group_by_prefix(self, prefix: str) -> list[ChoiceOption]:
         """Returns options whose keys start with the given prefix."""
-        return [opt for opt in self.options if opt.key.startswith(prefix)]
+        normalized_prefix = self._normalize_key(prefix)
+        return [
+            opt
+            for opt in self.options
+            if opt.key.startswith(normalized_prefix)
+        ]
 
     def disable(self, key: str) -> None:
         """Disables the option with the given key by replacing its action with no-op."""
+        normalized_key = self._normalize_key(key)
         for opt in self.options:
-            if opt.key == key:
+            if opt.key == normalized_key:
                 opt.action = noop_action
                 break
 
