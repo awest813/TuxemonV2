@@ -4,7 +4,7 @@ This roadmap reflects the current state of the branch and outlines practical fol
 
 ## Status Overview
 
-- Overall checklist completion: **24/29**
+- Overall checklist completion: **26/29**
 - Snapshot command: `python run_tuxemon.py --status`
 - Rebrand phase: **Phase A complete** (documentation and messaging aligned; compatibility-first migration policy published)
 - Latest recorded status during this update:
@@ -79,12 +79,15 @@ The original baseline milestones are complete; this expanded plan now tracks reb
   - Covers save upgrader v0→current, monster/technique renames, SaveData model defaults.
   - Trade log fixtures: valid entries, malformed entries, naive timestamps, roundtrip.
   - Battle log fixtures: legacy key compat, malformed tolerance, expired purging, roundtrip.
-- [ ] **Debugging workflow standardization**
-  - Document a shared triage flow (status snapshot, narrow repro command, targeted test run, full regression pass).
-  - Define minimum diagnostic output to include in bugfix PR descriptions.
-- [ ] **Tooling architecture and contributor script polish**
-  - Execute phased plan in `docs/tools_expansion_roadmap.md` for utility modularization, validation hardening, and script UX consistency.
-  - Keep backward-compatible import facade during migration from `tuxemon/tools.py`.
+- [x] **Debugging workflow standardization**
+  - Added `docs/debugging_workflow.md` with shared triage flow: status snapshot, narrow repro, targeted tests, full regression, play test.
+  - Defined minimum diagnostic output for bugfix PRs with template.
+  - Documented common diagnostic scenarios (save issues, missing content, multiplayer failures).
+- [x] **Tooling architecture and contributor script polish**
+  - Completed Phase 1 of `docs/tools_expansion_roadmap.md`: created `docs/tools_architecture.md`.
+  - Documented domain-based extraction targets (casting, conditions, dialog, math, geometry).
+  - Added API contract table with input/output types, exceptions, and side effects.
+  - Defined dependency layer rules and backward-compatible migration strategy.
 
 ### Phase 3 — Content and Balance
 - [ ] **Progression balancing pass**
