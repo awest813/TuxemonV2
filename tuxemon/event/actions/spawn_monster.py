@@ -8,11 +8,13 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, final
 
+from tuxemon.database.rules import config_monster
 from tuxemon.db import Acquisition, EvolutionStage, StatType
 from tuxemon.element import ElementTypesHandler
 from tuxemon.event.eventaction import EventAction
 from tuxemon.locale.locale import T
 from tuxemon.monster.monster import Monster
+from tuxemon.monster.stats import BasicStats, IndividualValues
 from tuxemon.taste import Taste
 from tuxemon.tools import get_valid_uuid, open_dialog
 
@@ -117,6 +119,7 @@ class SpawnMonsterAction(EventAction):
         logger.debug(
             f"Taste inherited from parents: warm='{taste_warm}', cold='{taste_cold}'"
         )
+        child.individual_values = _determine_inherited_ivs(mother, father)
         child.set_stats()
         child.mother_iid = mother_id
         child.father_iid = father_id
@@ -320,6 +323,36 @@ def _inherit_parental_moves(
         logger.debug(
             f"Move inherited from parent: move='{move.slug}', slot={slot}"
         )
+
+
+def _determine_inherited_ivs(
+    mother: Monster,
+    father: Monster,
+    mutation_chance: float = 0.1,
+) -> IndividualValues:
+    """
+    Build child IVs using one parent contribution per stat, with rare mutation.
+    """
+
+    inherited: dict[str, int] = {}
+    for stat_name in BasicStats.names():
+        inherited_value = random.choice(
+            [
+                getattr(mother.individual_values, stat_name),
+                getattr(father.individual_values, stat_name),
+            ]
+        )
+        if random.random() < mutation_chance:
+            inherited_value += random.choice([-1, 1])
+        inherited[stat_name] = inherited_value
+
+    child_ivs = IndividualValues(**inherited)
+    min_iv, max_iv = config_monster.iv_range
+    for stat_name in BasicStats.names():
+        clamped_value = max(min_iv, min(max_iv, getattr(child_ivs, stat_name)))
+        setattr(child_ivs, stat_name, clamped_value)
+
+    return child_ivs
 
 
 def _mutate_taste(

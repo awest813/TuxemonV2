@@ -4,7 +4,9 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from tuxemon.database.rules import config_monster
 from tuxemon.event.actions.spawn_monster import (
+    _determine_inherited_ivs,
     _determine_tastes,
     _inherit_parental_moves,
 )
@@ -151,6 +153,102 @@ class TestInheritParentalMoves(unittest.TestCase):
 
         add_move.assert_called_once_with(mother_move)
         replace_move.assert_not_called()
+
+
+class TestDetermineInheritedIvs(unittest.TestCase):
+    def test_inherits_each_stat_from_a_parent_without_mutation(self):
+        min_iv, max_iv = config_monster.iv_range
+        mother_ivs = SimpleNamespace(
+            hp=min_iv,
+            melee=min_iv + 1,
+            ranged=min_iv + 2,
+            armour=min_iv + 3,
+            dodge=min_iv + 4,
+            speed=min_iv + 5,
+        )
+        father_ivs = SimpleNamespace(
+            hp=max_iv,
+            melee=max_iv,
+            ranged=max_iv,
+            armour=max_iv,
+            dodge=max_iv,
+            speed=max_iv,
+        )
+        mother = SimpleNamespace(individual_values=mother_ivs)
+        father = SimpleNamespace(individual_values=father_ivs)
+
+        with patch(
+            "tuxemon.event.actions.spawn_monster.random.choice",
+            side_effect=[
+                mother_ivs.armour,
+                father_ivs.dodge,
+                mother_ivs.hp,
+                father_ivs.melee,
+                mother_ivs.ranged,
+                father_ivs.speed,
+            ],
+        ), patch(
+            "tuxemon.event.actions.spawn_monster.random.random",
+            return_value=0.99,
+        ):
+            child_ivs = _determine_inherited_ivs(mother, father)
+
+        self.assertEqual(child_ivs.armour, mother_ivs.armour)
+        self.assertEqual(child_ivs.dodge, father_ivs.dodge)
+        self.assertEqual(child_ivs.hp, mother_ivs.hp)
+        self.assertEqual(child_ivs.melee, father_ivs.melee)
+        self.assertEqual(child_ivs.ranged, mother_ivs.ranged)
+        self.assertEqual(child_ivs.speed, father_ivs.speed)
+
+    def test_mutation_is_clamped_to_valid_iv_range(self):
+        min_iv, max_iv = config_monster.iv_range
+        mother_ivs = SimpleNamespace(
+            hp=min_iv,
+            melee=min_iv,
+            ranged=min_iv,
+            armour=max_iv,
+            dodge=max_iv,
+            speed=max_iv,
+        )
+        father_ivs = SimpleNamespace(
+            hp=min_iv,
+            melee=min_iv,
+            ranged=min_iv,
+            armour=max_iv,
+            dodge=max_iv,
+            speed=max_iv,
+        )
+        mother = SimpleNamespace(individual_values=mother_ivs)
+        father = SimpleNamespace(individual_values=father_ivs)
+
+        with patch(
+            "tuxemon.event.actions.spawn_monster.random.choice",
+            side_effect=[
+                min_iv,
+                -1,
+                min_iv,
+                -1,
+                min_iv,
+                -1,
+                max_iv,
+                1,
+                max_iv,
+                1,
+                max_iv,
+                1,
+            ],
+        ), patch(
+            "tuxemon.event.actions.spawn_monster.random.random",
+            return_value=0.0,
+        ):
+            child_ivs = _determine_inherited_ivs(mother, father)
+
+        self.assertEqual(child_ivs.armour, min_iv)
+        self.assertEqual(child_ivs.dodge, min_iv)
+        self.assertEqual(child_ivs.hp, min_iv)
+        self.assertEqual(child_ivs.melee, max_iv)
+        self.assertEqual(child_ivs.ranged, max_iv)
+        self.assertEqual(child_ivs.speed, max_iv)
 
 
 if __name__ == "__main__":
