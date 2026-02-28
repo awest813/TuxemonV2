@@ -1,13 +1,14 @@
-# TuxemonV2 Roadmap
+# OpenCapsuleMon Roadmap (TuxemonV2 Transition)
 
-This roadmap reflects the current state of the fork and outlines practical follow-up work now that all previously tracked milestones are complete.
+This roadmap reflects the current state of the branch and outlines practical follow-up work as TuxemonV2 begins rebranding to **OpenCapsuleMon**.
 
 ## Status Overview
 
-- Overall checklist completion: **17/25**
+- Overall checklist completion: **17/29**
 - Snapshot command: `python run_tuxemon.py --status`
+- Rebrand phase: **Kickoff** (project identity/messaging alignment in progress)
 - Latest recorded status during this update:
-  - Branch `work`, commit `c1ec2529`
+  - Branch `work`, commit `faff3a3c`
   - Monsters 411, Techniques 274, Items 221, NPCs 122, Maps 224, Localizations 14
 
 ---
@@ -43,9 +44,20 @@ This roadmap reflects the current state of the fork and outlines practical follo
 
 ## Next Steps (Post-Baseline Plan)
 
-The original baseline milestones are complete; this expanded plan now tracks polish and scale work as player-facing priorities.
+The original baseline milestones are complete; this expanded plan now tracks rebrand execution plus polish and scale work as player-facing priorities.
 
-### Phase 1 — Highest Priority
+### Phase 0 — Rebrand Foundation (Highest Priority)
+- [ ] **Project identity alignment**
+  - Update key documentation and contributor messaging to OpenCapsuleMon naming.
+  - Define naming conventions for transition-safe references (when to keep `tuxemon` internals).
+- [ ] **Compatibility-first naming migration plan**
+  - Publish a staged rename strategy for binaries, modules, and package metadata.
+  - Define deprecation windows and alias policy so existing workflows are not broken.
+- [ ] **Release and communication baseline**
+  - Introduce OpenCapsuleMon release-note framing while preserving upstream attribution.
+  - Add contributor guidance for describing rebrand impact in PRs.
+
+### Phase 1 — Network and UX
 - [ ] **Multiplayer battle execution protocol**
   - Define turn synchronization, timeout/reconnect policy, and authoritative conflict resolution.
   - Persist active battle sessions safely across save/load boundaries.
@@ -89,4 +101,4 @@ A roadmap item should be marked complete only when:
 3. Save/load impact has been evaluated (and migration rules added when required).
 4. User-facing behavior is observable and debuggable (logs/status/clear UI messaging).
 
-This keeps fork progress measurable, stable, and easier to maintain.
+This keeps progress measurable, stable, and easier to maintain throughout the OpenCapsuleMon transition.
