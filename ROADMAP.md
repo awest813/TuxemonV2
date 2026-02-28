@@ -69,6 +69,7 @@ The original baseline milestones are complete; this expanded plan now tracks reb
   - Network manager consumes feedback and renders via `T.format()`/`T.translate()` → `open_dialog()`.
 - [ ] **Online tournaments foundation kickoff**
   - Published initial phased tournament roadmap in `docs/online_tournaments_roadmap.md`.
+  - Sprint 1 kickoff artifacts published: `docs/online_tournaments_sprint1.md` + draft rules baseline in `docs/online_tournaments_rules_spec.md`.
   - Next implementation target: complete Phase 0 (rules/flows) and Phase 1 (domain model + persistence) milestones.
   - Alpha intent: single-elimination MVP orchestration built on existing challenge + battle session systems.
 

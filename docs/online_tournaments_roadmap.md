@@ -101,12 +101,22 @@ These systems are the base for tournament brackets, match orchestration, and pos
 - **M3 (Public Beta):** Phase 3 complete with localization and core UI.
 - **M4 (Launch Ready):** Phase 4 complete with reliability targets and runbook.
 
-## Suggested First Sprint (1–2 weeks)
+## Sprint 1 Kickoff (In Progress)
 
-1. Draft tournament rules spec (single elimination, 8/16 player brackets, default timers).
-2. Add `Tournament` + `Match` models with state machine tests.
-3. Add persistence scaffolding and one migration fixture.
-4. Build simulation test that runs one full 8-player bracket without UI.
+Sprint board and day-1 scope are tracked in `docs/online_tournaments_sprint1.md`.
+
+- [x] Sprint objective and definition of done published.
+- [x] Tournament rules draft authored for v1 single-elimination launch in `docs/online_tournaments_rules_spec.md`.
+- [ ] Domain model implementation (`Tournament`, `Match`, state transitions) started.
+- [ ] Persistence scaffolding + migration fixture started.
+- [ ] 8-player deterministic simulation test started.
+
+### Sprint 1 Planned Deliverables (1–2 weeks)
+
+1. Baseline rules spec for 8/16-player single elimination.
+2. `Tournament` + `Match` models with state machine tests.
+3. Save/load scaffolding and one compatibility fixture.
+4. Simulation test that runs one full 8-player bracket without UI.
 
 ## Risks and Mitigations
 
