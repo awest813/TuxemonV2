@@ -178,3 +178,38 @@ def test_load_log_tolerates_malformed_entries_and_bad_ttl() -> None:
 
     assert len(manager.pending_challenges) == 1
     assert manager.default_challenge_ttl_seconds == 180
+
+
+def test_load_log_accepts_zulu_and_epoch_timestamps() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+    now = datetime.now(timezone.utc)
+
+    manager.load_log(
+        {
+            "pending_challenges": [
+                {
+                    "challenger_player_id": str(challenger),
+                    "challenged_player_id": str(challenged),
+                    "challenge_id": str(uuid4()),
+                    "timestamp": now.isoformat().replace("+00:00", "Z"),
+                    "expires_at": (now + timedelta(minutes=5))
+                    .isoformat()
+                    .replace("+00:00", "Z"),
+                },
+                {
+                    "challenger_player_id": str(uuid4()),
+                    "challenged_player_id": str(uuid4()),
+                    "challenge_id": str(uuid4()),
+                    "timestamp": now.timestamp(),
+                    "expires_at": (now + timedelta(minutes=10)).timestamp(),
+                },
+            ]
+        }
+    )
+
+    assert len(manager.pending_challenges) == 2
+    assert manager.pending_challenges[0].timestamp.tzinfo is not None
+    assert manager.pending_challenges[1].expires_at is not None
+    assert manager.pending_challenges[1].expires_at.tzinfo is not None

@@ -15,9 +15,13 @@ from tuxemon.event import get_event_bus
 logger = logging.getLogger(__name__)
 
 
-def _coerce_utc_timestamp(value: str) -> datetime:
-    """Parse timestamp strings and normalize to timezone-aware UTC."""
-    parsed = datetime.fromisoformat(value)
+def _coerce_utc_timestamp(value: str | int | float) -> datetime:
+    """Parse timestamp values and normalize to timezone-aware UTC."""
+    if isinstance(value, (int, float)):
+        return datetime.fromtimestamp(value, tz=timezone.utc)
+
+    normalized = value.replace("Z", "+00:00")
+    parsed = datetime.fromisoformat(normalized)
     if parsed.tzinfo is None:
         return parsed.replace(tzinfo=timezone.utc)
     return parsed.astimezone(timezone.utc)
@@ -57,7 +61,7 @@ class BattleChallenge:
         }
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, str | None]) -> BattleChallenge:
+    def from_dict(cls, data: Mapping[str, Any]) -> BattleChallenge:
         """Deserialize a challenge from current or legacy key names."""
         expires_raw = data.get("expires_at")
         challenger_raw = data.get("challenger_player_id") or data.get(
@@ -81,10 +85,10 @@ class BattleChallenge:
             challenger_player_id=UUID(str(challenger_raw)),
             challenged_player_id=UUID(str(challenged_raw)),
             challenge_id=UUID(str(challenge_raw)),
-            timestamp=_coerce_utc_timestamp(str(timestamp_raw)),
+            timestamp=_coerce_utc_timestamp(timestamp_raw),
             expires_at=(
                 _coerce_utc_timestamp(expires_raw)
-                if isinstance(expires_raw, str)
+                if isinstance(expires_raw, (str, int, float))
                 else None
             ),
         )
