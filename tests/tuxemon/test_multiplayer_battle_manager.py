@@ -348,3 +348,39 @@ def test_get_challenge_feedback_for_history_and_missing() -> None:
     missing_feedback = manager.get_challenge_feedback(uuid4(), challenger)
     assert missing_feedback.state == OnlineActionState.NOT_FOUND
     assert missing_feedback.retryable is True
+
+
+def test_get_turn_submission_feedback_messages() -> None:
+    manager = MultiplayerBattleManager()
+
+    success = manager.get_turn_submission_feedback(TurnSubmissionResult.SUCCESS)
+    assert success.state == OnlineActionState.ACCEPTED
+    assert success.retryable is False
+
+    waiting = manager.get_turn_submission_feedback(TurnSubmissionResult.WAITING)
+    assert waiting.state == OnlineActionState.PENDING
+    assert waiting.retryable is False
+
+    not_found = manager.get_turn_submission_feedback(
+        TurnSubmissionResult.NOT_FOUND
+    )
+    assert not_found.state == OnlineActionState.NOT_FOUND
+    assert not_found.retryable is True
+
+    mismatch = manager.get_turn_submission_feedback(
+        TurnSubmissionResult.TURN_MISMATCH
+    )
+    assert mismatch.state == OnlineActionState.FAILED
+    assert mismatch.retryable is True
+
+    duplicate = manager.get_turn_submission_feedback(
+        TurnSubmissionResult.DUPLICATE
+    )
+    assert duplicate.state == OnlineActionState.FAILED
+    assert duplicate.retryable is False
+
+    unauthorized = manager.get_turn_submission_feedback(
+        TurnSubmissionResult.UNAUTHORIZED
+    )
+    assert unauthorized.state == OnlineActionState.FAILED
+    assert unauthorized.retryable is False
