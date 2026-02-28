@@ -4914,6 +4914,12 @@ msgstr "Hostname or IP?"
 msgid "multiplayer_connecting_status"
 msgstr "Connecting to server..."
 
+msgid "multiplayer_connect_failed"
+msgstr "Could not connect to the server."
+
+msgid "multiplayer_connection_lost"
+msgstr "Connection to the server was lost."
+
 msgid "multiplayer_join_missing_target"
 msgstr "No server selected."
 

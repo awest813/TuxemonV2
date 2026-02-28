@@ -6,6 +6,7 @@ import pygame as pg
 import pytest
 
 from tuxemon.network.client import ConnState, TuxemonClient
+from tuxemon.network.websocket_client import ConnectionState
 
 
 @pytest.fixture
@@ -224,3 +225,51 @@ def test_interaction_manager_finds_cuuid(client, monkeypatch):
 
     payload = client.client.send_event.call_args[0][0]
     assert payload["target"] == "abc"
+
+
+def test_queue_and_consume_feedback(client):
+    client.queue_feedback("multiplayer_connect_failed", "multiplayer_retry_hint")
+
+    assert client.consume_feedback() == [
+        ("multiplayer_connect_failed", "multiplayer_retry_hint")
+    ]
+    assert client.consume_feedback() == []
+
+
+def test_connection_manager_registration_timeout_sets_feedback(client):
+    client.game.network_manager.is_host.return_value = False
+    client.connect_to_host("127.0.0.1", 40081)
+    client.client.disconnect = MagicMock()
+    client.client._state = ConnectionState.DISCONNECTED
+    client.client._registered = False
+    client.connection_manager._registration_deadline = 0.0
+
+    client.connection_manager.update()
+
+    client.client.disconnect.assert_called_once()
+    assert client.connection_manager.state == ConnState.DISCONNECTED
+    assert client.listening is False
+    assert client.consume_feedback() == [
+        ("multiplayer_connect_failed", "multiplayer_retry_hint")
+    ]
+
+
+def test_connection_manager_dropped_connection_sets_feedback(client):
+    client.client.disconnect = MagicMock()
+    client.client._state = ConnectionState.DISCONNECTED
+    client.client._registered = False
+    client.client.registry = {"abc": {"sprite": MagicMock()}}
+    client.populated = True
+    client.listening = True
+    client.connection_manager.state = ConnState.READY
+
+    client.connection_manager.update()
+
+    client.client.disconnect.assert_called_once()
+    assert client.connection_manager.state == ConnState.DISCONNECTED
+    assert client.listening is False
+    assert client.populated is False
+    assert client.client.registry == {}
+    assert client.consume_feedback() == [
+        ("multiplayer_connection_lost", "multiplayer_retry_hint")
+    ]
