@@ -86,6 +86,19 @@ class TuxemonServer:
             EventType.CLIENT_RESPONSE, self.handle_client_response_event
         )
         self.event_router.register_handler(
+            EventType.CLIENT_MAP_UPDATE, self.handle_client_map_update_event
+        )
+        self.event_router.register_handler(
+            EventType.CLIENT_MOVE_START, self.handle_client_move_start_event
+        )
+        self.event_router.register_handler(
+            EventType.CLIENT_MOVE_COMPLETE,
+            self.handle_client_move_complete_event,
+        )
+        self.event_router.register_handler(
+            EventType.CLIENT_FACING, self.handle_client_facing_event
+        )
+        self.event_router.register_handler(
             EventType.CLIENT_KEYDOWN,
             lambda c, e: self.handle_key_event(c, e, True),
         )
@@ -231,6 +244,47 @@ class TuxemonServer:
         self.update_char_dict(cuuid, event_data.char_dict)
         self.notify_client(cuuid, event_data)
 
+    def handle_client_map_update_event(
+        self, cuuid: str, event_data: EventData
+    ) -> None:
+        """Handles map/tile synchronization updates from clients."""
+        self.update_char_dict(cuuid, event_data.char_dict)
+        if event_data.map_name is not None:
+            self.client_registry.set_client_data(
+                cuuid, "map_name", event_data.map_name
+            )
+        self.notify_client(cuuid, event_data)
+
+    def handle_client_move_start_event(
+        self, cuuid: str, event_data: EventData
+    ) -> None:
+        """Tracks movement-start metadata and broadcasts it."""
+        self.update_char_dict(cuuid, event_data.char_dict)
+        if event_data.direction is not None:
+            try:
+                facing = Direction(str(event_data.direction).lower())
+            except ValueError:
+                facing = None
+            if facing is not None:
+                self.client_registry.update_char_field(
+                    cuuid, "facing", facing
+                )
+        self.notify_client(cuuid, event_data)
+
+    def handle_client_move_complete_event(
+        self, cuuid: str, event_data: EventData
+    ) -> None:
+        """Updates the authoritative tile state when movement ends."""
+        self.update_char_dict(cuuid, event_data.char_dict)
+        self.notify_client(cuuid, event_data)
+
+    def handle_client_facing_event(
+        self, cuuid: str, event_data: EventData
+    ) -> None:
+        """Applies client-facing changes and notifies peers."""
+        self.update_char_dict(cuuid, event_data.char_dict)
+        self.notify_client(cuuid, event_data)
+
     def handle_key_event(
         self, cuuid: str, event_data: EventData, pressed: bool
     ) -> None:
@@ -329,11 +383,14 @@ class EventRouter:
         event_key = event_data.type.value  # use string key consistently
         event_list = self.registry[cuuid].setdefault("event_list", {})
         last_event_number = event_list.get(event_key, -1)
+        event_number = int(event_data.event_number)
 
-        if event_data.event_number <= last_event_number:
-            return
+        # Legacy/external payloads may omit event_number (default 0).
+        if event_number > 0:
+            if event_number <= last_event_number:
+                return
 
-        event_list[event_key] = event_data.event_number
+            event_list[event_key] = event_number
 
         handler = self.handlers.get(event_key)
         if handler:

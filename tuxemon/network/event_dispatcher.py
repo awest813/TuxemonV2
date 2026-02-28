@@ -118,6 +118,7 @@ def handle_client_move_complete(
 
     sprite = self.client.registry.get(cuuid, {}).get("sprite")
     if sprite:
+        update_client(sprite, event_data.char_dict, self.game)
         sprite._last_tile_pos = event_data.char_dict.tile_pos
         for d in sprite.direction:
             sprite.direction[d] = False
@@ -167,6 +168,19 @@ def handle_client_facing(self: EventDispatcher, event_data: EventData) -> None:
         sprite.facing = event_data.char_dict.facing
 
     logger.info(f"Client {cuuid} updated facing direction.")
+
+
+@EventDispatcher.handler(EventType.CLIENT_MAP_UPDATE)
+def handle_client_map_update(
+    self: EventDispatcher, event_data: EventData
+) -> None:
+    cuuid = event_data.cuuid
+    if cuuid is None:
+        logger.warning("Missing cuuid in CLIENT_MAP_UPDATE event")
+        return
+
+    self.client.update_client_map(cuuid, event_data)
+    logger.info(f"Client {cuuid} updated map state.")
 
 
 @EventDispatcher.handler(EventType.CLIENT_INTERACTION)

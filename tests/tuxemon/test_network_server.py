@@ -4,6 +4,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from tuxemon.db import Direction
+from tuxemon.network.networking import EventData, EventType
 from tuxemon.network.server import TuxemonServer
 from tuxemon.network.websocket_server import WebsocketServerWrapper
 
@@ -101,6 +103,40 @@ def test_handle_client_response_event_updates_and_notifies(server):
     server.notify_client.assert_called_once_with("abc", event)
 
 
+def test_handle_client_map_update_event_updates_and_notifies(server):
+    event = MagicMock(map_name="forest", char_dict={"tile_pos": (2, 3)})
+    server.update_char_dict = MagicMock()
+    server.client_registry.set_client_data = MagicMock()
+    server.notify_client = MagicMock()
+
+    server.handle_client_map_update_event("abc", event)
+
+    server.update_char_dict.assert_called_once_with(
+        "abc", {"tile_pos": (2, 3)}
+    )
+    server.client_registry.set_client_data.assert_called_once_with(
+        "abc", "map_name", "forest"
+    )
+    server.notify_client.assert_called_once_with("abc", event)
+
+
+def test_handle_client_move_start_event_updates_facing(server):
+    event = MagicMock(direction="left", char_dict={"tile_pos": (1, 1)})
+    server.update_char_dict = MagicMock()
+    server.client_registry.update_char_field = MagicMock()
+    server.notify_client = MagicMock()
+
+    server.handle_client_move_start_event("abc", event)
+
+    server.update_char_dict.assert_called_once_with(
+        "abc", {"tile_pos": (1, 1)}
+    )
+    server.client_registry.update_char_field.assert_called_once_with(
+        "abc", "facing", Direction.LEFT
+    )
+    server.notify_client.assert_called_once_with("abc", event)
+
+
 def test_handle_key_event_shift_updates_running(server):
     event = MagicMock(kb_key="SHIFT")
     server.client_registry.set_client_data = MagicMock()
@@ -175,3 +211,15 @@ def test_update_handles_client_timeout(server):
         "abc", {"type": "CLIENT_DISCONNECTED"}
     )
     server.client_registry.remove_client.assert_called_once_with("abc")
+
+
+def test_event_router_accepts_zero_event_numbers_for_ping(server):
+    server.client_registry.registry["abc"] = {"event_list": {}}
+    ping_handler = MagicMock()
+    server.event_router.register_handler(EventType.PING, ping_handler)
+
+    ping_event = EventData.from_dict({"type": "PING"})
+    server.event_router.route_event("abc", ping_event)
+    server.event_router.route_event("abc", ping_event)
+
+    assert ping_handler.call_count == 2

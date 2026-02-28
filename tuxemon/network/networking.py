@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from dataclasses import dataclass, field, replace
 from enum import Enum
 from typing import TYPE_CHECKING, Any
@@ -13,7 +14,6 @@ from tuxemon.db import Direction
 from tuxemon.item.item import decode_items, encode_items
 from tuxemon.monster.monster import decode_monsters, encode_monsters
 from tuxemon.session import local_session
-from tuxemon.states import world_state as world
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient
@@ -22,6 +22,34 @@ if TYPE_CHECKING:
     from tuxemon.monster.monster import Monster
 
 logger = logging.getLogger(__name__)
+
+
+def _coerce_direction(value: Any, default: Direction = Direction.DOWN) -> Direction:
+    """Parse network-facing direction values into a Direction enum."""
+    if isinstance(value, Direction):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip()
+        if not normalized:
+            return default
+        by_name = Direction.__members__.get(normalized.upper())
+        if by_name is not None:
+            return by_name
+        try:
+            return Direction(normalized.lower())
+        except ValueError:
+            logger.debug(f"Invalid direction payload: {value!r}")
+    return default
+
+
+def _coerce_tile_pos(value: Any) -> tuple[int, int]:
+    """Normalize tile position payloads into an integer tuple."""
+    if isinstance(value, (list, tuple)) and len(value) >= 2:
+        try:
+            return (int(value[0]), int(value[1]))
+        except (TypeError, ValueError):
+            logger.debug(f"Invalid tile position payload: {value!r}")
+    return (0, 0)
 
 
 class EventType(str, Enum):
@@ -72,13 +100,30 @@ class CharData:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> CharData:
+        raw_monsters = data.get("monsters", [])
+        raw_inventory = data.get("inventory", [])
+
+        monsters = []
+        if isinstance(raw_monsters, list):
+            try:
+                monsters = decode_monsters(raw_monsters)
+            except Exception:
+                logger.debug("Ignoring malformed monsters payload in CharData.")
+
+        inventory = []
+        if isinstance(raw_inventory, list):
+            try:
+                inventory = decode_items(raw_inventory)
+            except Exception:
+                logger.debug("Ignoring malformed inventory payload in CharData.")
+
         return CharData(
-            tile_pos=tuple(data["tile_pos"]),
-            name=data["name"],
-            facing=Direction[data["facing"]],
-            running=bool(data["running"]),
-            monsters=decode_monsters(data.get("monsters", [])),
-            inventory=decode_items(data.get("inventory", [])),
+            tile_pos=_coerce_tile_pos(data.get("tile_pos")),
+            name=str(data.get("name", "")),
+            facing=_coerce_direction(data.get("facing")),
+            running=bool(data.get("running", False)),
+            monsters=monsters,
+            inventory=inventory,
         )
 
 
@@ -115,10 +160,19 @@ class EventData:
         return replace(self, **updates)
 
     def to_dict(self) -> dict[str, Any]:
+        direction: str | None
+        if isinstance(self.direction, Direction):
+            direction = self.direction.value
+        elif isinstance(self.direction, str):
+            direction = self.direction
+        else:
+            direction = None
+
         return {
             "type": self.type.name,
             "event_number": self.event_number,
             "cuuid": self.cuuid,
+            "direction": direction,
             "interaction": self.interaction,
             "map_name": self.map_name,
             "char_dict": self.char_dict.to_dict() if self.char_dict else None,
@@ -129,17 +183,44 @@ class EventData:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> EventData:
+        event_type_raw = data.get("type")
+        if isinstance(event_type_raw, EventType):
+            event_type = event_type_raw
+        elif isinstance(event_type_raw, str):
+            normalized = event_type_raw.strip()
+            try:
+                event_type = EventType[normalized]
+            except KeyError:
+                event_type = EventType(normalized)
+        else:
+            raise ValueError(f"Invalid event type payload: {event_type_raw!r}")
+
+        raw_char_data = data.get("char_dict")
+        if isinstance(raw_char_data, CharData):
+            char_data = raw_char_data
+        elif isinstance(raw_char_data, Mapping):
+            char_data = CharData.from_dict(dict(raw_char_data))
+        else:
+            char_data = None
+
+        raw_event_number = data.get("event_number", 0)
+        try:
+            event_number = int(raw_event_number)
+        except (TypeError, ValueError):
+            event_number = 0
+
         return EventData(
-            type=EventType[data["type"]],
-            event_number=data["event_number"],
+            type=event_type,
+            event_number=event_number,
             cuuid=data.get("cuuid"),
+            direction=(
+                data["direction"].value
+                if isinstance(data.get("direction"), Direction)
+                else data.get("direction")
+            ),
             interaction=data.get("interaction"),
             map_name=data.get("map_name"),
-            char_dict=(
-                CharData.from_dict(data["char_dict"])
-                if data.get("char_dict")
-                else None
-            ),
+            char_dict=char_data,
             kb_key=data.get("kb_key"),
             target=data.get("target"),
             response=data.get("response"),
@@ -207,32 +288,22 @@ def update_client(
         char_data: A CharData object containing updated character state (e.g., tile position, facing).
         game: The game control object (server or client) for managing the game's state.
     """
-    # Functionality is incomplete due to lack of global x/y implementation
-    return
     if char_data is None:
         return
 
-    # Get the game world state
-    world_state = game.get_state_by_name(world.WorldState)
+    tile_pos = _coerce_tile_pos(char_data.tile_pos)
+    current_tile = getattr(sprite, "tile_pos", None)
 
-    # Convert CharData to dictionary
-    data = char_data.to_dict()
+    if current_tile != tile_pos:
+        if hasattr(sprite, "set_position"):
+            sprite.set_position((float(tile_pos[0]), float(tile_pos[1])))
+        else:
+            setattr(sprite, "position", [tile_pos[0], tile_pos[1]])
+        setattr(sprite, "_last_tile_pos", tile_pos)
 
-    # Update sprite attributes
-    for item, value in data.items():
-        sprite.__dict__[item] = value
+    if hasattr(sprite, "set_facing"):
+        sprite.set_facing(_coerce_direction(char_data.facing))
+    else:
+        setattr(sprite, "facing", _coerce_direction(char_data.facing))
 
-        # Handle tile position updates
-        if item == "tile_pos":
-            tile_size = game.context.tile_size
-            position = [
-                value[0] * tile_size[0],
-                value[1] * tile_size[1],
-            ]
-            global_x = getattr(world_state, "global_x", 0)
-            global_y = getattr(world_state, "global_y", 0)
-            abs_position = [
-                position[0] + global_x,
-                position[1] + (global_y - tile_size[1]),
-            ]
-            sprite.__dict__["position"] = abs_position
+    setattr(sprite, "running", bool(char_data.running))

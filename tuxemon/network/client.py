@@ -4,13 +4,19 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Mapping
 from enum import Enum, auto
 from itertools import count
 from typing import TYPE_CHECKING, Any, TypedDict
+from uuid import UUID
 
 import pygame as pg
 
 from tuxemon.entity.npc import NPC
+from tuxemon.multiplayer_battle_manager import (
+    BattleChallenge,
+    BattleChallengeResult,
+)
 from tuxemon.network.event_dispatcher import EventDispatcher
 from tuxemon.network.networking import EventData, update_client
 from tuxemon.network.websocket_client import (
@@ -24,6 +30,23 @@ if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_duel_response(raw_response: Any) -> str | None:
+    """Normalize duel response tokens for challenge lifecycle updates."""
+    if raw_response is None:
+        return None
+    if not isinstance(raw_response, str):
+        return None
+
+    token = raw_response.strip().lower()
+    if not token:
+        return None
+    if token in {"accept", "accepted"}:
+        return "accept"
+    if token in {"decline", "declined", "reject", "rejected"}:
+        return "reject"
+    return token
 
 
 class GameEntry(TypedDict):
@@ -262,6 +285,33 @@ class PlayerSyncManager:
         self.client = client
         self.game = client.game
 
+    def _snapshot_local_player(self) -> dict[str, Any]:
+        """Build a minimal, serialization-safe player snapshot."""
+        try:
+            player = local_session.player
+        except Exception:
+            return {
+                "tile_pos": (0, 0),
+                "name": "Unnamed Player",
+                "facing": "down",
+                "running": False,
+            }
+
+        raw_tile_pos = getattr(player, "tile_pos", (0, 0))
+        tile_pos = (0, 0)
+        if isinstance(raw_tile_pos, (list, tuple)) and len(raw_tile_pos) >= 2:
+            try:
+                tile_pos = (int(raw_tile_pos[0]), int(raw_tile_pos[1]))
+            except (TypeError, ValueError):
+                tile_pos = (0, 0)
+
+        return {
+            "tile_pos": tile_pos,
+            "name": str(getattr(player, "name", "Unnamed Player")),
+            "facing": getattr(player, "facing", "down"),
+            "running": bool(getattr(player, "running", False)),
+        }
+
     def _send_event(self, event_type: str, **fields: Any) -> None:
         """
         Helper for building and sending typed events with an incrementing
@@ -277,19 +327,13 @@ class PlayerSyncManager:
 
     def populate_player(self, event_type: str = "PUSH_SELF") -> None:
         """Sends client character to the server."""
-        player_data = local_session.player.__dict__
+        player_data = self._snapshot_local_player()
         map_name = self.game.get_map_name()
-
-        char_dict = {
-            "tile_pos": player_data.get("tile_pos", [0, 0]),
-            "name": player_data.get("name", "Unnamed Player"),
-            "facing": player_data.get("facing", "down"),
-        }
 
         self._send_event(
             event_type,
             map_name=map_name,
-            char_dict=char_dict,
+            char_dict=player_data,
         )
         self.client.populated = True
 
@@ -297,16 +341,18 @@ class PlayerSyncManager:
         self, direction: str, event_type: str = "CLIENT_MAP_UPDATE"
     ) -> None:
         """Sends client's current map and location to the server."""
-        pd = local_session.player.__dict__
+        player_data = self._snapshot_local_player()
         map_name = self.game.get_map_name()
-
-        char_dict = {"tile_pos": pd["tile_pos"]}
 
         self._send_event(
             event_type,
             map_name=map_name,
             direction=direction,
-            char_dict=char_dict,
+            char_dict={
+                "tile_pos": player_data["tile_pos"],
+                "facing": player_data["facing"],
+                "running": player_data["running"],
+            },
         )
 
 
@@ -371,25 +417,173 @@ class InteractionManager:
                 cuuid = client_id
                 break
 
-        pd = local_session.player.__dict__
+        local_snapshot = self.client.sync_manager._snapshot_local_player()
 
-        event_data = {
+        payload = {
             "type": event_type,
             "event_number": next(self.client.event_counter),
             "interaction": interaction,
             "target": cuuid,
             "response": response,
-            "char_dict": {
-                "monsters": pd.get("monsters", []),
-                "inventory": pd.get("inventory", []),
-            },
+            "char_dict": local_snapshot,
         }
 
-        self.client.send_event(EventData.from_dict(event_data).to_dict())
+        event_data = EventData.from_dict(payload)
+        self.client.send_event(event_data.to_dict())
+
+        # Keep local challenge state synchronized with outbound DUEL actions.
+        if interaction.upper() == "DUEL":
+            self.route_combat(event_data)
+
+    def _resolve_remote_player_id(self, cuuid: str | None) -> UUID | None:
+        if not cuuid:
+            return None
+        entry = self.client.registry.get(cuuid)
+        if not isinstance(entry, dict):
+            return None
+        sprite = entry.get("sprite")
+        player_id = getattr(sprite, "instance_id", None)
+        if isinstance(player_id, UUID):
+            return player_id
+        return None
+
+    def _resolve_duel_participants(
+        self, event: EventData
+    ) -> tuple[UUID, UUID] | None:
+        """Resolve duel participants as (challenger, challenged)."""
+        try:
+            local_player_id = getattr(local_session.player, "instance_id", None)
+        except Exception:
+            local_player_id = None
+        if not isinstance(local_player_id, UUID):
+            logger.warning("Cannot route duel: local player id missing.")
+            return None
+
+        response = _normalize_duel_response(event.response)
+        incoming = event.cuuid is not None
+        remote_cuuid = event.cuuid if incoming else event.target
+        remote_player_id = self._resolve_remote_player_id(remote_cuuid)
+        if remote_player_id is None:
+            logger.warning("Cannot route duel: remote player id missing.")
+            return None
+
+        if response is None:
+            if incoming:
+                return (remote_player_id, local_player_id)
+            return (local_player_id, remote_player_id)
+
+        if incoming:
+            return (local_player_id, remote_player_id)
+        return (remote_player_id, local_player_id)
+
+    def _find_pending_duel_challenge(
+        self,
+        challenger_player_id: UUID,
+        challenged_player_id: UUID,
+    ) -> BattleChallenge | None:
+        manager = self.game.multiplayer_battle_manager
+        participants = {challenger_player_id, challenged_player_id}
+        exact_match = next(
+            (
+                challenge
+                for challenge in manager.pending_challenges
+                if challenge.challenger_player_id == challenger_player_id
+                and challenge.challenged_player_id == challenged_player_id
+            ),
+            None,
+        )
+        if exact_match is not None:
+            return exact_match
+        return next(
+            (
+                challenge
+                for challenge in manager.pending_challenges
+                if {
+                    challenge.challenger_player_id,
+                    challenge.challenged_player_id,
+                }
+                == participants
+            ),
+            None,
+        )
 
     def route_combat(self, event: Any) -> None:
-        """Handles routing of combat-related events."""
-        logger.debug(f"Combat event received: {event}")
+        """Route multiplayer combat/challenge updates into battle manager state."""
+        manager = self.game.multiplayer_battle_manager
+
+        if isinstance(event, Mapping):
+            action = str(event.get("action", "")).lower()
+            if action == "submit_turn":
+                session_id = event.get("session_id")
+                player_id = event.get("player_id")
+                if not isinstance(session_id, str) or not isinstance(
+                    player_id, str
+                ):
+                    logger.warning(
+                        "Invalid submit_turn payload missing ids: %r", event
+                    )
+                    return
+                try:
+                    result = manager.submit_turn_action(
+                        UUID(session_id),
+                        UUID(player_id),
+                        turn=int(event.get("turn", 0)),
+                        action=dict(event.get("turn_action", {})),
+                    )
+                except (TypeError, ValueError):
+                    logger.warning("Invalid submit_turn payload: %r", event)
+                    return
+                feedback = manager.get_turn_submission_feedback(result)
+                manager.event_bus.publish(
+                    "multiplayer_combat_feedback", feedback
+                )
+                self.client.queue_feedback(feedback.message)
+                return
+
+        if not isinstance(event, EventData):
+            logger.debug("Ignoring unsupported combat event payload: %r", event)
+            return
+        if (event.interaction or "").upper() != "DUEL":
+            return
+
+        participants = self._resolve_duel_participants(event)
+        if participants is None:
+            return
+        challenger_player_id, challenged_player_id = participants
+        response = _normalize_duel_response(event.response)
+
+        if response is None:
+            result = manager.propose_challenge(
+                challenger_player_id, challenged_player_id
+            )
+            feedback = manager.get_challenge_action_feedback(
+                result, action="propose"
+            )
+        else:
+            challenge = self._find_pending_duel_challenge(
+                challenger_player_id, challenged_player_id
+            )
+            if challenge is None:
+                result = BattleChallengeResult.NOT_FOUND
+            elif response == "accept":
+                result = manager.accept_challenge(
+                    challenge.challenge_id,
+                    accepting_player_id=challenge.challenged_player_id,
+                )
+            elif response == "reject":
+                result = manager.reject_challenge(
+                    challenge.challenge_id,
+                    rejecting_player_id=challenge.challenged_player_id,
+                )
+            else:
+                logger.warning("Unknown duel response token: %r", event.response)
+                return
+
+            action = "accept" if response == "accept" else "reject"
+            feedback = manager.get_challenge_action_feedback(result, action=action)
+
+        manager.event_bus.publish("multiplayer_combat_feedback", feedback)
+        self.client.queue_feedback(feedback.message)
 
 
 class ConnectionManager:
