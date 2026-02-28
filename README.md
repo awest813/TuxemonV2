@@ -20,7 +20,7 @@ python run_tuxemon.py --status
 Snapshot at the time of this README update:
 
 - Branch: `work`
-- Commit: `370a0d4d`
+- Commit: `c1ec2529`
 - Monsters: 411
 - Techniques: 274
 - Items: 221
@@ -113,6 +113,32 @@ Run the test suite with:
 ```bash
 pytest
 ```
+
+### Debugging quickstart
+
+When something behaves unexpectedly, use this lightweight sequence before deeper changes:
+
+1. Confirm content/roadmap state and commit identity:
+
+   ```bash
+   python run_tuxemon.py --status
+   ```
+
+2. Reproduce with a narrow entrypoint (headless or map-focused):
+
+   ```bash
+   python run_tuxemon.py --headless
+   python run_tuxemon.py --test-map starting_town
+   ```
+
+3. Run targeted tests first, then full tests if needed:
+
+   ```bash
+   pytest tests/tuxemon/test_network_controller.py -q
+   pytest -q
+   ```
+
+4. If changing save, trade, or multiplayer behavior, verify backward compatibility paths with existing fixtures in `tests/` before merging.
 
 ---
 
