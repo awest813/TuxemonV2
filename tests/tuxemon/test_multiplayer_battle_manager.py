@@ -7,6 +7,7 @@ from tuxemon.multiplayer_battle_manager import (
     BattleResolution,
     BattleChallengeResult,
     MultiplayerBattleManager,
+    OnlineActionState,
     TurnSubmissionResult,
 )
 
@@ -294,3 +295,56 @@ def test_save_load_and_purge_stale_battle_sessions() -> None:
     assert restored.default_turn_timeout_seconds == 120
     assert restored.default_reconnect_grace_seconds == 15
     assert len(restored.active_battle_sessions) == 1
+
+
+def test_get_challenge_feedback_for_pending_and_unauthorized() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+    stranger = uuid4()
+    manager.propose_challenge(challenger, challenged)
+    challenge = manager.pending_challenges[0]
+
+    feedback = manager.get_challenge_feedback(challenge.challenge_id, challenger)
+    assert feedback.state == OnlineActionState.PENDING
+    assert feedback.retryable is False
+    assert "pending" in feedback.message.lower()
+
+    unauthorized = manager.get_challenge_feedback(
+        challenge.challenge_id, stranger
+    )
+    assert unauthorized.state == OnlineActionState.FAILED
+    assert unauthorized.retryable is False
+
+
+def test_get_challenge_feedback_for_history_and_missing() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+
+    manager.propose_challenge(challenger, challenged)
+    accepted = manager.pending_challenges[0]
+    manager.accept_challenge(
+        accepted.challenge_id, accepting_player_id=challenged
+    )
+    accepted_feedback = manager.get_challenge_feedback(
+        accepted.challenge_id, challenger
+    )
+    assert accepted_feedback.state == OnlineActionState.ACCEPTED
+    assert accepted_feedback.retryable is False
+
+    manager.propose_challenge(challenger, challenged)
+    expired = manager.pending_challenges[0]
+    expired.expires_at = datetime(2000, 1, 1, tzinfo=timezone.utc)
+    manager.accept_challenge(
+        expired.challenge_id, accepting_player_id=challenged
+    )
+    expired_feedback = manager.get_challenge_feedback(
+        expired.challenge_id, challenger
+    )
+    assert expired_feedback.state == OnlineActionState.EXPIRED
+    assert expired_feedback.retryable is True
+
+    missing_feedback = manager.get_challenge_feedback(uuid4(), challenger)
+    assert missing_feedback.state == OnlineActionState.NOT_FOUND
+    assert missing_feedback.retryable is True
