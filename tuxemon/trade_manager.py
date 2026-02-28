@@ -26,6 +26,8 @@ class TradeResult(Enum):
     SAME_OWNER = "same_owner"
     NOT_FOUND = "not_found"
     EXPIRED = "expired"
+    UNAUTHORIZED = "unauthorized"
+    REJECTED = "rejected"
 
 
 @dataclass
@@ -39,6 +41,38 @@ class TradeOffer:
         default_factory=lambda: datetime.now(timezone.utc)
     )
     expires_at: datetime | None = None
+
+    def to_dict(self) -> dict[str, str | None]:
+        return {
+            "proposing_player_id": str(self.proposing_player_id),
+            "proposing_monster_id": str(self.proposing_monster_id),
+            "receiving_player_id": str(self.receiving_player_id),
+            "requested_monster_id": str(self.requested_monster_id),
+            "offer_id": str(self.offer_id),
+            "timestamp": self.timestamp.isoformat(),
+            "expires_at": (
+                self.expires_at.isoformat()
+                if self.expires_at is not None
+                else None
+            ),
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, str | None]) -> TradeOffer:
+        expires_raw = data.get("expires_at")
+        return cls(
+            proposing_player_id=UUID(str(data["proposing_player_id"])),
+            proposing_monster_id=UUID(str(data["proposing_monster_id"])),
+            receiving_player_id=UUID(str(data["receiving_player_id"])),
+            requested_monster_id=UUID(str(data["requested_monster_id"])),
+            offer_id=UUID(str(data["offer_id"])),
+            timestamp=datetime.fromisoformat(str(data["timestamp"])),
+            expires_at=(
+                datetime.fromisoformat(expires_raw)
+                if isinstance(expires_raw, str)
+                else None
+            ),
+        )
 
 
 @dataclass
@@ -121,6 +155,39 @@ class TradeManager:
             if offer.proposing_player_id == player_id
             or offer.receiving_player_id == player_id
         ]
+
+    def get_received_offers_for_player(self, player_id: UUID) -> list[TradeOffer]:
+        """Return active pending offers that target the specified player."""
+        self.purge_expired_offers()
+        return [
+            offer
+            for offer in self.pending_offers
+            if offer.receiving_player_id == player_id
+        ]
+
+    def cancel_trade_offer(
+        self, offer_id: UUID, requesting_player_id: UUID | None = None
+    ) -> TradeResult:
+        """Cancel a pending offer by ID.
+
+        If ``requesting_player_id`` is provided, only participants in the offer
+        can cancel it.
+        """
+        offer = next(
+            (o for o in self.pending_offers if o.offer_id == offer_id), None
+        )
+        if offer is None:
+            return TradeResult.NOT_FOUND
+
+        if requesting_player_id is not None and requesting_player_id not in {
+            offer.proposing_player_id,
+            offer.receiving_player_id,
+        }:
+            return TradeResult.UNAUTHORIZED
+
+        self.pending_offers.remove(offer)
+        self.event_bus.publish("trade_offer_cancelled", offer)
+        return TradeResult.SUCCESS
 
     def _find_owner(self, monster: Monster) -> NPC | None:
         return self.npc_manager.get_monster_owner(monster)
@@ -304,12 +371,20 @@ class TradeManager:
         self.event_bus.publish("trade_offer_proposed", offer)
         return TradeResult.SUCCESS
 
-    def accept_trade(self, offer_id: UUID) -> TradeResult:
+    def accept_trade(
+        self, offer_id: UUID, accepting_player_id: UUID | None = None
+    ) -> TradeResult:
         offer = next(
             (o for o in self.pending_offers if o.offer_id == offer_id), None
         )
         if offer is None:
             return TradeResult.NOT_FOUND
+
+        if (
+            accepting_player_id is not None
+            and accepting_player_id != offer.receiving_player_id
+        ):
+            return TradeResult.UNAUTHORIZED
 
         if self._is_offer_expired(offer):
             self.pending_offers.remove(offer)
@@ -349,6 +424,26 @@ class TradeManager:
 
         return result
 
+    def reject_trade_offer(
+        self, offer_id: UUID, rejecting_player_id: UUID | None = None
+    ) -> TradeResult:
+        """Reject a pending offer, optionally requiring receiver identity."""
+        offer = next(
+            (o for o in self.pending_offers if o.offer_id == offer_id), None
+        )
+        if offer is None:
+            return TradeResult.NOT_FOUND
+
+        if (
+            rejecting_player_id is not None
+            and rejecting_player_id != offer.receiving_player_id
+        ):
+            return TradeResult.UNAUTHORIZED
+
+        self.pending_offers.remove(offer)
+        self.event_bus.publish("trade_offer_rejected", offer)
+        return TradeResult.REJECTED
+
     def was_traded_with_player(self, player_name: str) -> bool:
         return any(
             record.from_player == player_name
@@ -379,15 +474,30 @@ class TradeManager:
         ]
 
     def save_log(self) -> Mapping[str, Any]:
+        self.purge_expired_offers()
         return {
             "trade_history": [
                 record.to_dict() for record in self.global_trade_log
-            ]
+            ],
+            "pending_offers": [
+                offer.to_dict() for offer in self.pending_offers
+            ],
+            "default_offer_ttl_seconds": self.default_offer_ttl_seconds,
         }
 
     def load_log(self, data: Mapping[str, Any]) -> None:
         trade_data = data.get("trade_history", [])
         self.global_trade_log = [TradeRecord.from_dict(r) for r in trade_data]
+
+        pending_data = data.get("pending_offers", [])
+        self.pending_offers = [
+            TradeOffer.from_dict(o) for o in pending_data
+        ]
+        self.purge_expired_offers()
+
+        ttl_seconds = data.get("default_offer_ttl_seconds")
+        if isinstance(ttl_seconds, int):
+            self.default_offer_ttl_seconds = max(0, ttl_seconds)
 
 
 def on_trade_completed(records: list[TradeRecord]) -> None:
