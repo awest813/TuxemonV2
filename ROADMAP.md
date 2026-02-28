@@ -4,7 +4,7 @@ This roadmap reflects the current state of the branch and outlines practical fol
 
 ## Status Overview
 
-- Overall checklist completion: **26/29**
+- Overall checklist completion: **28/29**
 - Snapshot command: `python run_tuxemon.py --status`
 - Rebrand phase: **Phase A complete** (documentation and messaging aligned; compatibility-first migration policy published)
 - Latest recorded status during this update:
@@ -93,13 +93,15 @@ The original baseline milestones are complete; this expanded plan now tracks reb
 - [ ] **Progression balancing pass**
   - Tune encounter pacing, move curves, and economy to reduce mid-game spikes.
   - Add benchmark scenarios for repeatable balancing decisions.
-- [ ] **Content throughput tooling**
-  - Improve maintainer scripts/docs for adding monsters, maps, and locale entries with fewer manual steps.
+- [x] **Content throughput tooling**
+  - Added `scripts/scaffold_monster.py` for bootstrapping new monster definitions with all required fields, auto-assigned IDs, and locale stubs.
+  - Added `scripts/scaffold_locale.py` for adding, checking, and batch-importing locale entries.
+  - Both scripts support `--dry-run` and `--json` output modes for safe previewing.
 
 ### Phase 4 — Contributor Experience
-- [ ] **Onboarding and architecture docs refresh**
-  - Add concise architecture walkthroughs for battle, saves, and content loading.
-  - Publish a “first contribution” path for code and content contributors.
+- [x] **Onboarding and architecture docs refresh**
+  - Added `docs/architecture_overview.md` with walkthroughs for battle, save, and content loading subsystems.
+  - Published a “first contribution” path for code and content contributors.
 - [ ] **Roadmap maintenance cadence**
   - Update roadmap snapshot and phase progress at a regular cadence (e.g., monthly).
 
