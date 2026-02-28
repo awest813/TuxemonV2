@@ -2,7 +2,6 @@
 # Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
 from __future__ import annotations
 
-import logging
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -12,16 +11,10 @@ from uuid import UUID, uuid4
 
 from tuxemon.event import get_event_bus
 
-logger = logging.getLogger(__name__)
 
-
-def _coerce_utc_timestamp(value: str | int | float) -> datetime:
-    """Parse timestamp values and normalize to timezone-aware UTC."""
-    if isinstance(value, (int, float)):
-        return datetime.fromtimestamp(value, tz=timezone.utc)
-
-    normalized = value.replace("Z", "+00:00")
-    parsed = datetime.fromisoformat(normalized)
+def _coerce_utc_timestamp(value: str) -> datetime:
+    """Parse timestamp strings and normalize to timezone-aware UTC."""
+    parsed = datetime.fromisoformat(value)
     if parsed.tzinfo is None:
         return parsed.replace(tzinfo=timezone.utc)
     return parsed.astimezone(timezone.utc)
@@ -61,34 +54,16 @@ class BattleChallenge:
         }
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> BattleChallenge:
-        """Deserialize a challenge from current or legacy key names."""
+    def from_dict(cls, data: Mapping[str, str | None]) -> BattleChallenge:
         expires_raw = data.get("expires_at")
-        challenger_raw = data.get("challenger_player_id") or data.get(
-            "proposing_player_id"
-        )
-        challenged_raw = data.get("challenged_player_id") or data.get(
-            "receiving_player_id"
-        )
-        challenge_raw = data.get("challenge_id") or data.get("offer_id")
-        timestamp_raw = data.get("timestamp") or data.get("created_at")
-
-        if (
-            challenger_raw is None
-            or challenged_raw is None
-            or challenge_raw is None
-            or timestamp_raw is None
-        ):
-            raise ValueError("Challenge data is missing required identifiers")
-
         return cls(
-            challenger_player_id=UUID(str(challenger_raw)),
-            challenged_player_id=UUID(str(challenged_raw)),
-            challenge_id=UUID(str(challenge_raw)),
-            timestamp=_coerce_utc_timestamp(timestamp_raw),
+            challenger_player_id=UUID(str(data["challenger_player_id"])),
+            challenged_player_id=UUID(str(data["challenged_player_id"])),
+            challenge_id=UUID(str(data["challenge_id"])),
+            timestamp=_coerce_utc_timestamp(str(data["timestamp"])),
             expires_at=(
                 _coerce_utc_timestamp(expires_raw)
-                if isinstance(expires_raw, (str, int, float))
+                if isinstance(expires_raw, str)
                 else None
             ),
         )
@@ -257,39 +232,16 @@ class MultiplayerBattleManager:
             "default_challenge_ttl_seconds": self.default_challenge_ttl_seconds,
         }
 
-    def load_log(self, data: Mapping[str, Any] | None) -> None:
-        pending_data = []
-        if isinstance(data, Mapping):
-            raw_pending = data.get("pending_challenges", [])
-            if isinstance(raw_pending, list):
-                pending_data = raw_pending
-
-        challenges: list[BattleChallenge] = []
-        for challenge_data in pending_data:
-            if not isinstance(challenge_data, Mapping):
-                logger.warning(
-                    "Skipping malformed multiplayer challenge entry: %r",
-                    challenge_data,
-                )
-                continue
-            try:
-                challenges.append(BattleChallenge.from_dict(challenge_data))
-            except (KeyError, TypeError, ValueError):
-                logger.warning(
-                    "Skipping unreadable multiplayer challenge entry: %r",
-                    challenge_data,
-                )
-        self.pending_challenges = challenges
-
-        ttl_value: Any = self.default_challenge_ttl_seconds
-        if isinstance(data, Mapping):
-            ttl_value = data.get(
+    def load_log(self, data: dict[str, Any]) -> None:
+        pending_data = data.get("pending_challenges", [])
+        self.pending_challenges = [
+            BattleChallenge.from_dict(challenge_data)
+            for challenge_data in pending_data
+        ]
+        self.default_challenge_ttl_seconds = int(
+            data.get(
                 "default_challenge_ttl_seconds",
                 self.default_challenge_ttl_seconds,
             )
-        try:
-            ttl_seconds = int(ttl_value)
-        except (TypeError, ValueError):
-            ttl_seconds = self.default_challenge_ttl_seconds
-        self.default_challenge_ttl_seconds = max(1, ttl_seconds)
+        )
         self.purge_expired_challenges()
