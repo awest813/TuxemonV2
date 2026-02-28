@@ -61,9 +61,9 @@ The original baseline milestones are complete; this expanded plan now tracks reb
 - [ ] **Multiplayer battle execution protocol**
   - Define turn synchronization, timeout/reconnect policy, and authoritative conflict resolution.
   - Persist active battle sessions safely across save/load boundaries.
-- [ ] **Network-state UX clarity**
-  - Improve player feedback for pending, accepted, expired, and failed online actions.
-  - Add retry guidance and safer user-facing error messages.
+- [~] **Network-state UX clarity**
+  - Added manager-level feedback helpers for trade lifecycle outcomes (pending/accepted/expired/failed) with retry guidance.
+  - Remaining: wire these messages through gameplay UI screens and localization entries.
 
 ### Phase 2 — Quality and Reliability
 - [ ] **Automated data validation expansion**
@@ -94,6 +94,30 @@ The original baseline milestones are complete; this expanded plan now tracks reb
   - Update roadmap snapshot and phase progress at a regular cadence (e.g., monthly).
 
 ---
+
+## Roadmap to Alpha (Execution Plan)
+
+This sequence narrows the remaining work into explicit alpha gates with clear exit criteria.
+
+### Alpha Gate 1 — Stable Online Foundations
+- Complete multiplayer battle execution protocol (authoritative turn sync, reconnect, and timeout handling).
+- Integrate new trade/challenge feedback pathways into player-visible UI flows for pending/accepted/expired outcomes.
+- Exit criteria: online actions have deterministic outcomes, player-facing status text, and regression tests for disconnect/retry scenarios.
+
+### Alpha Gate 2 — Save and Data Confidence
+- Expand save compatibility fixtures for old/new schemas (trades, challenges, active battles).
+- Add stricter data validation in CI for monsters, maps, and localization references.
+- Exit criteria: compatibility matrix passes in CI and malformed fixtures are tolerated without crashes.
+
+### Alpha Gate 3 — Content and Balance Baseline
+- Run progression and economy balancing pass with benchmark scenarios for repeatability.
+- Improve content throughput tooling for monster/map/locale authoring.
+- Exit criteria: benchmark playthrough targets met and contributor content workflows documented.
+
+### Alpha Gate 4 — Alpha Readiness and Contributor UX
+- Refresh architecture/onboarding docs for battle, saves, and content loading paths.
+- Establish monthly roadmap/status updates and release-note templates for alpha previews.
+- Exit criteria: new contributors can ship a first change quickly, and alpha release process is documented end-to-end.
 
 ## Definition of Done for Future Milestones
 
