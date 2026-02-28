@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from tuxemon.states.multiplayer import MultiplayerSelect
+from tuxemon.states.multiplayer import MultiplayerMenu, MultiplayerSelect
 
 
 class DummyClient:
@@ -69,3 +69,71 @@ def test_initialize_items_disables_menu_when_server_data_is_out_of_sync():
 
     assert len(items) == 1
     assert items[0].enabled is False
+
+
+class DummyMenuNetworkClient(DummyNetworkClient):
+    def __init__(self):
+        super().__init__()
+        self.selected_game = None
+
+
+class DummyMenuClient:
+    def __init__(self):
+        self.dialogs = []
+
+
+def make_menu_state(is_host: bool = False) -> MultiplayerMenu:
+    state = MultiplayerMenu.__new__(MultiplayerMenu)
+    state.client = DummyMenuClient()
+    state.network = SimpleNamespace(
+        client=DummyMenuNetworkClient(),
+        is_host=lambda: is_host,
+    )
+    return state
+
+
+def test_join_warns_when_hosting():
+    state = make_menu_state(is_host=True)
+
+    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
+        "tuxemon.states.multiplayer.T.translate",
+        side_effect=lambda key: key,
+    ):
+        state.join()
+
+    assert state.network.client.connected_to is None
+    mock_dialog.assert_called_once_with(
+        state.client, ["multiplayer_join_unavailable_host"]
+    )
+
+
+def test_join_warns_when_no_server_selected():
+    state = make_menu_state()
+
+    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
+        "tuxemon.states.multiplayer.T.translate",
+        side_effect=lambda key: key,
+    ):
+        state.join()
+
+    assert state.network.client.connected_to is None
+    mock_dialog.assert_called_once_with(
+        state.client,
+        ["multiplayer_join_missing_target", "multiplayer_retry_hint"],
+    )
+
+
+def test_join_connects_and_shows_connecting_status():
+    state = make_menu_state()
+    state.network.client.selected_game = ("127.0.0.1", 40081)
+
+    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
+        "tuxemon.states.multiplayer.T.translate",
+        side_effect=lambda key: key,
+    ):
+        state.join()
+
+    assert state.network.client.connected_to == ("127.0.0.1", 40081)
+    mock_dialog.assert_called_once_with(
+        state.client, ["multiplayer_connecting_status"]
+    )

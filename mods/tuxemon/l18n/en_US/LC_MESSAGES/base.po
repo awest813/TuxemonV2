@@ -4911,6 +4911,18 @@ msgstr "No servers found..."
 msgid "multiplayer_join_prompt"
 msgstr "Hostname or IP?"
 
+msgid "multiplayer_connecting_status"
+msgstr "Connecting to server..."
+
+msgid "multiplayer_join_missing_target"
+msgstr "No server selected."
+
+msgid "multiplayer_retry_hint"
+msgstr "Try scanning servers again or enter an address."
+
+msgid "multiplayer_join_unavailable_host"
+msgstr "Stop hosting before joining another game."
+
 msgid "swap"
 msgstr "Swap"
 
