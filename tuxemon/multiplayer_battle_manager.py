@@ -380,6 +380,45 @@ class MultiplayerBattleManager:
         battle_session.turn_actions = {}
         return TurnSubmissionResult.SUCCESS
 
+    def get_turn_submission_feedback(
+        self, submission_result: TurnSubmissionResult
+    ) -> OnlineActionFeedback:
+        if submission_result == TurnSubmissionResult.SUCCESS:
+            return OnlineActionFeedback(
+                state=OnlineActionState.ACCEPTED,
+                message="Turn submitted. Resolving actions for this round.",
+                retryable=False,
+            )
+        if submission_result == TurnSubmissionResult.WAITING:
+            return OnlineActionFeedback(
+                state=OnlineActionState.PENDING,
+                message="Turn submitted. Waiting for the other player.",
+                retryable=False,
+            )
+        if submission_result == TurnSubmissionResult.NOT_FOUND:
+            return OnlineActionFeedback(
+                state=OnlineActionState.NOT_FOUND,
+                message="Battle session not found. Refresh and reconnect.",
+                retryable=True,
+            )
+        if submission_result == TurnSubmissionResult.TURN_MISMATCH:
+            return OnlineActionFeedback(
+                state=OnlineActionState.FAILED,
+                message="Turn mismatch detected. Sync battle state and try again.",
+                retryable=True,
+            )
+        if submission_result == TurnSubmissionResult.DUPLICATE:
+            return OnlineActionFeedback(
+                state=OnlineActionState.FAILED,
+                message="Turn already submitted for this round.",
+                retryable=False,
+            )
+        return OnlineActionFeedback(
+            state=OnlineActionState.FAILED,
+            message="You are not authorized to submit turns for this session.",
+            retryable=False,
+        )
+
     def _add_battle_record(
         self, challenge: BattleChallenge, resolution: BattleResolution
     ) -> None:
