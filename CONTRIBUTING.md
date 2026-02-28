@@ -1,7 +1,7 @@
 Contributing
 ============
 
-By committing or contributing data/files to the Tuxemon project, or any sub-
+By committing or contributing data/files to the OpenCapsuleMon project, or any sub-
 projects (the "Projects"), you agree to license your code under the GNU General
 Public License version 3 and any later version (the "License").
 In particular, you guarantee that you have acquired all necessary legal rights
@@ -13,7 +13,7 @@ cloned repositories, in compiled binaries, and any other ways permitted by the
 License.
 
 ## How do I contribute?
-Tuxemon uses the ["Fork &Pull"](https://help.github.com/articles/using-pull-requests#fork--pull)
+OpenCapsuleMon uses the ["Fork &Pull"](https://help.github.com/articles/using-pull-requests#fork--pull)
 method for code contributions. The *fork & pull* model lets anyone fork an
 existing repository and push changes to their personal fork without requiring
 access be granted to the source repository. The changes must then be pulled
@@ -23,8 +23,7 @@ projects because it allows people to work independently without upfront
 coordination.
 
 ## What code can I contribute?
-Any of the issues on the [Tuxemon issue list](https://github.com/Tuxemon/Tuxemon/issues)
-are things we are looking to have implemented in Tuxemon. Feel free to fork the
+Any issues in this repository's tracker are things we are looking to have implemented in OpenCapsuleMon. Feel free to fork the
 project and taking a shot at anything on the list! If you have a suggestion for
 a feature that's not on the current issues list, open a GitHub issue about it
 or start a discussion on the discord.
@@ -63,8 +62,8 @@ Example:
 
 ![alt text][water0]![alt text][water1]![alt text][water2]![alt text][water3]![alt text][water4]![alt text][water5]![alt text][water6]
 
-*If a Tuxemon on the left uses the water shot technique above, the animation will*
-*be displayed in its default orientation from left to right. However, if a Tuxemon*
+*If an OpenCapsuleMon monster on the left uses the water shot technique above, the animation will*
+*be displayed in its default orientation from left to right. However, if one*
 *on the right uses that technique, the animation will be flipped horizontally to*
 *display movement from right to left.*
 
@@ -203,7 +202,7 @@ It is an honor system, so please keep that in mind as we accept your changes.
 
 Translations
 ============
-Tuxemon has support for several languages.  Because Tuxemon is a community
+OpenCapsuleMon has support for several languages.  Because OpenCapsuleMon is a community
 project and not all members are intimately familiar with or fluent in each
 language, there are possible translation errors.  We also acknowledge that some
 translations may have errors intentional or otherwise that could be offensive
@@ -224,7 +223,7 @@ contact a team member in the discord if your Weblate contributions are not
 being merged into the project.
 
 ### Fallback
-By default, Tuxemon will display text in the default language.  If that
+By default, OpenCapsuleMon will display text in the default language.  If that
 language is not English, then English will be the "fallback".  If some text
 in the primary language is not available, then English will be used
 automatically.  If English is not available either, the text slug/msgid will
@@ -268,5 +267,5 @@ graphic violence, sexual imagery, and crude language.
 
 You are welcome to create your own content that is outside this limitation, but
 we cannot accept it in this repository, and we would ask that you are
-respectful with the "Tuxemon" name so that we are not associated with topics
+respectful with the "OpenCapsuleMon" name so that we are not associated with topics
 that would be covered by the paragraph above.  Thank you!

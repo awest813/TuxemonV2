@@ -19,7 +19,9 @@ logger = logging.getLogger(__name__)
 
 
 def build_parser() -> ArgumentParser:
-    parser = ArgumentParser(description="Start the Tuxemon game or headless server.")
+    parser = ArgumentParser(
+        description="Start the OpenCapsuleMon game or headless server."
+    )
 
     parser.add_argument(
         "-m",
@@ -98,7 +100,7 @@ def apply_config_from_args(config: "TuxemonConfig", args: Namespace) -> None:
 def handle_fatal_error(e: Exception) -> None:
     import traceback
 
-    error_msg = f"Tuxemon Error: {e}"
+    error_msg = f"OpenCapsuleMon Error: {e}"
     full_error = f"{error_msg}\n\nTraceback:\n{traceback.format_exc()}"
 
     logger.error(full_error)
@@ -115,7 +117,7 @@ def handle_fatal_error(e: Exception) -> None:
             import ctypes
 
             msg = f"{error_msg}\n\nSee tuxemon_error.log for details."
-            ctypes.windll.user32.MessageBoxW(0, msg, "Tuxemon Error", 1)
+            ctypes.windll.user32.MessageBoxW(0, msg, "OpenCapsuleMon Error", 1)
         except Exception:
             pass
 

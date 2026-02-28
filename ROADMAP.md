@@ -4,9 +4,9 @@ This roadmap reflects the current state of the branch and outlines practical fol
 
 ## Status Overview
 
-- Overall checklist completion: **18/29**
+- Overall checklist completion: **20/29**
 - Snapshot command: `python run_tuxemon.py --status`
-- Rebrand phase: **Kickoff** (project identity/messaging alignment in progress)
+- Rebrand phase: **Phase A complete** (documentation and messaging aligned; compatibility-first migration policy published)
 - Latest recorded status during this update:
   - Branch `work`, commit `faff3a3c`
   - Monsters 411, Techniques 274, Items 221, NPCs 122, Maps 224, Localizations 14
@@ -50,12 +50,12 @@ The original baseline milestones are complete; this expanded plan now tracks reb
 - [x] **Project identity alignment**
   - Updated key documentation and contributor messaging to OpenCapsuleMon naming (`README.md`, `CONTRIBUTING.md`).
   - Defined transition-safe naming conventions in `docs/rebrand_transition.md` (when to keep `tuxemon` internals).
-- [ ] **Compatibility-first naming migration plan**
-  - Publish a staged rename strategy for binaries, modules, and package metadata.
-  - Define deprecation windows and alias policy so existing workflows are not broken.
-- [ ] **Release and communication baseline**
-  - Introduce OpenCapsuleMon release-note framing while preserving upstream attribution.
-  - Add contributor guidance for describing rebrand impact in PRs.
+- [x] **Compatibility-first naming migration plan**
+  - Published staged rename strategy for binaries, modules, and package metadata in `docs/rebrand_transition.md`.
+  - Defined deprecation windows and alias policy so existing workflows are not broken.
+- [x] **Release and communication baseline**
+  - Added OpenCapsuleMon release-note framing while preserving upstream attribution in `docs/rebrand_transition.md`.
+  - Added contributor guidance for describing rebrand impact in PRs in `CONTRIBUTING.md`.
 
 ### Phase 1 — Network and UX
 - [ ] **Multiplayer battle execution protocol**

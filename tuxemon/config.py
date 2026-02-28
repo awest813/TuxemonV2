@@ -29,7 +29,7 @@ class DisplayConfig(BaseModel):
     scaling: bool = True
     collision_map: bool = False
     large_gui: bool = False
-    window_caption: str = "Tuxemon"
+    window_caption: str = "OpenCapsuleMon"
 
 
 class GameConfig(BaseModel):
