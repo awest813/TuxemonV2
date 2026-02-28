@@ -411,33 +411,39 @@ def test_get_trade_action_feedback_messages(manager):
     success = manager.get_trade_action_feedback(TradeResult.SUCCESS, "accept")
     assert success.state == TradeActionState.ACCEPTED
     assert success.retryable is False
-    assert "completed successfully" in success.message.lower()
+    assert success.message == "trade_action_success"
+    assert success.format_params == {"action": "accept"}
 
     rejected = manager.get_trade_action_feedback(
         TradeResult.REJECTED, "reject"
     )
     assert rejected.state == TradeActionState.REJECTED
     assert rejected.retryable is True
+    assert rejected.message == "trade_rejected"
 
     expired = manager.get_trade_action_feedback(TradeResult.EXPIRED, "accept")
     assert expired.state == TradeActionState.EXPIRED
     assert expired.retryable is True
+    assert expired.message == "trade_expired"
 
     missing = manager.get_trade_action_feedback(TradeResult.NOT_FOUND, "accept")
     assert missing.state == TradeActionState.NOT_FOUND
     assert missing.retryable is True
+    assert missing.message == "trade_not_found"
 
     same_owner = manager.get_trade_action_feedback(
         TradeResult.SAME_OWNER, "propose"
     )
     assert same_owner.state == TradeActionState.FAILED
     assert same_owner.retryable is False
+    assert same_owner.message == "trade_same_owner"
 
     unauthorized = manager.get_trade_action_feedback(
         TradeResult.UNAUTHORIZED, "cancel"
     )
     assert unauthorized.state == TradeActionState.FAILED
     assert unauthorized.retryable is False
+    assert unauthorized.message == "trade_unauthorized"
 
 
 def test_get_trade_offer_feedback_states(manager, players_and_monsters):
@@ -450,10 +456,12 @@ def test_get_trade_offer_feedback_states(manager, players_and_monsters):
     )
     assert pending.state == TradeActionState.PENDING
     assert pending.retryable is False
+    assert pending.message == "trade_offer_pending"
 
     unauthorized = manager.get_trade_offer_feedback(offer.offer_id, uuid4())
     assert unauthorized.state == TradeActionState.FAILED
     assert unauthorized.retryable is False
+    assert unauthorized.message == "trade_offer_view_unauthorized"
 
     offer.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
     expired = manager.get_trade_offer_feedback(
@@ -461,10 +469,12 @@ def test_get_trade_offer_feedback_states(manager, players_and_monsters):
     )
     assert expired.state == TradeActionState.EXPIRED
     assert expired.retryable is True
+    assert expired.message == "trade_offer_expired"
 
     missing = manager.get_trade_offer_feedback(uuid4(), player_a.instance_id)
     assert missing.state == TradeActionState.NOT_FOUND
     assert missing.retryable is True
+    assert missing.message == "trade_offer_not_found"
 
 def test_get_trade_history_filtered(manager, sample_record):
     manager.global_trade_log.append(sample_record)

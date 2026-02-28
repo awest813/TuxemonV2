@@ -86,7 +86,9 @@ class TuxemonClient:
         self.available_games: list[tuple[str, int]] = []
         self.server_list: list[str] = []
         self.selected_game: tuple[str, int] | None = None
-        self.pending_feedback: list[tuple[str, ...]] = []
+        self.pending_feedback: list[
+            list[tuple[str, dict[str, str]]]
+        ] = []
 
         self.populated: bool = False
         self.listening: bool = False
@@ -108,11 +110,20 @@ class TuxemonClient:
 
     def queue_feedback(self, *message_keys: str) -> None:
         """Queue translated message keys for player-facing network feedback."""
-        keys = tuple(key for key in message_keys if key)
-        if keys:
-            self.pending_feedback.append(keys)
+        entries = [(key, {}) for key in message_keys if key]
+        if entries:
+            self.pending_feedback.append(entries)
 
-    def consume_feedback(self) -> list[tuple[str, ...]]:
+    def queue_feedback_formatted(
+        self, key: str, params: dict[str, str] | None = None
+    ) -> None:
+        """Queue a single feedback line with optional format parameters."""
+        if key:
+            self.pending_feedback.append([(key, params or {})])
+
+    def consume_feedback(
+        self,
+    ) -> list[list[tuple[str, dict[str, str]]]]:
         """Return and clear pending network feedback messages."""
         feedback = self.pending_feedback
         self.pending_feedback = []
@@ -537,7 +548,9 @@ class InteractionManager:
                 manager.event_bus.publish(
                     "multiplayer_combat_feedback", feedback
                 )
-                self.client.queue_feedback(feedback.message)
+                self.client.queue_feedback_formatted(
+                    feedback.message, feedback.format_params
+                )
                 return
 
         if not isinstance(event, EventData):
@@ -583,7 +596,9 @@ class InteractionManager:
             feedback = manager.get_challenge_action_feedback(result, action=action)
 
         manager.event_bus.publish("multiplayer_combat_feedback", feedback)
-        self.client.queue_feedback(feedback.message)
+        self.client.queue_feedback_formatted(
+            feedback.message, feedback.format_params
+        )
 
 
 class ConnectionManager:

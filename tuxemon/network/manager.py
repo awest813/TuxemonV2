@@ -44,8 +44,13 @@ class NetworkManager:
             self.server.update()
 
         if self.client:
-            for message_keys in self.client.consume_feedback():
-                lines = [T.translate(key) for key in message_keys]
+            for entries in self.client.consume_feedback():
+                lines = []
+                for key, params in entries:
+                    if params:
+                        lines.append(T.format(key, params))
+                    else:
+                        lines.append(T.translate(key))
                 if lines:
                     open_dialog(self.parent, lines)
 

@@ -234,8 +234,17 @@ def test_queue_and_consume_feedback(client):
     client.queue_feedback("multiplayer_connect_failed", "multiplayer_retry_hint")
 
     assert client.consume_feedback() == [
-        ("multiplayer_connect_failed", "multiplayer_retry_hint")
+        [("multiplayer_connect_failed", {}), ("multiplayer_retry_hint", {})]
     ]
+    assert client.consume_feedback() == []
+
+
+def test_queue_feedback_formatted(client):
+    client.queue_feedback_formatted("battle_session_active", {"turn": "3"})
+
+    feedback = client.consume_feedback()
+    assert len(feedback) == 1
+    assert feedback[0] == [("battle_session_active", {"turn": "3"})]
     assert client.consume_feedback() == []
 
 
@@ -253,7 +262,7 @@ def test_connection_manager_registration_timeout_sets_feedback(client):
     assert client.connection_manager.state == ConnState.DISCONNECTED
     assert client.listening is False
     assert client.consume_feedback() == [
-        ("multiplayer_connect_failed", "multiplayer_retry_hint")
+        [("multiplayer_connect_failed", {}), ("multiplayer_retry_hint", {})]
     ]
 
 
@@ -274,7 +283,7 @@ def test_connection_manager_dropped_connection_sets_feedback(client):
     assert client.populated is False
     assert client.client.registry == {}
     assert client.consume_feedback() == [
-        ("multiplayer_connection_lost", "multiplayer_retry_hint")
+        [("multiplayer_connection_lost", {}), ("multiplayer_retry_hint", {})]
     ]
 
 
