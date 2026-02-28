@@ -80,6 +80,12 @@ class DummyMenuNetworkClient(DummyNetworkClient):
 class DummyMenuClient:
     def __init__(self):
         self.dialogs = []
+        self.pushed_state = None
+        self.push_kwargs = {}
+
+    def push_state(self, state, **kwargs):
+        self.pushed_state = state
+        self.push_kwargs = kwargs
 
 
 def make_menu_state(is_host: bool = False) -> MultiplayerMenu:
@@ -136,4 +142,67 @@ def test_join_connects_and_shows_connecting_status():
     assert state.network.client.connected_to == ("127.0.0.1", 40081)
     mock_dialog.assert_called_once_with(
         state.client, ["multiplayer_connecting_status"]
+    )
+
+
+def test_join_by_ip_pushes_input_menu_with_callback():
+    state = make_menu_state()
+
+    with patch(
+        "tuxemon.states.multiplayer.T.translate",
+        side_effect=lambda key: key,
+    ):
+        state.join_by_ip()
+
+    assert state.client.pushed_state == "InputMenu"
+    assert state.client.push_kwargs["prompt"] == "multiplayer_join_prompt"
+    assert callable(state.client.push_kwargs["callback"])
+
+
+def test_join_by_ip_callback_parses_host_and_connects():
+    state = make_menu_state()
+
+    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
+        "tuxemon.states.multiplayer.T.translate",
+        side_effect=lambda key: key,
+    ):
+        state._join_by_ip_input(" 127.0.0.1:40123 ")
+
+    assert state.network.client.selected_game == ("127.0.0.1", 40123)
+    assert state.network.client.connected_to == ("127.0.0.1", 40123)
+    mock_dialog.assert_called_once_with(
+        state.client, ["multiplayer_connecting_status"]
+    )
+
+
+def test_join_by_ip_callback_uses_default_port_when_omitted():
+    state = make_menu_state()
+
+    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
+        "tuxemon.states.multiplayer.T.translate",
+        side_effect=lambda key: key,
+    ):
+        state._join_by_ip_input("example.local")
+
+    assert state.network.client.selected_game == ("example.local", 40081)
+    assert state.network.client.connected_to == ("example.local", 40081)
+    mock_dialog.assert_called_once_with(
+        state.client, ["multiplayer_connecting_status"]
+    )
+
+
+def test_join_by_ip_callback_shows_retry_on_invalid_target():
+    state = make_menu_state()
+
+    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
+        "tuxemon.states.multiplayer.T.translate",
+        side_effect=lambda key: key,
+    ):
+        state._join_by_ip_input("127.0.0.1:notaport")
+
+    assert state.network.client.selected_game is None
+    assert state.network.client.connected_to is None
+    mock_dialog.assert_called_once_with(
+        state.client,
+        ["multiplayer_join_missing_target", "multiplayer_retry_hint"],
     )
