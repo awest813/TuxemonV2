@@ -23,17 +23,19 @@ from tuxemon.event.eventmiddleware import (
     WorldCommandMiddleware,
 )
 from tuxemon.faction.manager import FactionManager
+from tuxemon.locale.locale import T
 from tuxemon.platform.events import PlayerInput
 from tuxemon.prepare import DEV_TOOLS
 from tuxemon.save_state import WorldSave
 from tuxemon.session import Session
 from tuxemon.state.state import State
+from tuxemon.tools import open_dialog
 from tuxemon.world.manager import WorldMenuManager
 from tuxemon.world.transition import WorldTransition
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient
-    from tuxemon.network.networking import EventData, update_client
+    from tuxemon.network.networking import EventData
 
 logger = logging.getLogger(__name__)
 
@@ -231,47 +233,95 @@ class WorldState(State):
 
         return False
 
-    @no_type_check  # FIXME: dead code
+    @no_type_check
     def handle_interaction(
         self, event_data: EventData, registry: Mapping[str, Any]
     ) -> None:
         """
-        Presents options window when another player has interacted with this player.
-
-        :param event_data: Information on the type of interaction and who sent it.
-        :param registry:
-
-        :type event_data: Dictionary
-        :type registry: Dictionary
+        Show multiplayer interaction feedback for remote player interactions.
         """
-        target = registry[event_data["target"]]["sprite"]
-        target_name = str(target.name)
-        update_client(target, event_data["char_dict"], self.client)
-        if event_data["interaction"] == "DUEL":
-            if not event_data["response"]:
-                self.interaction_menu.visible = True
-                self.interaction_menu.interactable = True
-                self.interaction_menu.player = target
-                self.interaction_menu.interaction = "DUEL"
-                self.interaction_menu.menu_items = [
-                    target_name + " would like to Duel!",
-                    "Accept",
-                    "Decline",
-                ]
-            else:
-                if self.wants_duel:
-                    if event_data["response"] == "Accept":
-                        pd = self.player.__dict__
-                        event_data = {
-                            "type": "CLIENT_INTERACTION",
-                            "interaction": "START_DUEL",
-                            "target": [event_data["target"]],
-                            "response": None,
-                            "char_dict": {
-                                "monsters": pd["monsters"],
-                                "inventory": pd["inventory"],
-                            },
-                        }
-                        self.client.server.notify_client_interaction(
-                            "cuuid", event_data
+        from tuxemon.network.networking import update_client
+
+        source_cuuid = event_data.cuuid
+        if source_cuuid is None:
+            logger.warning("Received interaction event without source client id.")
+            return
+
+        source_entry = registry.get(source_cuuid)
+        if not source_entry:
+            logger.warning(
+                f"Received interaction from unknown client id: {source_cuuid}"
+            )
+            return
+
+        source_sprite = source_entry.get("sprite")
+        if source_sprite is None:
+            logger.warning(
+                f"Interaction source {source_cuuid} is missing sprite data."
+            )
+            return
+
+        source_name = str(getattr(source_sprite, "name", source_cuuid))
+        update_client(source_sprite, event_data.char_dict, self.client)
+        interaction = (event_data.interaction or "").upper()
+        response = (
+            str(event_data.response).strip().lower()
+            if event_data.response is not None
+            else None
+        )
+
+        if interaction == "DUEL":
+            if response is None:
+                open_dialog(
+                    self.client,
+                    [
+                        T.format(
+                            "multiplayer_duel_invite_received",
+                            {"name": source_name},
+                        ),
+                        T.translate("multiplayer_duel_invite_hint"),
+                    ],
+                )
+                return
+
+            if response == "accept":
+                open_dialog(
+                    self.client,
+                    [
+                        T.format(
+                            "multiplayer_duel_invite_accepted",
+                            {"name": source_name},
                         )
+                    ],
+                )
+                return
+
+            if response in {"decline", "reject"}:
+                open_dialog(
+                    self.client,
+                    [
+                        T.format(
+                            "multiplayer_duel_invite_declined",
+                            {"name": source_name},
+                        ),
+                        T.translate("multiplayer_retry_hint"),
+                    ],
+                )
+                return
+
+            open_dialog(
+                self.client,
+                [T.translate("multiplayer_duel_invite_response_unknown")],
+            )
+            return
+
+        if interaction == "START_DUEL":
+            open_dialog(
+                self.client,
+                [T.format("multiplayer_duel_starting", {"name": source_name})],
+            )
+            return
+
+        logger.info(
+            f"Ignoring unsupported multiplayer interaction '{interaction}'."
+        )

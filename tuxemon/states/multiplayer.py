@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Generator
 from functools import partial
 from typing import TYPE_CHECKING, Any, ClassVar
+from uuid import UUID
 
 from pygame_menu.menu import Menu
 
@@ -12,6 +13,8 @@ from tuxemon.animation import Animation, ScheduleType
 from tuxemon.locale.locale import T
 from tuxemon.menu.interface import MenuItem
 from tuxemon.menu.menu import PopUpMenu, PygameMenuState
+from tuxemon.multiplayer_battle_manager import OnlineActionFeedback
+from tuxemon.session import local_session
 from tuxemon.tools import open_dialog
 
 if TYPE_CHECKING:
@@ -35,12 +38,44 @@ class MultiplayerMenu(PygameMenuState):
     def __init__(self, client: BaseClient, **kwargs: Any) -> None:
         super().__init__(client=client, **kwargs)
         self.network = self.client.network_manager
+        self._last_challenge_id: UUID | None = None
 
         menu: list[tuple[str, MenuGameObj]] = []
         menu.append(("multiplayer_host_game", self.host_game))
         menu.append(("multiplayer_scan_games", self.load_server_list))
         menu.append(("multiplayer_join_last_game", self.join_last_server))
         menu.append(("multiplayer_join_game", self.join_by_ip))
+        menu.append(("multiplayer_challenge_player", self.challenge_by_uuid))
+        menu.append(
+            (
+                "multiplayer_accept_latest_challenge",
+                self.accept_latest_challenge,
+            )
+        )
+        menu.append(
+            (
+                "multiplayer_reject_latest_challenge",
+                self.reject_latest_challenge,
+            )
+        )
+        menu.append(
+            (
+                "multiplayer_cancel_latest_challenge",
+                self.cancel_latest_challenge,
+            )
+        )
+        menu.append(
+            (
+                "multiplayer_check_challenge_status",
+                self.check_latest_challenge_status,
+            )
+        )
+        menu.append(
+            (
+                "multiplayer_check_battle_status",
+                self.check_active_battle_status,
+            )
+        )
 
         add_menu_items(self.menu, menu)
 
@@ -188,6 +223,226 @@ class MultiplayerMenu(PygameMenuState):
         ip, port = self.network.client.selected_game
         self.network.client.connect_to_host(ip, port)
         open_dialog(self.client, [T.translate("multiplayer_connecting_status")])
+
+    def _battle_manager(self) -> Any | None:
+        manager = getattr(self.client, "multiplayer_battle_manager", None)
+        if manager is None:
+            open_dialog(
+                self.client,
+                [T.translate("multiplayer_battle_manager_unavailable")],
+            )
+        return manager
+
+    def _require_local_player_id(self) -> UUID | None:
+        if not local_session.has_player():
+            open_dialog(
+                self.client, [T.translate("multiplayer_local_player_unavailable")]
+            )
+            return None
+        player_id = getattr(local_session.player, "instance_id", None)
+        if player_id is None:
+            open_dialog(
+                self.client,
+                [T.translate("multiplayer_local_player_unavailable")],
+            )
+            return None
+        return player_id
+
+    def _show_online_feedback(self, feedback: OnlineActionFeedback) -> None:
+        message = feedback.message
+        if feedback.message_key:
+            try:
+                if feedback.message_params:
+                    message = T.format(
+                        feedback.message_key, feedback.message_params
+                    )
+                else:
+                    message = T.translate(feedback.message_key)
+            except Exception:
+                message = feedback.message
+
+        lines = [message]
+        if feedback.retryable:
+            lines.append(T.translate("multiplayer_retry_hint"))
+        open_dialog(self.client, lines)
+
+    @staticmethod
+    def _latest_by_timestamp(items: list[Any]) -> Any | None:
+        if not items:
+            return None
+        return max(items, key=lambda item: item.timestamp)
+
+    def _find_latest_player_challenge_id(self, player_id: UUID) -> UUID | None:
+        manager = self._battle_manager()
+        if manager is None:
+            return None
+
+        pending = manager.get_pending_challenges_for_player(player_id)
+        latest_pending = self._latest_by_timestamp(pending)
+        if latest_pending is not None:
+            return latest_pending.challenge_id
+
+        history = manager.get_battle_history_for_player(player_id)
+        if history:
+            return history[-1].challenge_id
+        return None
+
+    def challenge_by_uuid(self) -> None:
+        self.client.push_state(
+            "InputMenu",
+            prompt=T.translate("multiplayer_challenge_prompt"),
+            callback=self._challenge_by_uuid_input,
+        )
+
+    def _challenge_by_uuid_input(self, raw_player_id: str) -> None:
+        manager = self._battle_manager()
+        local_player_id = self._require_local_player_id()
+        if manager is None or local_player_id is None:
+            return
+
+        token = raw_player_id.strip()
+        if not token:
+            open_dialog(
+                self.client,
+                [
+                    T.translate("multiplayer_invalid_player_uuid"),
+                    T.translate("multiplayer_retry_hint"),
+                ],
+            )
+            return
+
+        try:
+            challenged_player_id = UUID(token)
+        except ValueError:
+            open_dialog(
+                self.client,
+                [
+                    T.translate("multiplayer_invalid_player_uuid"),
+                    T.translate("multiplayer_retry_hint"),
+                ],
+            )
+            return
+
+        result = manager.propose_challenge(local_player_id, challenged_player_id)
+        feedback = manager.get_challenge_action_feedback(result, action="propose")
+        if feedback.state.value in {"pending", "accepted"}:
+            challenge_id = self._find_latest_player_challenge_id(local_player_id)
+            self._last_challenge_id = challenge_id
+        self._show_online_feedback(feedback)
+
+    def accept_latest_challenge(self) -> None:
+        manager = self._battle_manager()
+        local_player_id = self._require_local_player_id()
+        if manager is None or local_player_id is None:
+            return
+
+        incoming = manager.get_received_challenges_for_player(local_player_id)
+        challenge = self._latest_by_timestamp(incoming)
+        if challenge is None:
+            open_dialog(
+                self.client, [T.translate("multiplayer_no_received_challenges")]
+            )
+            return
+
+        self._last_challenge_id = challenge.challenge_id
+        result = manager.accept_challenge(
+            challenge.challenge_id, accepting_player_id=local_player_id
+        )
+        feedback = manager.get_challenge_action_feedback(result, action="accept")
+        self._show_online_feedback(feedback)
+
+    def reject_latest_challenge(self) -> None:
+        manager = self._battle_manager()
+        local_player_id = self._require_local_player_id()
+        if manager is None or local_player_id is None:
+            return
+
+        incoming = manager.get_received_challenges_for_player(local_player_id)
+        challenge = self._latest_by_timestamp(incoming)
+        if challenge is None:
+            open_dialog(
+                self.client, [T.translate("multiplayer_no_received_challenges")]
+            )
+            return
+
+        self._last_challenge_id = challenge.challenge_id
+        result = manager.reject_challenge(
+            challenge.challenge_id, rejecting_player_id=local_player_id
+        )
+        feedback = manager.get_challenge_action_feedback(result, action="reject")
+        self._show_online_feedback(feedback)
+
+    def cancel_latest_challenge(self) -> None:
+        manager = self._battle_manager()
+        local_player_id = self._require_local_player_id()
+        if manager is None or local_player_id is None:
+            return
+
+        outgoing = [
+            challenge
+            for challenge in manager.get_pending_challenges_for_player(
+                local_player_id
+            )
+            if challenge.challenger_player_id == local_player_id
+        ]
+        challenge = self._latest_by_timestamp(outgoing)
+        if challenge is None:
+            open_dialog(
+                self.client, [T.translate("multiplayer_no_outgoing_challenges")]
+            )
+            return
+
+        self._last_challenge_id = challenge.challenge_id
+        result = manager.cancel_challenge(
+            challenge.challenge_id, requesting_player_id=local_player_id
+        )
+        feedback = manager.get_challenge_action_feedback(result, action="cancel")
+        self._show_online_feedback(feedback)
+
+    def check_latest_challenge_status(self) -> None:
+        manager = self._battle_manager()
+        local_player_id = self._require_local_player_id()
+        if manager is None or local_player_id is None:
+            return
+
+        challenge_id = self._last_challenge_id or self._find_latest_player_challenge_id(
+            local_player_id
+        )
+        if challenge_id is None:
+            open_dialog(
+                self.client, [T.translate("multiplayer_no_challenge_status")]
+            )
+            return
+
+        self._last_challenge_id = challenge_id
+        feedback = manager.get_challenge_feedback(challenge_id, local_player_id)
+        self._show_online_feedback(feedback)
+
+    def check_active_battle_status(self) -> None:
+        manager = self._battle_manager()
+        local_player_id = self._require_local_player_id()
+        if manager is None or local_player_id is None:
+            return
+
+        active_sessions = [
+            session
+            for session in manager.active_battle_sessions
+            if local_player_id
+            in {session.challenger_player_id, session.challenged_player_id}
+        ]
+        if not active_sessions:
+            open_dialog(self.client, [T.translate("multiplayer_no_active_battle")])
+            return
+
+        battle_session = max(
+            active_sessions,
+            key=lambda session: session.last_activity_at,
+        )
+        feedback = manager.get_battle_session_feedback(
+            battle_session.session_id,
+            local_player_id,
+        )
+        self._show_online_feedback(feedback)
 
 
 class MultiplayerSelect(PopUpMenu[tuple[str, int]]):

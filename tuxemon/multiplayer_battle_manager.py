@@ -62,6 +62,8 @@ class OnlineActionFeedback:
     state: OnlineActionState
     message: str
     retryable: bool
+    message_key: str | None = None
+    message_params: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -496,41 +498,48 @@ class MultiplayerBattleManager:
                 state=OnlineActionState.ACCEPTED,
                 message="Turn submitted. Resolving actions for this round.",
                 retryable=False,
+                message_key="multiplayer_feedback_turn_submit_resolved",
             )
         if submission_result == TurnSubmissionResult.WAITING:
             return OnlineActionFeedback(
                 state=OnlineActionState.PENDING,
                 message="Turn submitted. Waiting for the other player.",
                 retryable=False,
+                message_key="multiplayer_feedback_turn_submit_waiting",
             )
         if submission_result == TurnSubmissionResult.NOT_FOUND:
             return OnlineActionFeedback(
                 state=OnlineActionState.NOT_FOUND,
                 message="Battle session not found. Refresh and reconnect.",
                 retryable=True,
+                message_key="multiplayer_feedback_session_not_found",
             )
         if submission_result == TurnSubmissionResult.EXPIRED:
             return OnlineActionFeedback(
                 state=OnlineActionState.EXPIRED,
                 message="Battle session expired. Reconnect and restart the battle.",
                 retryable=True,
+                message_key="multiplayer_feedback_session_expired",
             )
         if submission_result == TurnSubmissionResult.TURN_MISMATCH:
             return OnlineActionFeedback(
                 state=OnlineActionState.FAILED,
                 message="Turn mismatch detected. Sync battle state and try again.",
                 retryable=True,
+                message_key="multiplayer_feedback_turn_mismatch",
             )
         if submission_result == TurnSubmissionResult.DUPLICATE:
             return OnlineActionFeedback(
                 state=OnlineActionState.FAILED,
                 message="Turn already submitted for this round.",
                 retryable=False,
+                message_key="multiplayer_feedback_turn_duplicate",
             )
         return OnlineActionFeedback(
             state=OnlineActionState.FAILED,
             message="You are not authorized to submit turns for this session.",
             retryable=False,
+            message_key="multiplayer_feedback_turn_unauthorized",
         )
 
     def get_challenge_action_feedback(
@@ -546,24 +555,35 @@ class MultiplayerBattleManager:
                     state=OnlineActionState.PENDING,
                     message="Battle request sent. Waiting for the other player.",
                     retryable=False,
+                    message_key="multiplayer_feedback_challenge_sent",
                 )
             if action == "accept":
                 return OnlineActionFeedback(
                     state=OnlineActionState.ACCEPTED,
                     message="Battle request accepted. Preparing battle session.",
                     retryable=False,
+                    message_key="multiplayer_feedback_challenge_accepted",
                 )
             if action == "cancel":
                 return OnlineActionFeedback(
                     state=OnlineActionState.CANCELLED,
                     message="Battle request cancelled.",
                     retryable=False,
+                    message_key="multiplayer_feedback_challenge_cancelled",
+                )
+            if action == "reject":
+                return OnlineActionFeedback(
+                    state=OnlineActionState.REJECTED,
+                    message="Battle request declined.",
+                    retryable=False,
+                    message_key="multiplayer_feedback_challenge_rejected_action",
                 )
 
             return OnlineActionFeedback(
                 state=OnlineActionState.ACCEPTED,
                 message="Battle request processed successfully.",
                 retryable=False,
+                message_key="multiplayer_feedback_challenge_success",
             )
 
         if challenge_result == BattleChallengeResult.REJECTED:
@@ -571,12 +591,14 @@ class MultiplayerBattleManager:
                 state=OnlineActionState.REJECTED,
                 message="Battle request declined. You can send another request.",
                 retryable=True,
+                message_key="multiplayer_feedback_challenge_declined",
             )
         if challenge_result == BattleChallengeResult.EXPIRED:
             return OnlineActionFeedback(
                 state=OnlineActionState.EXPIRED,
                 message="Battle request expired. Send a new request to retry.",
                 retryable=True,
+                message_key="multiplayer_feedback_challenge_expired",
             )
         if challenge_result == BattleChallengeResult.DUPLICATE:
             return OnlineActionFeedback(
@@ -586,23 +608,27 @@ class MultiplayerBattleManager:
                     "these players. Wait for resolution before retrying."
                 ),
                 retryable=False,
+                message_key="multiplayer_feedback_challenge_duplicate",
             )
         if challenge_result == BattleChallengeResult.SELF_CHALLENGE:
             return OnlineActionFeedback(
                 state=OnlineActionState.FAILED,
                 message="You cannot challenge yourself.",
                 retryable=False,
+                message_key="multiplayer_feedback_challenge_self",
             )
         if challenge_result == BattleChallengeResult.UNAUTHORIZED:
             return OnlineActionFeedback(
                 state=OnlineActionState.FAILED,
                 message="You are not authorized to manage this battle request.",
                 retryable=False,
+                message_key="multiplayer_feedback_challenge_unauthorized",
             )
         return OnlineActionFeedback(
             state=OnlineActionState.NOT_FOUND,
             message="Battle request not found. Refresh and try again.",
             retryable=True,
+            message_key="multiplayer_feedback_challenge_not_found",
         )
 
     def get_battle_session_feedback(
@@ -618,6 +644,7 @@ class MultiplayerBattleManager:
                 state=OnlineActionState.NOT_FOUND,
                 message="Battle session not found. Refresh and reconnect.",
                 retryable=True,
+                message_key="multiplayer_feedback_session_not_found",
             )
 
         if player_id not in {
@@ -628,6 +655,7 @@ class MultiplayerBattleManager:
                 state=OnlineActionState.FAILED,
                 message="You are not authorized to view this battle session.",
                 retryable=False,
+                message_key="multiplayer_feedback_session_unauthorized",
             )
 
         current_time = now or datetime.now(timezone.utc)
@@ -636,6 +664,7 @@ class MultiplayerBattleManager:
                 state=OnlineActionState.EXPIRED,
                 message="Battle session timed out due to inactivity.",
                 retryable=True,
+                message_key="multiplayer_feedback_session_timeout_inactive",
             )
 
         for participant_id_str, disconnected_at in battle_session.disconnected_at.items():
@@ -651,6 +680,7 @@ class MultiplayerBattleManager:
                     state=OnlineActionState.EXPIRED,
                     message="Battle session expired while waiting for reconnection.",
                     retryable=True,
+                    message_key="multiplayer_feedback_session_timeout_reconnect",
                 )
 
             seconds_left = max(0, int((grace_ends_at - current_time).total_seconds()))
@@ -662,6 +692,8 @@ class MultiplayerBattleManager:
                         f"({seconds_left}s remaining)."
                     ),
                     retryable=True,
+                    message_key="multiplayer_feedback_session_reconnect_self",
+                    message_params={"seconds_left": seconds_left},
                 )
 
             return OnlineActionFeedback(
@@ -671,6 +703,8 @@ class MultiplayerBattleManager:
                     f"({seconds_left}s remaining)."
                 ),
                 retryable=False,
+                message_key="multiplayer_feedback_session_reconnect_peer",
+                message_params={"seconds_left": seconds_left},
             )
 
         if str(player_id) in battle_session.turn_actions:
@@ -678,6 +712,7 @@ class MultiplayerBattleManager:
                 state=OnlineActionState.PENDING,
                 message="Turn submitted. Waiting for the other player.",
                 retryable=False,
+                message_key="multiplayer_feedback_turn_submit_waiting",
             )
 
         return OnlineActionFeedback(
@@ -687,6 +722,8 @@ class MultiplayerBattleManager:
                 "Submit your action."
             ),
             retryable=False,
+            message_key="multiplayer_feedback_session_turn_active",
+            message_params={"turn": battle_session.current_turn},
         )
 
     def _add_battle_record(
@@ -774,6 +811,7 @@ class MultiplayerBattleManager:
                     state=OnlineActionState.FAILED,
                     message="You are not authorized to view this battle request.",
                     retryable=False,
+                    message_key="multiplayer_feedback_challenge_view_unauthorized",
                 )
 
             expires_at = challenge.expires_at
@@ -793,12 +831,15 @@ class MultiplayerBattleManager:
                         f"Time remaining: {seconds_left} seconds."
                     ),
                     retryable=False,
+                    message_key="multiplayer_feedback_challenge_pending_time",
+                    message_params={"seconds_left": seconds_left},
                 )
 
             return OnlineActionFeedback(
                 state=OnlineActionState.PENDING,
                 message="Battle request is pending.",
                 retryable=False,
+                message_key="multiplayer_feedback_challenge_pending",
             )
 
         for record in reversed(self.battle_history):
@@ -812,6 +853,7 @@ class MultiplayerBattleManager:
                     state=OnlineActionState.FAILED,
                     message="You are not authorized to view this battle request.",
                     retryable=False,
+                    message_key="multiplayer_feedback_challenge_view_unauthorized",
                 )
 
             if record.resolution == BattleResolution.ACCEPTED:
@@ -819,29 +861,34 @@ class MultiplayerBattleManager:
                     state=OnlineActionState.ACCEPTED,
                     message="Battle request accepted. Preparing battle session.",
                     retryable=False,
+                    message_key="multiplayer_feedback_challenge_history_accepted",
                 )
             if record.resolution == BattleResolution.EXPIRED:
                 return OnlineActionFeedback(
                     state=OnlineActionState.EXPIRED,
                     message="Battle request expired. Send a new request to retry.",
                     retryable=True,
+                    message_key="multiplayer_feedback_challenge_history_expired",
                 )
             if record.resolution == BattleResolution.REJECTED:
                 return OnlineActionFeedback(
                     state=OnlineActionState.REJECTED,
                     message="Battle request was declined. You can try again.",
                     retryable=True,
+                    message_key="multiplayer_feedback_challenge_history_rejected",
                 )
             return OnlineActionFeedback(
                 state=OnlineActionState.CANCELLED,
                 message="Battle request was cancelled.",
                 retryable=True,
+                message_key="multiplayer_feedback_challenge_history_cancelled",
             )
 
         return OnlineActionFeedback(
             state=OnlineActionState.NOT_FOUND,
             message="Battle request not found. Please refresh and try again.",
             retryable=True,
+            message_key="multiplayer_feedback_challenge_history_missing",
         )
 
     def _find_challenge(self, challenge_id: UUID) -> BattleChallenge | None:
