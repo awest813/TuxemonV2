@@ -38,6 +38,22 @@ class TradeResult(Enum):
     REJECTED = "rejected"
 
 
+class TradeActionState(Enum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+    EXPIRED = "expired"
+    FAILED = "failed"
+    NOT_FOUND = "not_found"
+
+
+@dataclass
+class TradeActionFeedback:
+    state: TradeActionState
+    message: str
+    retryable: bool
+
+
 @dataclass
 class TradeOffer:
     proposing_player_id: UUID
@@ -172,6 +188,92 @@ class TradeManager:
             for offer in self.pending_offers
             if offer.receiving_player_id == player_id
         ]
+
+    def get_trade_action_feedback(
+        self, trade_result: TradeResult, action: str
+    ) -> TradeActionFeedback:
+        """Return player-facing feedback for trade actions and failures."""
+        action_name = action.replace("_", " ")
+        if trade_result == TradeResult.SUCCESS:
+            return TradeActionFeedback(
+                state=TradeActionState.ACCEPTED,
+                message=f"Trade {action_name} completed successfully.",
+                retryable=False,
+            )
+
+        if trade_result == TradeResult.REJECTED:
+            return TradeActionFeedback(
+                state=TradeActionState.REJECTED,
+                message="Trade offer was rejected.",
+                retryable=True,
+            )
+
+        if trade_result == TradeResult.EXPIRED:
+            return TradeActionFeedback(
+                state=TradeActionState.EXPIRED,
+                message="Trade offer expired before it could be completed.",
+                retryable=True,
+            )
+
+        if trade_result == TradeResult.NOT_FOUND:
+            return TradeActionFeedback(
+                state=TradeActionState.NOT_FOUND,
+                message="Trade offer or monster is no longer available.",
+                retryable=True,
+            )
+
+        if trade_result == TradeResult.SAME_OWNER:
+            return TradeActionFeedback(
+                state=TradeActionState.FAILED,
+                message="You cannot trade with yourself.",
+                retryable=False,
+            )
+
+        if trade_result == TradeResult.UNAUTHORIZED:
+            return TradeActionFeedback(
+                state=TradeActionState.FAILED,
+                message="You are not authorized to perform this trade action.",
+                retryable=False,
+            )
+
+        return TradeActionFeedback(
+            state=TradeActionState.FAILED,
+            message="Trade action failed.",
+            retryable=True,
+        )
+
+    def get_trade_offer_feedback(
+        self, offer_id: UUID, player_id: UUID
+    ) -> TradeActionFeedback:
+        offer = next(
+            (o for o in self.pending_offers if o.offer_id == offer_id), None
+        )
+        if offer is None:
+            return TradeActionFeedback(
+                state=TradeActionState.NOT_FOUND,
+                message="Trade offer could not be found.",
+                retryable=True,
+            )
+
+        if player_id not in {offer.proposing_player_id, offer.receiving_player_id}:
+            return TradeActionFeedback(
+                state=TradeActionState.FAILED,
+                message="You are not authorized to view this trade offer.",
+                retryable=False,
+            )
+
+        if self._is_offer_expired(offer):
+            return TradeActionFeedback(
+                state=TradeActionState.EXPIRED,
+                message="This trade offer has expired.",
+                retryable=True,
+            )
+
+        return TradeActionFeedback(
+            state=TradeActionState.PENDING,
+            message="Trade offer is pending response.",
+            retryable=False,
+        )
 
     def cancel_trade_offer(
         self, offer_id: UUID, requesting_player_id: UUID | None = None
