@@ -21,6 +21,14 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def _coerce_utc_timestamp(value: str) -> datetime:
+    """Parse timestamp strings and normalize to timezone-aware UTC."""
+    parsed = datetime.fromisoformat(value)
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
 class TradeResult(Enum):
     SUCCESS = "success"
     SAME_OWNER = "same_owner"
@@ -66,9 +74,9 @@ class TradeOffer:
             receiving_player_id=UUID(str(data["receiving_player_id"])),
             requested_monster_id=UUID(str(data["requested_monster_id"])),
             offer_id=UUID(str(data["offer_id"])),
-            timestamp=datetime.fromisoformat(str(data["timestamp"])),
+            timestamp=_coerce_utc_timestamp(str(data["timestamp"])),
             expires_at=(
-                datetime.fromisoformat(expires_raw)
+                _coerce_utc_timestamp(expires_raw)
                 if isinstance(expires_raw, str)
                 else None
             ),
@@ -113,7 +121,7 @@ class TradeRecord:
             monster_received=data["monster_received"],
             monster_given_id=UUID(data["monster_given_id"]),
             monster_received_id=UUID(data["monster_received_id"]),
-            timestamp=datetime.fromisoformat(data["timestamp"]),
+            timestamp=_coerce_utc_timestamp(data["timestamp"]),
         )
 
 
