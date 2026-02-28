@@ -89,3 +89,7 @@ def test_reverse_subtraction():
 
     assert tuple((5, 7) - v1) == (3, 4)
     assert tuple(Vector2(10, 10) - Vector2(5, 3)) == (5, 7)
+
+
+def test_vector2_repr():
+    assert repr(Vector2(1, 2)) == "Vector2(1, 2)"
