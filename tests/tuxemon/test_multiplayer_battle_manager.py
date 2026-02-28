@@ -233,7 +233,7 @@ def test_turn_submission_synchronizes_and_increments_turn() -> None:
             battle_session.session_id,
             challenger,
             turn=1,
-            action={"move": "scratch"},
+            action={"move": "scratch", "priority": 1, "speed": 10},
         )
         == TurnSubmissionResult.WAITING
     )
@@ -242,12 +242,43 @@ def test_turn_submission_synchronizes_and_increments_turn() -> None:
             battle_session.session_id,
             challenged,
             turn=1,
-            action={"move": "tackle"},
+            action={"move": "tackle", "priority": 1, "speed": 20},
         )
         == TurnSubmissionResult.SUCCESS
     )
     assert battle_session.current_turn == 2
     assert battle_session.turn_actions == {}
+
+
+def test_turn_resolution_is_authoritative_and_deterministic() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+    battle_session = manager.start_battle_session(uuid4(), challenger, challenged)
+
+    manager.submit_turn_action(
+        battle_session.session_id,
+        challenger,
+        turn=1,
+        action={"move": "slow", "priority": 0, "speed": 10},
+    )
+    events: list[dict[str, object]] = []
+    manager.event_bus.subscribe(
+        "multiplayer_battle_turn_resolved", lambda payload: events.append(payload)
+    )
+
+    manager.submit_turn_action(
+        battle_session.session_id,
+        challenged,
+        turn=1,
+        action={"move": "fast", "priority": 1, "speed": 50},
+    )
+
+    assert events
+    resolved_actions = events[0]["actions"]
+    assert resolved_actions[0]["action"]["move"] == "fast"
+    assert resolved_actions[1]["action"]["move"] == "slow"
+    assert events[0]["conflict_policy"]["authoritative"] == "server"
 
 
 def test_turn_submission_rejects_wrong_player_turn_and_duplicates() -> None:
@@ -393,6 +424,10 @@ def test_get_turn_submission_feedback_messages() -> None:
     assert not_found.state == OnlineActionState.NOT_FOUND
     assert not_found.retryable is True
 
+    expired = manager.get_turn_submission_feedback(TurnSubmissionResult.EXPIRED)
+    assert expired.state == OnlineActionState.EXPIRED
+    assert expired.retryable is True
+
     mismatch = manager.get_turn_submission_feedback(
         TurnSubmissionResult.TURN_MISMATCH
     )
@@ -492,3 +527,55 @@ def test_get_battle_session_feedback_connection_and_timeout() -> None:
     )
     assert timed_out_feedback.state == OnlineActionState.EXPIRED
     assert timed_out_feedback.retryable is True
+
+
+def test_turn_submission_rejects_expired_battle_session() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+    battle_session = manager.start_battle_session(uuid4(), challenger, challenged)
+    battle_session.last_activity_at = datetime.now(timezone.utc) - timedelta(
+        seconds=battle_session.turn_timeout_seconds + 1
+    )
+
+    result = manager.submit_turn_action(
+        battle_session.session_id,
+        challenger,
+        turn=1,
+        action={"move": "scratch"},
+    )
+
+    assert result == TurnSubmissionResult.EXPIRED
+
+
+def test_load_log_normalizes_active_battle_sessions() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+    valid = manager.start_battle_session(uuid4(), challenger, challenged)
+    stale = manager.start_battle_session(uuid4(), challenger, challenged)
+    stale.last_activity_at = datetime.now(timezone.utc) - timedelta(
+        seconds=stale.turn_timeout_seconds + 1
+    )
+
+    serialized = manager.save_log()
+    raw_valid = serialized["active_battle_sessions"][0]
+    raw_stale = serialized["active_battle_sessions"][1]
+    # invalid turn action owner is dropped during normalization
+    raw_valid["turn_actions"] = {
+        str(uuid4()): {
+            "player_id": str(uuid4()),
+            "turn": raw_valid["current_turn"],
+            "action": {"move": "hack"},
+            "submitted_at": datetime.now(timezone.utc).isoformat(),
+        }
+    }
+    serialized["active_battle_sessions"] = [raw_valid, raw_stale]
+
+    restored = MultiplayerBattleManager()
+    restored.load_log(serialized)
+
+    assert len(restored.active_battle_sessions) == 1
+    restored_valid = restored.active_battle_sessions[0]
+    assert restored_valid.challenge_id == valid.challenge_id
+    assert restored_valid.turn_actions == {}
