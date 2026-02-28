@@ -7,6 +7,7 @@ from tuxemon.multiplayer_battle_manager import (
     BattleResolution,
     BattleChallengeResult,
     MultiplayerBattleManager,
+    TurnSubmissionResult,
 )
 
 
@@ -188,3 +189,108 @@ def test_load_log_completed_battles_compat_and_malformed_entries() -> None:
 
     assert len(manager.battle_history) == 1
     assert manager.battle_history[0].resolution == BattleResolution.ACCEPTED
+
+
+def test_turn_submission_synchronizes_and_increments_turn() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+    challenge_id = uuid4()
+
+    battle_session = manager.start_battle_session(
+        challenge_id, challenger, challenged
+    )
+
+    assert (
+        manager.submit_turn_action(
+            battle_session.session_id,
+            challenger,
+            turn=1,
+            action={"move": "scratch"},
+        )
+        == TurnSubmissionResult.WAITING
+    )
+    assert (
+        manager.submit_turn_action(
+            battle_session.session_id,
+            challenged,
+            turn=1,
+            action={"move": "tackle"},
+        )
+        == TurnSubmissionResult.SUCCESS
+    )
+    assert battle_session.current_turn == 2
+    assert battle_session.turn_actions == {}
+
+
+def test_turn_submission_rejects_wrong_player_turn_and_duplicates() -> None:
+    manager = MultiplayerBattleManager()
+    challenger = uuid4()
+    challenged = uuid4()
+    battle_session = manager.start_battle_session(uuid4(), challenger, challenged)
+
+    assert (
+        manager.submit_turn_action(
+            battle_session.session_id,
+            uuid4(),
+            turn=1,
+            action={"move": "scratch"},
+        )
+        == TurnSubmissionResult.UNAUTHORIZED
+    )
+    assert (
+        manager.submit_turn_action(
+            battle_session.session_id,
+            challenger,
+            turn=2,
+            action={"move": "scratch"},
+        )
+        == TurnSubmissionResult.TURN_MISMATCH
+    )
+    assert (
+        manager.submit_turn_action(
+            battle_session.session_id,
+            challenger,
+            turn=1,
+            action={"move": "scratch"},
+        )
+        == TurnSubmissionResult.WAITING
+    )
+    assert (
+        manager.submit_turn_action(
+            battle_session.session_id,
+            challenger,
+            turn=1,
+            action={"move": "growl"},
+        )
+        == TurnSubmissionResult.DUPLICATE
+    )
+
+
+def test_save_load_and_purge_stale_battle_sessions() -> None:
+    manager = MultiplayerBattleManager()
+    manager.default_turn_timeout_seconds = 120
+    manager.default_reconnect_grace_seconds = 15
+    challenger = uuid4()
+    challenged = uuid4()
+    session = manager.start_battle_session(uuid4(), challenger, challenged)
+
+    manager.set_player_connection_state(
+        session.session_id,
+        challenger,
+        connected=False,
+        now=datetime.now(timezone.utc) - timedelta(seconds=30),
+    )
+    removed = manager.purge_stale_battle_sessions(now=datetime.now(timezone.utc))
+    assert removed == 1
+    assert manager.active_battle_sessions == []
+
+    manager.start_battle_session(uuid4(), challenger, challenged)
+    serialized = manager.save_log()
+
+    restored = MultiplayerBattleManager()
+    restored.load_log(serialized)
+
+    assert restored.default_turn_timeout_seconds == 120
+    assert restored.default_reconnect_grace_seconds == 15
+    assert len(restored.active_battle_sessions) == 1

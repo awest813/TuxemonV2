@@ -37,6 +37,15 @@ class BattleResolution(Enum):
     EXPIRED = "expired"
 
 
+class TurnSubmissionResult(Enum):
+    SUCCESS = "success"
+    NOT_FOUND = "not_found"
+    UNAUTHORIZED = "unauthorized"
+    TURN_MISMATCH = "turn_mismatch"
+    DUPLICATE = "duplicate"
+    WAITING = "waiting"
+
+
 @dataclass
 class BattleChallenge:
     challenger_player_id: UUID
@@ -106,6 +115,100 @@ class BattleRecord:
         )
 
 
+@dataclass
+class BattleTurnAction:
+    player_id: UUID
+    turn: int
+    action: dict[str, Any]
+    submitted_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "player_id": str(self.player_id),
+            "turn": self.turn,
+            "action": self.action,
+            "submitted_at": self.submitted_at.isoformat(),
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> BattleTurnAction:
+        return cls(
+            player_id=UUID(str(data["player_id"])),
+            turn=int(data["turn"]),
+            action=dict(data["action"]),
+            submitted_at=_coerce_utc_timestamp(str(data["submitted_at"])),
+        )
+
+
+@dataclass
+class ActiveBattleSession:
+    challenge_id: UUID
+    challenger_player_id: UUID
+    challenged_player_id: UUID
+    session_id: UUID = field(default_factory=uuid4)
+    current_turn: int = 1
+    turn_timeout_seconds: int = 60
+    reconnect_grace_seconds: int = 30
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_activity_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+    disconnected_at: dict[str, str | None] = field(default_factory=dict)
+    turn_actions: dict[str, BattleTurnAction] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "challenge_id": str(self.challenge_id),
+            "challenger_player_id": str(self.challenger_player_id),
+            "challenged_player_id": str(self.challenged_player_id),
+            "session_id": str(self.session_id),
+            "current_turn": self.current_turn,
+            "turn_timeout_seconds": self.turn_timeout_seconds,
+            "reconnect_grace_seconds": self.reconnect_grace_seconds,
+            "created_at": self.created_at.isoformat(),
+            "last_activity_at": self.last_activity_at.isoformat(),
+            "disconnected_at": self.disconnected_at,
+            "turn_actions": {
+                player_id: action.to_dict()
+                for player_id, action in self.turn_actions.items()
+            },
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> ActiveBattleSession:
+        turn_actions: dict[str, BattleTurnAction] = {}
+        raw_actions = data.get("turn_actions", {})
+        if isinstance(raw_actions, Mapping):
+            for player_id, raw_action in raw_actions.items():
+                if isinstance(raw_action, Mapping):
+                    turn_actions[str(player_id)] = BattleTurnAction.from_dict(
+                        raw_action
+                    )
+
+        disconnected_at: dict[str, str | None] = {}
+        raw_disconnected = data.get("disconnected_at", {})
+        if isinstance(raw_disconnected, Mapping):
+            for player_id, timestamp in raw_disconnected.items():
+                if timestamp is None or isinstance(timestamp, str):
+                    disconnected_at[str(player_id)] = timestamp
+
+        return cls(
+            challenge_id=UUID(str(data["challenge_id"])),
+            challenger_player_id=UUID(str(data["challenger_player_id"])),
+            challenged_player_id=UUID(str(data["challenged_player_id"])),
+            session_id=UUID(str(data["session_id"])),
+            current_turn=int(data.get("current_turn", 1)),
+            turn_timeout_seconds=int(data.get("turn_timeout_seconds", 60)),
+            reconnect_grace_seconds=int(data.get("reconnect_grace_seconds", 30)),
+            created_at=_coerce_utc_timestamp(str(data["created_at"])),
+            last_activity_at=_coerce_utc_timestamp(str(data["last_activity_at"])),
+            disconnected_at=disconnected_at,
+            turn_actions=turn_actions,
+        )
+
+
 class MultiplayerBattleManager:
     """Tracks and resolves online battle challenges between players."""
 
@@ -114,7 +217,151 @@ class MultiplayerBattleManager:
         self.battle_history: list[BattleRecord] = []
         self.max_battle_history_entries = 100
         self.default_challenge_ttl_seconds = 180
+        self.active_battle_sessions: list[ActiveBattleSession] = []
+        self.default_turn_timeout_seconds = 60
+        self.default_reconnect_grace_seconds = 30
         self.event_bus = get_event_bus()
+
+    def _find_battle_session(
+        self, session_id: UUID
+    ) -> ActiveBattleSession | None:
+        return next(
+            (
+                battle_session
+                for battle_session in self.active_battle_sessions
+                if battle_session.session_id == session_id
+            ),
+            None,
+        )
+
+    def purge_stale_battle_sessions(self, now: datetime | None = None) -> int:
+        current_time = now or datetime.now(timezone.utc)
+        active_sessions = []
+        removed = 0
+
+        for battle_session in self.active_battle_sessions:
+            timed_out = (
+                current_time
+                > battle_session.last_activity_at
+                + timedelta(seconds=battle_session.turn_timeout_seconds)
+            )
+            disconnected_timed_out = False
+            for timestamp in battle_session.disconnected_at.values():
+                if timestamp is None:
+                    continue
+                disconnected_time = _coerce_utc_timestamp(timestamp)
+                if current_time > disconnected_time + timedelta(
+                    seconds=battle_session.reconnect_grace_seconds
+                ):
+                    disconnected_timed_out = True
+                    break
+
+            if timed_out or disconnected_timed_out:
+                removed += 1
+                self.event_bus.publish("multiplayer_battle_session_expired", battle_session)
+                continue
+
+            active_sessions.append(battle_session)
+
+        self.active_battle_sessions = active_sessions
+        return removed
+
+    def start_battle_session(
+        self,
+        challenge_id: UUID,
+        challenger_player_id: UUID,
+        challenged_player_id: UUID,
+    ) -> ActiveBattleSession:
+        session = ActiveBattleSession(
+            challenge_id=challenge_id,
+            challenger_player_id=challenger_player_id,
+            challenged_player_id=challenged_player_id,
+            turn_timeout_seconds=self.default_turn_timeout_seconds,
+            reconnect_grace_seconds=self.default_reconnect_grace_seconds,
+            disconnected_at={
+                str(challenger_player_id): None,
+                str(challenged_player_id): None,
+            },
+        )
+        self.active_battle_sessions.append(session)
+        self.event_bus.publish("multiplayer_battle_session_started", session)
+        return session
+
+    def set_player_connection_state(
+        self,
+        session_id: UUID,
+        player_id: UUID,
+        *,
+        connected: bool,
+        now: datetime | None = None,
+    ) -> BattleChallengeResult:
+        battle_session = self._find_battle_session(session_id)
+        if battle_session is None:
+            return BattleChallengeResult.NOT_FOUND
+
+        if player_id not in {
+            battle_session.challenger_player_id,
+            battle_session.challenged_player_id,
+        }:
+            return BattleChallengeResult.UNAUTHORIZED
+
+        current_time = now or datetime.now(timezone.utc)
+        battle_session.last_activity_at = current_time
+        battle_session.disconnected_at[str(player_id)] = (
+            None if connected else current_time.isoformat()
+        )
+        return BattleChallengeResult.SUCCESS
+
+    def submit_turn_action(
+        self,
+        session_id: UUID,
+        player_id: UUID,
+        *,
+        turn: int,
+        action: Mapping[str, Any],
+    ) -> TurnSubmissionResult:
+        battle_session = self._find_battle_session(session_id)
+        if battle_session is None:
+            return TurnSubmissionResult.NOT_FOUND
+
+        if player_id not in {
+            battle_session.challenger_player_id,
+            battle_session.challenged_player_id,
+        }:
+            return TurnSubmissionResult.UNAUTHORIZED
+
+        if turn != battle_session.current_turn:
+            return TurnSubmissionResult.TURN_MISMATCH
+
+        player_key = str(player_id)
+        if player_key in battle_session.turn_actions:
+            return TurnSubmissionResult.DUPLICATE
+
+        battle_session.turn_actions[player_key] = BattleTurnAction(
+            player_id=player_id,
+            turn=turn,
+            action=dict(action),
+        )
+        battle_session.last_activity_at = datetime.now(timezone.utc)
+
+        if len(battle_session.turn_actions) < 2:
+            return TurnSubmissionResult.WAITING
+
+        actions_in_order = [
+            battle_session.turn_actions[key]
+            for key in sorted(battle_session.turn_actions.keys())
+        ]
+        self.event_bus.publish(
+            "multiplayer_battle_turn_resolved",
+            {
+                "session_id": str(battle_session.session_id),
+                "turn": battle_session.current_turn,
+                "actions": [action.to_dict() for action in actions_in_order],
+            },
+        )
+        battle_session.current_turn += 1
+        battle_session.turn_actions = {}
+        return TurnSubmissionResult.SUCCESS
 
     def _add_battle_record(
         self, challenge: BattleChallenge, resolution: BattleResolution
@@ -308,6 +555,12 @@ class MultiplayerBattleManager:
             ],
             "max_battle_history_entries": self.max_battle_history_entries,
             "default_challenge_ttl_seconds": self.default_challenge_ttl_seconds,
+            "active_battle_sessions": [
+                battle_session.to_dict()
+                for battle_session in self.active_battle_sessions
+            ],
+            "default_turn_timeout_seconds": self.default_turn_timeout_seconds,
+            "default_reconnect_grace_seconds": self.default_reconnect_grace_seconds,
         }
 
     def load_log(self, data: dict[str, Any]) -> None:
@@ -340,4 +593,28 @@ class MultiplayerBattleManager:
                 self.default_challenge_ttl_seconds,
             )
         )
+        raw_sessions = data.get("active_battle_sessions", [])
+        sessions: list[ActiveBattleSession] = []
+        for session_entry in raw_sessions:
+            if not isinstance(session_entry, Mapping):
+                continue
+            try:
+                sessions.append(ActiveBattleSession.from_dict(session_entry))
+            except (KeyError, TypeError, ValueError):
+                continue
+
+        self.active_battle_sessions = sessions
+        self.default_turn_timeout_seconds = int(
+            data.get(
+                "default_turn_timeout_seconds",
+                self.default_turn_timeout_seconds,
+            )
+        )
+        self.default_reconnect_grace_seconds = int(
+            data.get(
+                "default_reconnect_grace_seconds",
+                self.default_reconnect_grace_seconds,
+            )
+        )
         self.purge_expired_challenges()
+        self.purge_stale_battle_sessions()
