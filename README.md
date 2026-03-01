@@ -26,6 +26,10 @@ OpenCapsuleMon aims to combine:
 3. **Creator-first tooling** so players can build and share complete campaigns without deep engine knowledge.
 4. **Reliable rules and settings** that make gameplay expectations explicit in both solo and online modes.
 
+### In-Game Economy Commitment
+
+The online casino and all wager-based systems use **in-game currency only**. Coins and tokens are earned through gameplay — there is no mechanism to spend real money, no microtransactions, and no external payment integration at any layer. This is a core design commitment, not a setting.
+
 If you want the execution details, read [`ROADMAP.md`](ROADMAP.md).
 
 ---
@@ -44,8 +48,10 @@ If you want the execution details, read [`ROADMAP.md`](ROADMAP.md).
 
 ### 3) Online Casino + Battle Center
 - Social online hubs for repeatable activities outside standard campaign routes.
-- Casino systems with fairness and anti-abuse safeguards.
+- **Casino uses in-game currency only** — coins and tokens are earned through gameplay. No real money, no purchases, no external payments of any kind.
+- Casino mini-games include fairness audits, transparent payout rules, and daily earn caps.
 - Battle center support for quick matches, room play, and spectator-ready listing.
+- Shared in-game economy with anti-abuse controls that keep play fair for everyone.
 
 ### 4) Easy Campaign Maker
 - Guided workflows for maps, events, encounters, and progression.
@@ -137,7 +143,7 @@ When contributing, prioritize changes that move one or more of these outcomes fo
 
 1. Gold/Silver-inspired campaign depth and replay loops.
 2. Tournament operations stability and communication UX.
-3. Battle center / casino systems with healthy economy controls.
+3. Battle center / casino systems with healthy in-game economy controls (in-game currency only — no real money).
 4. Campaign maker ergonomics for non-programmer creators.
 5. Rules/settings clarity, predictability, and documentation quality.
 
