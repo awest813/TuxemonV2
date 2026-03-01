@@ -1,8 +1,9 @@
 import random
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from tuxemon.network.tournament.models import (
     BracketNode,
+    Match,
     Tournament,
     TournamentState,
 )
@@ -73,6 +74,7 @@ def generate_bracket(tournament: Tournament) -> None:
     rng.shuffle(players)
 
     tournament.nodes = _generate_bracket_nodes(bracket_size)
+    tournament.matches = {}
 
     # Assign players to the first round nodes
     first_round_nodes = [
@@ -95,6 +97,33 @@ def generate_bracket(tournament: Tournament) -> None:
         elif not p1 and not p2:
             _resolve_node(tournament, node.id, None)  # Both byes
 
+    _schedule_ready_matches(tournament)
+
+
+def _schedule_ready_matches(tournament: Tournament) -> None:
+    """Creates pending matches for unresolved nodes with both players set."""
+    for node in tournament.nodes.values():
+        if node.winner_id is not None:
+            continue
+        if not node.player1_id or not node.player2_id:
+            continue
+        if node.match_id:
+            continue
+
+        match_id = f"match_{node.id}"
+        tournament.matches[match_id] = Match(
+            id=match_id,
+            node_id=node.id,
+            player1_id=node.player1_id,
+            player2_id=node.player2_id,
+        )
+        node.match_id = match_id
+
+
+def get_ready_matches(tournament: Tournament) -> List[Match]:
+    """Returns pending matches available for orchestration/service dispatch."""
+    return [m for m in tournament.matches.values() if m.status == "pending"]
+
 
 def _resolve_node(
     tournament: Tournament, node_id: str, winner_id: Optional[str]
@@ -107,6 +136,10 @@ def _resolve_node(
         if winner_id:
             tournament.champion_id = winner_id
             tournament.transition(TournamentState.COMPLETED)
+        if node.match_id:
+            match = tournament.matches[node.match_id]
+            match.status = "completed"
+            match.winner_id = winner_id
         return
 
     next_node = tournament.nodes[node.next_node_id]
@@ -124,20 +157,40 @@ def _resolve_node(
         elif not next_node.player1_id and not next_node.player2_id:
             _resolve_node(tournament, next_node.id, None)
 
+    if node.match_id:
+        match = tournament.matches[node.match_id]
+        match.status = "completed"
+        match.winner_id = winner_id
+
+    _schedule_ready_matches(tournament)
+
 
 def process_match_result(
     tournament: Tournament, node_id: str, winner_id: str, resolution_token: str
 ) -> None:
     """Processes a match result idempotently."""
     node = tournament.nodes[node_id]
+    match = tournament.matches.get(node.match_id) if node.match_id else None
 
     if node.winner_id:
-        # Already resolved, check for idempotency
         if node.winner_id != winner_id:
             raise ValueError("Conflicting match result")
+        if match and match.resolution_token != resolution_token:
+            raise ValueError("Conflicting resolution token")
         return
+
+    if tournament.state != TournamentState.IN_PROGRESS:
+        raise ValueError("Tournament is not in progress")
 
     if winner_id not in [node.player1_id, node.player2_id]:
         raise ValueError("Winner must be a player in the match")
+
+    if match:
+        if (
+            match.resolution_token is not None
+            and match.resolution_token != resolution_token
+        ):
+            raise ValueError("Conflicting resolution token")
+        match.resolution_token = resolution_token
 
     _resolve_node(tournament, node_id, winner_id)

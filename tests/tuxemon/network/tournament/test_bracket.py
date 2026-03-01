@@ -1,6 +1,7 @@
 from tuxemon.network.tournament.bracket import (
     _generate_bracket_nodes,
     generate_bracket,
+    get_ready_matches,
 )
 from tuxemon.network.tournament.models import (
     Participant,
@@ -47,6 +48,9 @@ def test_generate_bracket_success():
         assert node.player1_id is not None
         assert node.player2_id is not None
         assert node.winner_id is None
+
+    ready_matches = get_ready_matches(t)
+    assert len(ready_matches) == 4
 
 
 def test_generate_bracket_with_byes():

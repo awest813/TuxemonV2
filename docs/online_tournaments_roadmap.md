@@ -55,10 +55,10 @@ These systems are the base for tournament brackets, match orchestration, and pos
 
 ## Phase 2 — Match Orchestration Service
 
-- [ ] Implement tournament orchestration service:
-  - Create bracket from checked-in participants.
-  - Schedule matches and instantiate battle challenges.
-  - Auto-advance winners and handle byes.
+- [~] Implement tournament orchestration service:
+  - [x] Create bracket from checked-in participants.
+  - [x] Schedule matches for ready nodes (battle challenge wiring pending).
+  - [x] Auto-advance winners and handle byes.
 - [ ] Add timeout/disconnect policy hooks:
   - Reconnect window and no-show handling per policy.
 - [ ] Add idempotent result ingestion:
@@ -126,3 +126,13 @@ Sprint board and day-1 scope are tracked in `docs/online_tournaments_sprint1.md`
   - **Mitigation:** idempotent result processing + unique match resolution token.
 - **Risk:** long tournaments increase drop-off.
   - **Mitigation:** start with smaller bracket sizes and strict round timers.
+
+
+## Sprint 2 Kickoff (In Progress)
+
+Sprint board and scope are tracked in `docs/online_tournaments_sprint2.md`.
+
+- [x] Bracket match scheduling implemented in tournament service layer.
+- [x] Token-guarded idempotent result ingestion implemented.
+- [x] Test coverage added for scheduling + ingestion guards.
+- [ ] Integrate challenge dispatch transport hooks.

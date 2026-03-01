@@ -87,10 +87,34 @@ def test_idempotent_result():
     process_match_result(t, node.id, node.player1_id, "token1")
     assert node.winner_id == node.player1_id
 
-    # Duplicate result, same winner (idempotent)
-    process_match_result(t, node.id, node.player1_id, "token2")
+    # Duplicate event, same token and winner (idempotent)
+    process_match_result(t, node.id, node.player1_id, "token1")
     assert node.winner_id == node.player1_id
 
-    # Conflicting result
+    # Same winner with a new token is rejected
+    with pytest.raises(ValueError):
+        process_match_result(t, node.id, node.player1_id, "token2")
+
+    # Conflicting winner is rejected
     with pytest.raises(ValueError):
         process_match_result(t, node.id, node.player2_id, "token3")
+
+
+def test_result_requires_in_progress_state():
+    t = Tournament(id="sim3", name="Sim")
+    t.transition(TournamentState.REGISTRATION)
+    t.participants["p1"] = Participant(
+        id="p1", name="P1", registered_at=1, checked_in=True
+    )
+    t.participants["p2"] = Participant(
+        id="p2", name="P2", registered_at=2, checked_in=True
+    )
+    t.policy.min_players = 2
+    t.policy.max_players = 2
+    t.transition(TournamentState.CHECKIN)
+    generate_bracket(t)
+
+    node = t.nodes["node_1"]
+
+    with pytest.raises(ValueError):
+        process_match_result(t, node.id, node.player1_id, "token1")
