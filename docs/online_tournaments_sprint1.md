@@ -29,20 +29,20 @@ Sprint 1 is considered complete when all of the following are true:
 
 ### Track B — Domain & Persistence
 
-- [ ] Implement tournament entities:
+- [x] Implement tournament entities:
   - `Tournament`
   - `Participant`
   - `Match`
   - `BracketNode`
   - `TournamentPolicy`
-- [ ] Add state machine guard checks and invariants.
-- [ ] Add serialization schema for active/historical tournaments.
+- [x] Add state machine guard checks and invariants.
+- [x] Add serialization schema for active/historical tournaments.
 
 ### Track C — Validation
 
-- [ ] Add unit tests for lifecycle invariants and seeding determinism.
-- [ ] Add save/load fixture coverage for tournament schema.
-- [ ] Add one integration-style simulation test for full 8-player bracket progression.
+- [x] Add unit tests for lifecycle invariants and seeding determinism.
+- [x] Add save/load fixture coverage for tournament schema.
+- [x] Add one integration-style simulation test for full 8-player bracket progression.
 
 ## Day-1 Kickoff Decisions
 
