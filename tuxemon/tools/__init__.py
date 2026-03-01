@@ -12,18 +12,23 @@ import warnings
 from typing import Any
 
 _deprecated_exports = {
+    # TODO(TOOLS-201): Remove `Never` shim once all imports target `tuxemon.tools.misc` directly.
     "Never": "tuxemon.tools.misc",
+    # TODO(TOOLS-202): Remove casting compatibility imports after sunset window (see docs/tools_phase1_issue_map.md).
     "ValidParameterSingleType": "tuxemon.tools.casting",
     "ValidParameterTypes": "tuxemon.tools.casting",
     "cast_dataclass_parameters": "tuxemon.tools.casting",
     "cast_value": "tuxemon.tools.casting",
     "get_cached_type_info": "tuxemon.tools.casting",
     "get_types_tuple": "tuxemon.tools.casting",
+    # TODO(TOOLS-203): Remove condition helper compatibility imports after call sites migrate.
     "check_condition": "tuxemon.tools.conditions",
     "parse_flag": "tuxemon.tools.conditions",
+    # TODO(TOOLS-204): Remove dialog helper compatibility imports after event module migration.
     "open_choice_dialog": "tuxemon.tools.dialog",
     "open_dialog": "tuxemon.tools.dialog",
     "show_result_as_dialog": "tuxemon.tools.dialog",
+    # TODO(TOOLS-205): Remove math helper compatibility imports after direct module imports are complete.
     "compare": "tuxemon.tools.math",
     "compare_tuple": "tuxemon.tools.math",
     "fix_measure": "tuxemon.tools.math",
@@ -33,6 +38,7 @@ _deprecated_exports = {
     "round_to_divisible": "tuxemon.tools.math",
     "safe_floordiv": "tuxemon.tools.math",
     "vector2_to_tile_pos": "tuxemon.tools.math",
+    # TODO(TOOLS-206): Remove misc helper compatibility imports after module-level migration is complete.
     "assert_never": "tuxemon.tools.misc",
     "copy_dict_with_keys": "tuxemon.tools.misc",
     "format_playtime": "tuxemon.tools.misc",
