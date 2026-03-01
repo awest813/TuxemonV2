@@ -189,9 +189,12 @@ class MenuInputHandler(InputHandler, PressLogicMixin):
                 self._menu.change_selection(index)
                 selected = self._menu.get_selected_item()
                 if not selected:
-                    raise RuntimeError(
-                        "Menu selection was None despite enabled item being clicked"
+                    logger.error(
+                        "Mouse click targeted an enabled item at index %d "
+                        "but get_selected_item() returned None; skipping selection.",
+                        index,
                     )
+                    return False
                 self._menu.on_menu_selection(selected)
                 return True
 

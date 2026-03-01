@@ -171,6 +171,24 @@ def test_mouse_invalid_position_raises(handler, menu):
         handler.handle_event(event)
 
 
+def test_mouse_click_propagates_event_when_get_selected_item_returns_none(
+    handler, menu
+):
+    """When get_selected_item() returns None after change_selection,
+    _handle_mouse logs the error gracefully and the event propagates
+    (handle_event returns the original event, not None)."""
+    menu.menu_items.rect.collidepoint.return_value = True
+    menu.menu_items[0].rect.collidepoint.return_value = True
+    menu.get_selected_item.return_value = None  # simulate missing item
+
+    event = make_event(buttons.MOUSELEFT, value=(5, 5))
+    result = handler.handle_event(event)
+
+    # Must NOT raise; event propagates since the handler degraded gracefully.
+    assert result is event
+    menu.on_menu_selection.assert_not_called()
+
+
 def test_valid_press_on_pressed(handler, menu):
     event = real_event(buttons.A, value=1, hold_time=1)
     assert handler._valid_press(event) is True

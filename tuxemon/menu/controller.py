@@ -81,7 +81,7 @@ class MenuController:
             )
 
     def close(self) -> None:
-        if self._state in {MenuState.NORMAL, MenuState.DISABLED}:
+        if self._state in {MenuState.NORMAL, MenuState.DISABLED, MenuState.OPENING}:
             self._state = MenuState.CLOSING
             logger.debug("MenuController: transitioned to CLOSING")
         elif self._state == MenuState.CLOSING:
@@ -103,6 +103,12 @@ class MenuController:
 
     def is_disabled(self) -> bool:
         return self._state == MenuState.DISABLED
+
+    def is_opening(self) -> bool:
+        return self._state == MenuState.OPENING
+
+    def is_closing(self) -> bool:
+        return self._state == MenuState.CLOSING
 
     def is_interactive(self) -> bool:
         return self._state in {MenuState.NORMAL, MenuState.OPENING}

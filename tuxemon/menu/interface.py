@@ -263,19 +263,27 @@ class MenuItem(Generic[T], Sprite):
     def update_image(self) -> None:
         """
         Update the image of the sprite, applying focus/enabled visual changes.
+
+        Disabled items are rendered with a semi-transparent dark overlay so
+        players can clearly distinguish unselectable options.  The overlay is
+        applied to a copy of the base image so the original surface is never
+        mutated, meaning re-enabling the item restores the original appearance.
         """
         super().update_image()
 
         if self._image is None:
             return
 
-        if self._in_focus:
-            # Add visual effect for focus here
-            pass
-
         if not self._enabled:
-            # Add visual effect for not enabled here
-            pass
+            # Composite a semi-transparent black overlay onto a fresh copy of
+            # the image to produce a greyed-out / dimmed appearance.
+            size = self._image.get_size()
+            dimmed = Surface(size, SRCALPHA)
+            dimmed.blit(self._image, (0, 0))
+            overlay = Surface(size, SRCALPHA)
+            overlay.fill((0, 0, 0, 128))
+            dimmed.blit(overlay, (0, 0))
+            self._image = dimmed
 
     @property
     def enabled(self) -> bool:
@@ -285,6 +293,7 @@ class MenuItem(Generic[T], Sprite):
     def enabled(self, value: bool) -> None:
         if self._enabled != value:
             self._enabled = value
+            self.update_image()
 
     @property
     def in_focus(self) -> bool:

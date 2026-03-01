@@ -917,7 +917,7 @@ class Menu(Generic[T], State):
         """Hook is called after opening animation has finished."""
 
     def on_close(self) -> None:
-        """Hook is called after opening animation has finished."""
+        """Hook is called after closing animation has finished."""
         if self.on_close_callback:
             self.on_close_callback()
 
@@ -966,7 +966,7 @@ class Menu(Generic[T], State):
 
     def animate_close(self) -> Animation | None:
         """
-        Called when menu is going to open.
+        Called when menu is going to close.
 
         Menu will not receive input during the animation.
         Menu will play animation only once.
