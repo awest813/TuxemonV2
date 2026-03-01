@@ -6,7 +6,7 @@ import math
 import random
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 from uuid import UUID, uuid4
@@ -150,6 +150,8 @@ class Match:
     is_bye: bool = False
     scheduled_at: datetime | None = None
     resolved_at: datetime | None = None
+    challenge_correlation_id: str | None = None
+    challenge_dispatched_at: datetime | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -167,6 +169,12 @@ class Match:
             ),
             "resolved_at": (
                 self.resolved_at.isoformat() if self.resolved_at else None
+            ),
+            "challenge_correlation_id": self.challenge_correlation_id,
+            "challenge_dispatched_at": (
+                self.challenge_dispatched_at.isoformat()
+                if self.challenge_dispatched_at
+                else None
             ),
         }
 
@@ -196,6 +204,12 @@ class Match:
             resolved_at=(
                 _coerce_utc_timestamp(str(data["resolved_at"]))
                 if data.get("resolved_at")
+                else None
+            ),
+            challenge_correlation_id=data.get("challenge_correlation_id"),
+            challenge_dispatched_at=(
+                _coerce_utc_timestamp(str(data["challenge_dispatched_at"]))
+                if data.get("challenge_dispatched_at")
                 else None
             ),
         )
@@ -574,6 +588,58 @@ class TournamentManager:
         )
 
     # ------------------------------------------------------------------
+    # Challenge dispatch integration
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _build_match_correlation_id(tournament_id: UUID, match_id: UUID) -> str:
+        """Return a stable correlation key for challenge transport wiring."""
+        return f"tournament:{tournament_id}:match:{match_id}"
+
+    def mark_match_dispatched(
+        self,
+        tournament_id: UUID,
+        match_id: UUID,
+        *,
+        correlation_id: str | None = None,
+        now: datetime | None = None,
+    ) -> TournamentResult:
+        """Attach challenge correlation metadata to a scheduled match.
+
+        This operation is idempotent: if the same correlation key has already
+        been recorded, SUCCESS is returned with no state mutation.
+        """
+        tournament = self._find_tournament(tournament_id)
+        if tournament is None:
+            return TournamentResult.NOT_FOUND
+
+        match = self._find_match(tournament, match_id)
+        if match is None:
+            return TournamentResult.MATCH_NOT_FOUND
+        if match.status != MatchStatus.SCHEDULED:
+            return TournamentResult.INVALID_STATE
+
+        correlation = correlation_id or self._build_match_correlation_id(
+            tournament_id, match_id
+        )
+        if match.challenge_correlation_id == correlation:
+            return TournamentResult.SUCCESS
+        if match.challenge_correlation_id is not None:
+            return TournamentResult.DUPLICATE_RESULT
+
+        match.challenge_correlation_id = correlation
+        match.challenge_dispatched_at = now or datetime.now(timezone.utc)
+        self.event_bus.publish(
+            "tournament_match_dispatched",
+            {
+                "tournament_id": str(tournament_id),
+                "match_id": str(match_id),
+                "correlation_id": correlation,
+            },
+        )
+        return TournamentResult.SUCCESS
+
+    # ------------------------------------------------------------------
     # Winner advancement
     # ------------------------------------------------------------------
 
@@ -879,6 +945,66 @@ class TournamentManager:
                 "winner_id": str(winner_id),
             },
         )
+        self._advance_winner(tournament, match, now=current_time)
+        return TournamentResult.SUCCESS
+
+    def resolve_no_show_timeout(
+        self,
+        tournament_id: UUID,
+        match_id: UUID,
+        absent_player_id: UUID,
+        *,
+        now: datetime | None = None,
+    ) -> TournamentResult:
+        """Resolve a scheduled match when one participant no-shows past policy."""
+        tournament = self._find_tournament(tournament_id)
+        if tournament is None:
+            return TournamentResult.NOT_FOUND
+        if tournament.status not in (
+            TournamentStatus.IN_PROGRESS,
+            TournamentStatus.PAUSED,
+        ):
+            return TournamentResult.INVALID_STATE
+
+        match = self._find_match(tournament, match_id)
+        if match is None:
+            return TournamentResult.MATCH_NOT_FOUND
+        if match.status != MatchStatus.SCHEDULED:
+            return TournamentResult.INVALID_STATE
+        if absent_player_id not in {match.player_a_id, match.player_b_id}:
+            return TournamentResult.INVALID_WINNER
+        if match.scheduled_at is None:
+            return TournamentResult.INVALID_STATE
+
+        current_time = now or datetime.now(timezone.utc)
+        timeout_at = match.scheduled_at + timedelta(
+            seconds=tournament.policy.no_show_timeout_seconds
+        )
+        if current_time < timeout_at:
+            return TournamentResult.INVALID_STATE
+
+        winner_id = (
+            match.player_b_id
+            if absent_player_id == match.player_a_id
+            else match.player_a_id
+        )
+        if winner_id is None:
+            return TournamentResult.INVALID_WINNER
+
+        match.winner_id = winner_id
+        match.status = MatchStatus.WALKOVER
+        match.resolved_at = current_time
+
+        self.event_bus.publish(
+            "tournament_match_no_show_resolved",
+            {
+                "tournament_id": str(tournament_id),
+                "match_id": str(match_id),
+                "winner_id": str(winner_id),
+                "absent_player_id": str(absent_player_id),
+            },
+        )
+
         self._advance_winner(tournament, match, now=current_time)
         return TournamentResult.SUCCESS
 

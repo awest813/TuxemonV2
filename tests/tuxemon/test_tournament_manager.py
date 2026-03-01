@@ -574,6 +574,58 @@ class TestMatchReporting:
         )
         assert r == TournamentResult.DUPLICATE_RESULT
 
+    def test_mark_match_dispatched_idempotent(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+
+        r1 = manager.mark_match_dispatched(t.tournament_id, m.match_id)
+        assert r1 == TournamentResult.SUCCESS
+        assert m.challenge_correlation_id is not None
+        first_dispatched_at = m.challenge_dispatched_at
+
+        r2 = manager.mark_match_dispatched(t.tournament_id, m.match_id)
+        assert r2 == TournamentResult.SUCCESS
+        assert m.challenge_dispatched_at == first_dispatched_at
+
+    def test_mark_match_dispatched_conflicting_correlation_rejected(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+
+        r1 = manager.mark_match_dispatched(
+            t.tournament_id, m.match_id, correlation_id="corr-1"
+        )
+        assert r1 == TournamentResult.SUCCESS
+        r2 = manager.mark_match_dispatched(
+            t.tournament_id, m.match_id, correlation_id="corr-2"
+        )
+        assert r2 == TournamentResult.DUPLICATE_RESULT
+
+    def test_resolve_no_show_timeout_enforces_policy_window(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+        assert m.scheduled_at is not None
+
+        before_timeout = m.scheduled_at + timedelta(
+            seconds=t.policy.no_show_timeout_seconds - 1
+        )
+        early = manager.resolve_no_show_timeout(
+            t.tournament_id, m.match_id, m.player_a_id, now=before_timeout
+        )
+        assert early == TournamentResult.INVALID_STATE
+
+        at_timeout = m.scheduled_at + timedelta(
+            seconds=t.policy.no_show_timeout_seconds
+        )
+        resolved = manager.resolve_no_show_timeout(
+            t.tournament_id, m.match_id, m.player_a_id, now=at_timeout
+        )
+        assert resolved == TournamentResult.SUCCESS
+        assert m.status == MatchStatus.WALKOVER
+        assert m.winner_id == m.player_b_id
+
     def test_report_result_blocked_when_tournament_not_in_progress(self):
         manager = _make_manager()
         t = _make_8_player_tournament(manager)
