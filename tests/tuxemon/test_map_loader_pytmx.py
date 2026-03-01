@@ -2,6 +2,7 @@
 # Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
 from itertools import combinations
 from operator import is_not
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
@@ -108,3 +109,60 @@ def test_correct_result(result):
     ]
 
     assert result == expected
+
+
+def test_load_event_accepts_editor_aliases_and_case(mocker):
+    event_parser = mocker.patch("tuxemon.map.loader.EventParser").return_value
+    event_parser.create_event_object.return_value = Mock()
+
+    obj = SimpleNamespace(
+        x=32,
+        y=48,
+        width=16,
+        height=16,
+        name="my_event",
+        properties={
+            " Condition01 ": "is player_at,5,8",
+            "ACTION10": "transition_teleport player,map.tmx,1,2",
+            "behavior1": "walk:north",
+        },
+    )
+
+    TMXMapLoader().load_event(obj, (16, 16))
+
+    event_data, name, box = event_parser.create_event_object.call_args[0]
+    assert event_data["conditions"] == ["is player_at,5,8"]
+    assert event_data["actions"] == [
+        "transition_teleport player,map.tmx,1,2"
+    ]
+    assert event_data["behav"] == ["walk:north"]
+    assert name == "my_event"
+    assert (box.x, box.y, box.width, box.height) == (2, 3, 1, 1)
+
+
+def test_load_event_coerces_property_values_to_strings(mocker):
+    event_parser = mocker.patch("tuxemon.map.loader.EventParser").return_value
+    event_parser.create_event_object.return_value = Mock()
+
+    obj = SimpleNamespace(
+        x=0,
+        y=0,
+        width=16,
+        height=16,
+        name="typed_event",
+        properties={
+            "act1": 123,
+            "cond1": True,
+            "behav1": 4.5,
+            "act2": None,
+        },
+    )
+
+    TMXMapLoader().load_event(obj, (16, 16))
+
+    event_data = event_parser.create_event_object.call_args[0][0]
+    assert event_data == {
+        "conditions": ["True"],
+        "actions": ["123"],
+        "behav": ["4.5"],
+    }
