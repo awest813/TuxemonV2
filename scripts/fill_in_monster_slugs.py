@@ -19,13 +19,20 @@ likely reorder the files and make them less tidy.
 - Leif
 """
 
+import argparse
 import glob
 import re
 from os.path import join, normpath
 
-# assume run from tests folder
-db_root = normpath("../tuxemon/resources/db")
-db_tables = ["monster"]  # tables to check for translation slugs
+def parse_args():
+    parser = argparse.ArgumentParser(description="Tool for quickly filling in slugs into monster json data files.")
+    parser.add_argument("--db-root", default="../tuxemon/resources/db", help="Path to database root directory.")
+    parser.add_argument("--tables", nargs="+", default=["monster"], help="Tables to check for translation slugs.")
+    return parser.parse_args()
+
+args = parse_args()
+db_root = normpath(args.db_root)
+db_tables = args.tables  # tables to check for translation slugs
 master_filename = "en_US.json"
 
 # replacement regex table
