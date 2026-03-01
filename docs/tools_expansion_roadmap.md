@@ -37,6 +37,12 @@ This roadmap focuses on the current in-repo tool surface and proposes a staged p
 
 **Deliverables:** architecture note + issue list + agreed extraction map.
 
+### Phase 1 artifacts (completed)
+
+- Architecture note: `docs/tools_architecture.md`
+- Issue list + extraction map: `docs/tools_phase1_issue_map.md`
+- Tagged compatibility TODOs tied to issue IDs: `tuxemon/tools/__init__.py`
+
 ---
 
 ## Phase 2 — Internal modularization with compatibility shims (2-4 weeks)
