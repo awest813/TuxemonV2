@@ -36,6 +36,7 @@ class GameLauncher:
         session: Session,
         meta: ModMetadata,
         remove_states: list[str] | None = None,
+        start_map: str | None = None,
     ) -> None:
         """
         Starts the game session from a mod's metadata.
@@ -48,7 +49,8 @@ class GameLauncher:
         logger.info(f"Launching mod '{meta.name}' version {meta.version}")
 
         tile_pos = meta.starting_position
-        map_path = fetch_asset("maps", meta.starting_map)
+        selected_map = start_map or meta.starting_map
+        map_path = fetch_asset("maps", selected_map)
         player_slug = random.choice(meta.starting_players)
 
         Player.create(session, slug=player_slug)
@@ -60,7 +62,7 @@ class GameLauncher:
         execute = self.client.event_engine
 
         # Teleport the player to the initial position
-        teleport = ["player", meta.starting_map, tile_pos[0], tile_pos[1]]
+        teleport = ["player", selected_map, tile_pos[0], tile_pos[1]]
         execute.execute_action("teleport", teleport)
 
         # Set money
