@@ -1,145 +1,151 @@
 # OpenCapsuleMon Roadmap (TuxemonV2 Transition)
 
-This roadmap reflects the current state of the branch and outlines practical follow-up work as TuxemonV2 begins rebranding to **OpenCapsuleMon**.
+This roadmap is now centered on five product pillars:
 
-## Status Overview
-
-- Overall checklist completion: **24/31**
-- Snapshot command: `python run_tuxemon.py --status`
-- Rebrand phase: **Phase A complete** (documentation and messaging aligned; compatibility-first migration policy published)
-- Latest recorded status during this update:
-  - Branch `jules-17203497601987000977-14b0675b`, commit `2d14667`
-  - Monsters 411, Techniques 274, Items 221, NPCs 122, Maps 224, Localizations 14
+1. **Gold/Silver-inspired adventure depth** (day/night rhythms, revisit loops, post-game challenge identity)
+2. **Online tournaments** (structured seasonal competitive play)
+3. **Online casino + battle center** (repeatable social endgame hubs)
+4. **Easy-to-use campaign maker** (low-friction tools for creators)
+5. **Polished rules and settings** (predictable battle rules and player-friendly configuration)
 
 ---
 
-## Completed Milestones
+## Strategic Focus (2026)
 
-### Core Gameplay Systems
-- [x] Breeding / Egg Hatching System
-- [x] Day / Night Cycle
-- [x] Fishing
-- [x] Weather System
+### Pillar A — Gold/Silver-Inspired Core Experience
+Deliver a modern, open-source interpretation of the design strengths players associate with classic monster-RPG generations:
 
-### Advanced Breeding Mechanics
-- [x] Taste mutation inheritance applied to offspring
-- [x] Dual-parent move inheritance applies one move candidate from each parent
-- [x] Inherited parental moves fill open child move capacity before replacement
-- [x] Offspring IV inheritance uses per-stat parent values with bounded mutation
+- Meaningful **day/night + weekday scheduling** for encounters, events, and NPC behavior.
+- **Region replayability loops** with rematches and evolving world states.
+- **Post-credits progression track** tied to advanced battles, side systems, and collectible goals.
+- Consistent pacing from early game onboarding to late-game mastery.
 
-### Online Trading
-- [x] Added trade-offer TTL defaults, expiration cleanup, and player-centric pending-offer queries
-- [x] Added pending-offer inbox queries plus participant-authorized offer cancellation
-- [x] Session 1/3 complete: receiver-authorized offer acceptance/rejection flow + rejection lifecycle event
-- [x] Session 2/3 complete: persisted pending offers and TTL defaults through save/load, with expired-offer cleanup
-- [x] Session 3/3 complete: legacy timestamp compatibility for trade history/offers so older save data remains loadable
+### Pillar B — Online Tournaments
+Build the canonical competitive layer around predictable seasons and clear match governance:
 
-### Multiplayer Battle Challenge Lifecycle
-- [x] Session 1/4 complete: challenge propose/cancel/accept/reject, TTL expiry, and save/load support
-- [x] Session 2/4 complete: challenge logs integrated into game save/load flow, including SaveData defaults
-- [x] Session 3/4 complete: legacy key compatibility and malformed-entry tolerance when loading challenge logs
-- [x] Session 4/4 complete: persisted challenge resolution history (accepted/rejected/cancelled/expired), player queries, bounded retention
+- Live bracket orchestration (single elimination first, then expanded formats).
+- Match reporting integrity, no-show adjudication, reconnect policy.
+- Seasonal ladder + tournament seeding integration.
+- Player communication UX for schedule, outcomes, penalties, and rewards.
 
----
+### Pillar C — Online Casino and Battle Center
+Create social multiplayer destinations that sit between campaign and ranked play:
 
-## Next Steps (Post-Baseline Plan)
+- **Online casino** with tokenized mini-games, anti-abuse safeguards, and transparent payout rules.
+- **Battle center** featuring public matchmaking desks, private rooms, and spectator-ready match listings.
+- Shared reward economy that avoids pay-to-win pressure and preserves competitive fairness.
 
-The original baseline milestones are complete; this expanded plan now tracks rebrand execution plus polish and scale work as player-facing priorities.
+### Pillar D — Campaign Maker
+Ship a creator-first toolset so non-programmer users can build full campaigns:
 
-### Phase 0 — Rebrand Foundation (Highest Priority)
-- [x] **Project identity alignment**
-  - Updated key documentation and contributor messaging to OpenCapsuleMon naming (`README.md`, `CONTRIBUTING.md`).
-  - Defined transition-safe naming conventions in `docs/rebrand_transition.md` (when to keep `tuxemon` internals).
-- [x] **Compatibility-first naming migration plan**
-  - Published staged rename strategy for binaries, modules, and package metadata in `docs/rebrand_transition.md`.
-  - Defined deprecation windows and alias policy so existing workflows are not broken.
-- [x] **Release and communication baseline**
-  - Added OpenCapsuleMon release-note framing while preserving upstream attribution in `docs/rebrand_transition.md`.
-  - Added contributor guidance for describing rebrand impact in PRs in `CONTRIBUTING.md`.
+- Guided world/map/event creation flows with validation baked in.
+- One-click packaging/export/import for custom campaigns.
+- Templates for quests, trainer progression, encounter tables, and regional rules.
+- Documentation and UX oriented toward first-time creators.
 
-### Phase 1 — Network and UX
-- [x] **Multiplayer battle execution protocol**
-  - Turn synchronization, timeout/reconnect policy, and authoritative conflict resolution are implemented and routed through the multiplayer client/server flow.
-  - Active battle sessions are persisted across save/load boundaries with stale-session cleanup and malformed-data tolerance.
-  - Added regression coverage for networking payload normalization, movement/map/facing routing, and duel challenge lifecycle handling.
-- [x] **Network-state UX clarity**
-  - Added manager-level feedback helpers for trade lifecycle outcomes (pending/accepted/expired/failed) with retry guidance.
-  - Feedback messages wired through localization pipeline with translation keys in `en_US/base.po`.
-  - Added `format_params` support for dynamic feedback messages (reconnect timers, turn numbers).
-  - Network manager consumes feedback and renders via `T.format()`/`T.translate()` → `open_dialog()`.
-- [x] **Online tournaments foundation kickoff**
-  - Published initial phased tournament roadmap in `docs/online_tournaments_roadmap.md`.
-  - Sprint 1 kickoff artifacts published: `docs/online_tournaments_sprint1.md` + draft rules baseline in `docs/online_tournaments_rules_spec.md`.
-  - Sprint 2: bracket match scheduling, token-guarded idempotent result ingestion, and test coverage added.
-  - Sprint 3 complete: challenge dispatch orchestration adapter (`build_challenge_proposal`) implemented; match correlation metadata, lifecycle callback mapping (accepted/rejected/expired), no-show timeout resolution, reconnect grace handling, and auto-adjudication event emission all implemented with full test coverage.
-  - M2 (Playable MVP — single-elimination orchestration) milestones are now complete; next target is Phase 3 (UX & Player Communication).
+### Pillar E — Rules and Settings Polish
+Make all key gameplay and online behaviors explicit, configurable, and testable:
 
-### Phase 2 — Quality and Reliability
-- [x] **Automated data validation expansion**
-  - Added `tuxemon/database/content_validator.py` for cross-reference validation of monster/technique/NPC/evolution refs.
-  - Validates technique slugs in movesets, evolution targets, history refs, and NPC party monsters.
-  - Optional strict mode checks locale coverage for all content slugs.
-  - Integrated `validate-content` CI job in `test.yml` for pull request gating.
-- [x] **Save compatibility test matrix**
-  - Added `tests/tuxemon/test_save_compatibility.py` with 24 regression tests.
-  - Covers save upgrader v0→current, monster/technique renames, SaveData model defaults.
-  - Trade log fixtures: valid entries, malformed entries, naive timestamps, roundtrip.
-  - Battle log fixtures: legacy key compat, malformed tolerance, expired purging, roundtrip.
-- [x] **Debugging workflow standardization**
-  - Documented a shared triage flow in `docs/debugging_workflow.md` (status snapshot, narrow repro command, targeted test run, full regression pass).
-  - Defined minimum diagnostic output requirements for bugfix PR descriptions in `docs/debugging_workflow.md`.
-- [x] **Tooling architecture and contributor script polish**
-  - Execute phased plan in `docs/tools_expansion_roadmap.md` for utility modularization, validation hardening, and script UX consistency.
-  - Keep backward-compatible import facade during migration from `tuxemon/tools.py`.
-
-### Phase 3 — Content and Balance
-- [ ] **Progression balancing pass**
-  - Tune encounter pacing, move curves, and economy to reduce mid-game spikes.
-  - Add benchmark scenarios for repeatable balancing decisions.
-- [ ] **Content throughput tooling**
-  - Improve maintainer scripts/docs for adding monsters, maps, and locale entries with fewer manual steps.
-
-### Phase 4 — Contributor Experience
-- [ ] **Onboarding and architecture docs refresh**
-  - Add concise architecture walkthroughs for battle, saves, and content loading.
-  - Publish a “first contribution” path for code and content contributors.
-- [ ] **Roadmap maintenance cadence**
-  - Update roadmap snapshot and phase progress at a regular cadence (e.g., monthly).
+- Battle clauses/rulesets (sleep/species/item-like constraints where applicable).
+- Difficulty and accessibility presets for campaign and competitive contexts.
+- Host/server settings profiles for communities and tournament operators.
+- Deterministic behavior guarantees, migration-safe defaults, and clear UI wording.
 
 ---
 
-## Roadmap to Alpha (Execution Plan)
+## Delivery Roadmap
 
-This sequence narrows the remaining work into explicit alpha gates with clear exit criteria.
+## Phase 1 — Foundations for the New Focus (In Progress)
 
-### Alpha Gate 1 — Stable Online Foundations
-- Complete multiplayer battle execution protocol (authoritative turn sync, reconnect, and timeout handling).
-- Integrate new trade/challenge feedback pathways into player-visible UI flows for pending/accepted/expired outcomes.
-- Start online tournaments execution from the published phased plan (`docs/online_tournaments_roadmap.md`) and deliver M1 foundation milestones.
-- Exit criteria: online actions have deterministic outcomes, player-facing status text, and regression tests for disconnect/retry scenarios.
+### 1.1 Rules and Settings Baseline
+- [ ] Publish a unified rulebook spec for campaign, casual online, and tournament contexts.
+- [ ] Define settings taxonomy: player settings vs host/server settings vs mod/campaign overrides.
+- [ ] Add regression tests for precedence and fallback behavior across rule layers.
 
-### Alpha Gate 2 — Save and Data Confidence
-- Expand save compatibility fixtures for old/new schemas (trades, challenges, active battles).
-- Add stricter data validation in CI for monsters, maps, and localization references.
-- Exit criteria: compatibility matrix passes in CI and malformed fixtures are tolerated without crashes.
+### 1.2 Gold/Silver-Inspired Design Blueprint
+- [ ] Author a content blueprint for day/night/week event cadence and rematch loops.
+- [ ] Identify mandatory engine hooks for time-aware encounters and world-state gates.
+- [ ] Add acceptance criteria for “post-game identity” milestones.
 
-### Alpha Gate 3 — Content and Balance Baseline
-- Run progression and economy balancing pass with benchmark scenarios for repeatability.
-- Improve content throughput tooling for monster/map/locale authoring.
-- Exit criteria: benchmark playthrough targets met and contributor content workflows documented.
+### 1.3 Campaign Maker Discovery
+- [ ] Finalize MVP scope for creator workflows (map/event/encounter/quest packaging).
+- [ ] Publish UX wireflow + schema constraints for creator-facing forms.
+- [ ] Prototype validator-backed “new campaign wizard.”
 
-### Alpha Gate 4 — Alpha Readiness and Contributor UX
-- Refresh architecture/onboarding docs for battle, saves, and content loading paths.
-- Establish monthly roadmap/status updates and release-note templates for alpha previews.
-- Exit criteria: new contributors can ship a first change quickly, and alpha release process is documented end-to-end.
+---
 
-## Definition of Done for Future Milestones
+## Phase 2 — Competitive and Social Online Expansion
 
-A roadmap item should be marked complete only when:
+### 2.1 Online Tournament Playable Path
+- [ ] Complete tournament UX for registration, check-in, bracket visibility, and result disputes.
+- [ ] Integrate reconnect/no-show enforcement with explicit player notifications.
+- [ ] Add seasonal metadata model and reward distribution hooks.
 
-1. Feature behavior is documented for contributors.
-2. Core success-path tests or validation checks exist.
-3. Save/load impact has been evaluated (and migration rules added when required).
-4. User-facing behavior is observable and debuggable (logs/status/clear UI messaging).
+### 2.2 Battle Center MVP
+- [ ] Implement lobby structure (public queue desk, direct challenge rooms, rematch channels).
+- [ ] Add match browser filters (ruleset, format, skill band, latency region).
+- [ ] Support spectators/read-only streams for completed and active matches.
 
-This keeps progress measurable, stable, and easier to maintain throughout the OpenCapsuleMon transition.
+### 2.3 Online Casino MVP
+- [ ] Design game catalog with fairness audits and expected-value guardrails.
+- [ ] Implement token wallet, sink/source balancing, and anti-farming protections.
+- [ ] Add integrity telemetry and moderation controls.
+
+---
+
+## Phase 3 — Campaign Maker Implementation
+
+### 3.1 Creator Workflow Tooling
+- [ ] Ship UI for map painting, encounter table editing, and event trigger authoring.
+- [ ] Provide inline validation with actionable error messaging.
+- [ ] Bundle first-party templates inspired by classic two-region progression structure.
+
+### 3.2 Packaging + Distribution
+- [ ] Add “build campaign” pipeline with deterministic output.
+- [ ] Implement import compatibility checks and migration helpers.
+- [ ] Publish starter samples and creator tutorials.
+
+### 3.3 Quality Gate for Custom Campaigns
+- [ ] Include automated lint/validation for references, localization, and progression blockers.
+- [ ] Add smoke-test harness for campaign startup and first-hour progression.
+
+---
+
+## Phase 4 — Gold/Silver-Inspired Content Realization
+
+### 4.1 Adventure Loop Delivery
+- [ ] Deliver time-based encounter rotations and weekly world events.
+- [ ] Ship rematch progression that responds to player advancement.
+- [ ] Add post-credits challenge arc that connects with battle center and tournaments.
+
+### 4.2 Economy + Progression Balance
+- [ ] Balance casino rewards, battle center rewards, and campaign economy as a single system.
+- [ ] Validate anti-grind/anti-exploit constraints with simulation + playtests.
+
+### 4.3 Ruleset Polish
+- [ ] Finalize default and optional clauses for organized play.
+- [ ] Ensure all rule differences are surfaced in UI before match confirmation.
+
+---
+
+## Alpha Exit Criteria (Refocused)
+
+To declare alpha readiness, all conditions below must be met:
+
+1. **Classic-inspired campaign loop is playable end-to-end**, including day/night/time-aware content and a recognizable post-game track.
+2. **Online tournaments are season-capable** with stable bracket flow, adjudication, and player communication.
+3. **Battle center and casino are live in MVP form** with moderation, anti-abuse controls, and clear economy boundaries.
+4. **Campaign maker supports non-programmer creators** from project creation through validated export.
+5. **Rules/settings system is polished and reliable**, with documented precedence, UI clarity, and regression coverage.
+
+---
+
+## Definition of Done for Any Roadmap Item
+
+Mark an item complete only when:
+
+1. Behavior is documented for players, creators, and contributors.
+2. Automated checks exist for success path + common failure modes.
+3. Save/load and migration impacts are tested (when relevant).
+4. User-facing status or UI messaging makes the feature understandable without reading source.
+5. The feature aligns with at least one of the five strategic pillars above.
