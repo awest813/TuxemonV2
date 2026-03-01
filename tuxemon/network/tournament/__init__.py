@@ -1,4 +1,4 @@
-from .bracket import generate_bracket, process_match_result
+from .bracket import generate_bracket, get_ready_matches, process_match_result
 from .models import (
     BracketNode,
     Match,
@@ -18,6 +18,7 @@ __all__ = [
     "TournamentState",
     "generate_bracket",
     "process_match_result",
+    "get_ready_matches",
     "save_tournament",
     "load_tournament",
 ]
