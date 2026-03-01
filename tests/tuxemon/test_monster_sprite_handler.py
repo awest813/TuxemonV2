@@ -5,7 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pygame import Surface
 
-from tuxemon.monster.sprite import MonsterSpriteHandler
+from tuxemon.db import ColorModel
+from tuxemon.monster.sprite import Flair, MonsterSpriteHandler
 
 
 @pytest.fixture
@@ -64,6 +65,22 @@ def test_slice_sprite(handler, sprite_type, expected):
 def test_sprite_cache(handler):
     s1 = handler.get_sprite("front", scale=1)
     s2 = handler.get_sprite("front", scale=1)
+    assert s1.image is s2.image
+
+
+def test_sprite_cache_with_nested_flair_state(handler):
+    handler.flairs = {
+        "hat": Flair(
+            category="head",
+            slug="wizard_hat",
+            sprite_type={"front", "menu01"},
+            color=ColorModel(red=255, green=180, blue=140, alpha=200),
+        )
+    }
+
+    s1 = handler.get_sprite("front", scale=1)
+    s2 = handler.get_sprite("front", scale=1)
+
     assert s1.image is s2.image
 
 

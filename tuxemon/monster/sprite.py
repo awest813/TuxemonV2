@@ -23,6 +23,19 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def _freeze_for_cache(value: Any) -> Any:
+    """Convert nested flair state into a hashable structure for cache keys."""
+    if isinstance(value, dict):
+        return tuple(
+            (k, _freeze_for_cache(v)) for k, v in sorted(value.items())
+        )
+    if isinstance(value, set):
+        return tuple(sorted(_freeze_for_cache(v) for v in value))
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze_for_cache(v) for v in value)
+    return value
+
+
 class SpriteLoader:
     def __init__(self) -> None:
         self.sprite_cache: dict[str, Surface] = {}
@@ -351,11 +364,9 @@ class MonsterSpriteHandler:
                 [frame1, frame2], frame_duration=frame_duration
             )
 
-        flair_key: frozenset[tuple[str, tuple[tuple[str, Any], ...]]] = (
-            frozenset(
-                (k, tuple(sorted(v.get_state().items())))
-                for k, v in self.flairs.items()
-            )
+        flair_key = frozenset(
+            (k, _freeze_for_cache(v.get_state()))
+            for k, v in self.flairs.items()
         )
         cache_key = f"{sprite_type}:{hash(flair_key)}:{scale}"
         if cache_key in self._flair_cache:
