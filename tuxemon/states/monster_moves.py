@@ -20,7 +20,7 @@ from tuxemon.platform.const.graphics import TECH_INFO
 from tuxemon.platform.const.sizes import ACCURACY_RANGE, POTENCY_RANGE
 from tuxemon.prepare import SCREEN_SIZE
 from tuxemon.technique.technique import Technique
-from tuxemon.tools import fix_measure
+from tuxemon.tools.math import fix_measure
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient

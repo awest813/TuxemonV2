@@ -17,7 +17,7 @@ from tuxemon.mission.mission import Mission
 from tuxemon.platform.const import buttons
 from tuxemon.platform.const.graphics import BG_MISSIONS
 from tuxemon.prepare import SCREEN_SIZE
-from tuxemon.tools import open_choice_dialog, open_dialog
+from tuxemon.tools.dialog import open_choice_dialog, open_dialog
 from tuxemon.ui.menu_options import MenuOptions, create_yes_no_options
 
 if TYPE_CHECKING:

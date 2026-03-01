@@ -10,7 +10,7 @@ from tuxemon.boxes import BoxMetadata
 from tuxemon.event.eventaction import EventAction
 from tuxemon.platform.const.sizes import MAX_KENNEL
 from tuxemon.session import Session
-from tuxemon.tools import parse_flag
+from tuxemon.tools.conditions import parse_flag
 
 logger = logging.getLogger(__name__)
 

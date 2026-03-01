@@ -35,7 +35,7 @@ from tuxemon.platform.const.sizes import (
     SURFACE_KEYS,
 )
 from tuxemon.prepare import DisplayContext
-from tuxemon.tools import copy_dict_with_keys
+from tuxemon.tools.misc import copy_dict_with_keys
 
 logger = logging.getLogger(__name__)
 

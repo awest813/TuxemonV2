@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from tuxemon.locale.locale import T
 from tuxemon.network.client import TuxemonClient
 from tuxemon.network.server import TuxemonServer
-from tuxemon.tools import open_dialog
+from tuxemon.tools.dialog import open_dialog
 
 logger = logging.getLogger(__name__)
 

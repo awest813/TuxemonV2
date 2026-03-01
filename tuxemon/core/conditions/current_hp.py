@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from tuxemon.core.core_condition import CoreCondition
-from tuxemon.tools import compare
+from tuxemon.tools.math import compare
 
 if TYPE_CHECKING:
     from tuxemon.monster.monster import Monster

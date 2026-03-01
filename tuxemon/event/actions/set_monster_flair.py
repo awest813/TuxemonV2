@@ -12,7 +12,7 @@ from tuxemon.event.eventaction import EventAction
 from tuxemon.monster.renderer import MonsterRenderer
 from tuxemon.monster.sprite import Flair
 from tuxemon.session import Session
-from tuxemon.tools import get_valid_uuid
+from tuxemon.tools.misc import get_valid_uuid
 
 logger = logging.getLogger(__name__)
 

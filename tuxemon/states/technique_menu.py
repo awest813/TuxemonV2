@@ -22,7 +22,7 @@ from tuxemon.technique.controller import TechController
 from tuxemon.technique.filter import TechFilter
 from tuxemon.technique.sorter import TechSorter
 from tuxemon.technique.technique import Technique
-from tuxemon.tools import open_choice_dialog, open_dialog
+from tuxemon.tools.dialog import open_choice_dialog, open_dialog
 from tuxemon.ui.text import TextArea
 
 if TYPE_CHECKING:

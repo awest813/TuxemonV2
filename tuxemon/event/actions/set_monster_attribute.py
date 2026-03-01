@@ -9,7 +9,7 @@ from typing import final
 from tuxemon.event.actions.common import CommonAction
 from tuxemon.event.eventaction import EventAction
 from tuxemon.session import Session
-from tuxemon.tools import get_valid_uuid
+from tuxemon.tools.misc import get_valid_uuid
 
 logger = logging.getLogger(__name__)
 

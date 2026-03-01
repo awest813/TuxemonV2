@@ -18,7 +18,7 @@ from tuxemon.menu.interface import MenuItem
 from tuxemon.menu.menu import Menu
 from tuxemon.platform.const import buttons, events, intentions
 from tuxemon.session import local_session
-from tuxemon.tools import open_choice_dialog
+from tuxemon.tools.dialog import open_choice_dialog
 from tuxemon.ui.input_display import InputDisplay
 from tuxemon.ui.menu_options import MenuOptions, create_choice_options
 

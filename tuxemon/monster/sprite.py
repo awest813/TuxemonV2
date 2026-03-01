@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING, Any
 
 from pygame.surface import Surface
 
-from tuxemon import graphics, tools
+from tuxemon import graphics
+from tuxemon.tools.misc import transform_resource_filename
 from tuxemon.database.runtime import db
 from tuxemon.db import ColorModel, FlairModel
 from tuxemon.platform.const.graphics import MISSING_IMAGE
@@ -29,7 +30,7 @@ class SpriteLoader:
     def resolve_path(self, sprite: str) -> str:
         try:
             path = f"{sprite}.png" if not sprite.endswith(".png") else sprite
-            full_path = tools.transform_resource_filename(path)
+            full_path = transform_resource_filename(path)
             if full_path:
                 return full_path
         except OSError:

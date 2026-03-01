@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, final
 
 from tuxemon.event.eventaction import EventAction
 from tuxemon.locale.locale import T
-from tuxemon.tools import parse_flag
+from tuxemon.tools.conditions import parse_flag
 from tuxemon.tracker import TrackingPoint
 
 if TYPE_CHECKING:

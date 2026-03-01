@@ -7,7 +7,7 @@ import random
 from typing import TYPE_CHECKING
 
 from tuxemon.db import StatModel
-from tuxemon.tools import ops_dict
+from tuxemon.tools.math import ops_dict
 
 if TYPE_CHECKING:
     from tuxemon.item.item import Item

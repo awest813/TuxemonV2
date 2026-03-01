@@ -12,7 +12,7 @@ from pygame.surface import Surface
 from tuxemon.locale.locale import T
 from tuxemon.menu.menu import PopUpMenu
 from tuxemon.platform.const.graphics import BLACK_COLOR
-from tuxemon.tools import transform_resource_filename
+from tuxemon.tools.misc import transform_resource_filename
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient

@@ -13,7 +13,8 @@ from tuxemon.graphics import string_to_colorlike
 from tuxemon.locale.locale import T
 from tuxemon.monster.avatar import get_avatar
 from tuxemon.session import Session
-from tuxemon.tools import open_dialog, safe_enum_value
+from tuxemon.tools.dialog import open_dialog
+from tuxemon.tools.misc import safe_enum_value
 from tuxemon.ui.text_alignment import (
     DialogPosition,
     HorizontalAlignment,

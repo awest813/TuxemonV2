@@ -10,7 +10,7 @@ from tuxemon.event.eventaction import EventAction
 from tuxemon.locale.locale import T
 from tuxemon.platform.const.sizes import PLAYER_NAME_LIMIT
 from tuxemon.session import Session
-from tuxemon.tools import get_valid_uuid
+from tuxemon.tools.misc import get_valid_uuid
 
 logger = logging.getLogger(__name__)
 

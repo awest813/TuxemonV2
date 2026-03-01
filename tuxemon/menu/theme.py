@@ -22,7 +22,7 @@ from tuxemon.platform.const.graphics import (
     TRANSPARENT_COLOR,
 )
 from tuxemon.prepare import DISPLAY_CONTEXT
-from tuxemon.tools import transform_resource_filename
+from tuxemon.tools.misc import transform_resource_filename
 from tuxemon.user_config import CONFIG
 
 _theme: Theme | None = None

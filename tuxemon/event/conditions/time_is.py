@@ -9,7 +9,7 @@ from tuxemon.db import SpatialCondition
 from tuxemon.event.eventcondition import EventCondition
 from tuxemon.session import Session
 from tuxemon.time_handler import TimeSnapshot
-from tuxemon.tools import compare, compare_tuple
+from tuxemon.tools.math import compare, compare_tuple
 
 logger = logging.getLogger(__name__)
 

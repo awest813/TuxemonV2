@@ -16,7 +16,8 @@ from tuxemon.locale.locale import T
 from tuxemon.monster.monster import Monster
 from tuxemon.monster.stats import BasicStats, IndividualValues
 from tuxemon.taste import Taste
-from tuxemon.tools import get_valid_uuid, open_dialog
+from tuxemon.tools.dialog import open_dialog
+from tuxemon.tools.misc import get_valid_uuid
 
 if TYPE_CHECKING:
     from tuxemon.session import Session

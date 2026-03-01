@@ -20,7 +20,8 @@ from tuxemon.platform.const import buttons
 from tuxemon.platform.const.graphics import INDIV_INFO
 from tuxemon.platform.const.sizes import U_CM, U_FT, U_KG, U_LB, U_M, U_T
 from tuxemon.prepare import SCREEN_SIZE
-from tuxemon.tools import fix_measure, transform_resource_filename
+from tuxemon.tools.math import fix_measure
+from tuxemon.tools.misc import transform_resource_filename
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient

@@ -18,7 +18,7 @@ from tuxemon.platform.const import buttons
 from tuxemon.platform.const.graphics import BG_JOURNAL_INFO
 from tuxemon.platform.const.sizes import U_CM, U_FT, U_KG, U_LB
 from tuxemon.prepare import SCREEN_SIZE
-from tuxemon.tools import fix_measure
+from tuxemon.tools.math import fix_measure
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient

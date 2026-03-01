@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING, final
 
 from tuxemon.event.eventaction import EventAction
 from tuxemon.monster.plague import InfectionResult, InoculationResult
-from tuxemon.tools import get_valid_uuid, parse_flag
+from tuxemon.tools.conditions import parse_flag
+from tuxemon.tools.misc import get_valid_uuid
 
 if TYPE_CHECKING:
     from tuxemon.session import Session

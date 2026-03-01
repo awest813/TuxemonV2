@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, final
 
 from tuxemon.database.runtime import db
 from tuxemon.event.eventaction import EventAction
-from tuxemon.tools import get_valid_uuid
+from tuxemon.tools.misc import get_valid_uuid
 from tuxemon.trade_manager import TradeResult
 
 if TYPE_CHECKING:

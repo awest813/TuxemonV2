@@ -268,7 +268,7 @@ class WorldState(State):
         interaction = (event_data.interaction or "").upper()
         if interaction == "DUEL":
             if event_data.response is None:
-                from tuxemon.tools import open_dialog
+                from tuxemon.tools.dialog import open_dialog
 
                 duel_text = T.format(
                     "multiplayer_duel",

@@ -9,7 +9,7 @@ from tuxemon.camera.camera import unproject
 from tuxemon.db import SpatialCondition
 from tuxemon.event.eventcondition import EventCondition
 from tuxemon.session import Session
-from tuxemon.tools import compare
+from tuxemon.tools.math import compare
 
 logger = logging.getLogger(__name__)
 

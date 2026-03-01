@@ -8,7 +8,7 @@ from typing import final
 
 from tuxemon.event.eventaction import EventAction
 from tuxemon.session import Session
-from tuxemon.tools import number_or_variable, ops_dict
+from tuxemon.tools.math import number_or_variable, ops_dict
 
 logger = logging.getLogger(__name__)
 

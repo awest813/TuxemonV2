@@ -8,7 +8,7 @@ from tuxemon.database.runtime import db
 from tuxemon.db import MonsterModel, SpatialCondition
 from tuxemon.event.eventcondition import EventCondition
 from tuxemon.session import Session
-from tuxemon.tools import compare
+from tuxemon.tools.math import compare
 from tuxemon.tuxepedia.reporter import TuxepediaReporter
 
 lookup_cache: dict[str, MonsterModel] = {}

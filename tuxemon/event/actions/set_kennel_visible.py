@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, final
 
 from tuxemon.event.eventaction import EventAction
 from tuxemon.platform.const.sizes import KENNEL
-from tuxemon.tools import parse_flag
+from tuxemon.tools.conditions import parse_flag
 
 if TYPE_CHECKING:
     from tuxemon.session import Session

@@ -17,7 +17,8 @@ from tuxemon.map.manager import MAP_TYPES, MapType
 from tuxemon.menu.menu import PygameMenuState
 from tuxemon.platform.const.graphics import BG_PHONE
 from tuxemon.prepare import SCREEN_SIZE
-from tuxemon.tools import fix_measure, open_dialog
+from tuxemon.tools.dialog import open_dialog
+from tuxemon.tools.math import fix_measure
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient

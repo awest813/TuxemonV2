@@ -69,7 +69,7 @@ from tuxemon.states.combat_animations import CombatAnimations
 from tuxemon.states.monster_menu import MonsterMenuState
 from tuxemon.status.status import Status
 from tuxemon.technique.technique import Technique
-from tuxemon.tools import assert_never
+from tuxemon.tools.misc import assert_never
 from tuxemon.ui.combat_notifier import CombatNotifier, TextAnimationManager
 from tuxemon.ui.graphic_box import GraphicBox
 from tuxemon.ui.method_animation import MethodAnimationCache

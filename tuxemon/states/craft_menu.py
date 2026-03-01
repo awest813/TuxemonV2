@@ -14,7 +14,7 @@ from tuxemon.locale.locale import T
 from tuxemon.menu.menu import PygameMenuState
 from tuxemon.platform.const.graphics import BG_MISSIONS
 from tuxemon.prepare import SCREEN_SIZE
-from tuxemon.tools import open_dialog
+from tuxemon.tools.dialog import open_dialog
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient

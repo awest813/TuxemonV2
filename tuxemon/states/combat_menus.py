@@ -25,7 +25,8 @@ from tuxemon.sprite import Sprite
 from tuxemon.states.item_menu import ItemMenuState
 from tuxemon.states.monster_menu import MonsterMenuState
 from tuxemon.technique.technique import Technique
-from tuxemon.tools import fix_measure, open_dialog
+from tuxemon.tools.dialog import open_dialog
+from tuxemon.tools.math import fix_measure
 from tuxemon.ui.graphic_box import GraphicBox
 from tuxemon.ui.text import TextArea
 
