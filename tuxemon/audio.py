@@ -17,7 +17,7 @@ from tuxemon.platform.const.sizes import (
     MUSIC_FADEOUT,
     MUSIC_LOOP,
 )
-from tuxemon.tools import transform_resource_filename
+from tuxemon.tools.misc import transform_resource_filename
 from tuxemon.user_config import CONFIG
 
 logger = logging.getLogger(__name__)

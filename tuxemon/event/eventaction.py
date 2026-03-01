@@ -14,7 +14,7 @@ from typing import Any, ClassVar
 from tuxemon.constants.paths import ACTIONS_PATH, LIBDIR, get_plugin_paths
 from tuxemon.plugin import PluginManager
 from tuxemon.session import Session
-from tuxemon.tools import cast_dataclass_parameters
+from tuxemon.tools.casting import cast_dataclass_parameters
 
 logger = logging.getLogger(__name__)
 

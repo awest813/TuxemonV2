@@ -28,7 +28,7 @@ from tuxemon.prepare import DISPLAY_CONTEXT
 from tuxemon.scaling import ScalingStrategy
 from tuxemon.sprite import Sprite
 from tuxemon.surfanim import SurfaceAnimation
-from tuxemon.tools import transform_resource_filename
+from tuxemon.tools.misc import transform_resource_filename
 
 logger = logging.getLogger(__name__)
 

@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar
 
 from tuxemon.session import Session
-from tuxemon.tools import cast_dataclass_parameters
+from tuxemon.tools.casting import cast_dataclass_parameters
 
 if TYPE_CHECKING:
     from tuxemon.db import SpatialCondition

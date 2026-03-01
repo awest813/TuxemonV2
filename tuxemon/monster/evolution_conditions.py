@@ -10,7 +10,7 @@ from tuxemon.db import (
     MonsterEvolutionItemModel,
     PartyConditionsModel,
 )
-from tuxemon.tools import compare
+from tuxemon.tools.math import compare
 
 if TYPE_CHECKING:
     from tuxemon.entity.party import PartyHandler
