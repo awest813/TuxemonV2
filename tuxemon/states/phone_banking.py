@@ -1,4 +1,3 @@
-# SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
 # SPDX-License-Identifier: GPL-3.0
 from __future__ import annotations
@@ -102,10 +101,12 @@ class NuPhoneBanking(PygameMenuState):
 
         if op == "pay":
             max_value = mm.get_money()
-            callback = lambda amount: self._pay(amount, bill_name)
-        else:
+            callback = lambda amount, bill=bill_name: self._pay(amount, bill)
+        elif op == "e_pay":
             max_value = mm.get_bank_balance()
-            callback = lambda amount: self._e_pay(amount, bill_name)
+            callback = lambda amount, bill=bill_name: self._e_pay(amount, bill)
+        else:
+            raise ValueError(f"Unsupported bill operation: {op}")
 
         self._open_amount_picker(
             max_value=max_value,
