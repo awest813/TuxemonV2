@@ -954,6 +954,7 @@ class TournamentManager:
         match_id: UUID,
         absent_player_id: UUID,
         *,
+        absent_disconnected_at: datetime | None = None,
         now: datetime | None = None,
     ) -> TournamentResult:
         """Resolve a scheduled match when one participant no-shows past policy."""
@@ -980,6 +981,14 @@ class TournamentManager:
         timeout_at = match.scheduled_at + timedelta(
             seconds=tournament.policy.no_show_timeout_seconds
         )
+
+        if absent_disconnected_at is not None:
+            reconnect_deadline = absent_disconnected_at + timedelta(
+                seconds=tournament.policy.reconnect_grace_seconds
+            )
+            if reconnect_deadline > timeout_at:
+                timeout_at = reconnect_deadline
+
         if current_time < timeout_at:
             return TournamentResult.INVALID_STATE
 
@@ -1002,6 +1011,15 @@ class TournamentManager:
                 "match_id": str(match_id),
                 "winner_id": str(winner_id),
                 "absent_player_id": str(absent_player_id),
+            },
+        )
+        self.event_bus.publish(
+            "tournament_match_auto_adjudicated",
+            {
+                "tournament_id": str(tournament_id),
+                "match_id": str(match_id),
+                "winner_id": str(winner_id),
+                "reason": "no_show_timeout",
             },
         )
 

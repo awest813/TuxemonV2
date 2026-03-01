@@ -29,8 +29,8 @@ Sprint 3 is considered complete when all of the following are true:
 ### Track B — Timeout/No-Show Policy Hooks
 
 - [x] Add timeout evaluator that can resolve scheduled matches after policy threshold.
-- [ ] Support reconnect grace handling before no-show adjudication.
-- [ ] Emit explicit moderation/admin events when automated adjudication occurs.
+- [x] Support reconnect grace handling before no-show adjudication.
+- [x] Emit explicit moderation/admin events when automated adjudication occurs.
 
 ### Track C — Validation & Reliability
 
