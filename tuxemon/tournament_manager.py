@@ -640,6 +640,61 @@ class TournamentManager:
         )
         return TournamentResult.SUCCESS
 
+    def build_challenge_proposal(
+        self,
+        tournament_id: UUID,
+        match_id: UUID,
+        *,
+        now: datetime | None = None,
+    ) -> dict[str, Any] | TournamentResult:
+        """Build a challenge proposal payload for a scheduled tournament match.
+
+        This is the orchestration adapter that maps a ready tournament match to
+        the challenge transport payload format.  The method validates the match,
+        generates (or reuses) a stable correlation key via ``mark_match_dispatched``,
+        and returns a payload dict compatible with the challenge transport system.
+
+        The operation is idempotent: if the match already has a correlation key
+        recorded from a previous dispatch, the same payload is rebuilt and returned
+        without mutating any timestamps or IDs.
+
+        Returns a ``dict`` on success, or a ``TournamentResult`` error value when
+        validation fails (NOT_FOUND, MATCH_NOT_FOUND, INVALID_STATE).
+        """
+        tournament = self._find_tournament(tournament_id)
+        if tournament is None:
+            return TournamentResult.NOT_FOUND
+
+        match = self._find_match(tournament, match_id)
+        if match is None:
+            return TournamentResult.MATCH_NOT_FOUND
+        if match.status != MatchStatus.SCHEDULED:
+            return TournamentResult.INVALID_STATE
+        if match.player_a_id is None or match.player_b_id is None:
+            return TournamentResult.INVALID_STATE
+
+        correlation_id = self._build_match_correlation_id(tournament_id, match_id)
+        result = self.mark_match_dispatched(
+            tournament_id, match_id, correlation_id=correlation_id, now=now
+        )
+        # mark_match_dispatched returns SUCCESS for both first-time and idempotent
+        # dispatch with the same correlation key.  Any other result is a hard error.
+        if result != TournamentResult.SUCCESS:
+            return result
+
+        return {
+            "challenger_player_id": str(match.player_a_id),
+            "challenged_player_id": str(match.player_b_id),
+            "correlation_id": correlation_id,
+            "tournament_id": str(tournament_id),
+            "match_id": str(match_id),
+            "policy": {
+                "team_size": tournament.policy.team_size,
+                "level_cap": tournament.policy.level_cap,
+                "turn_timer_seconds": tournament.policy.turn_timer_seconds,
+            },
+        }
+
     def handle_challenge_lifecycle_callback(
         self,
         tournament_id: UUID,
