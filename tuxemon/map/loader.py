@@ -637,15 +637,24 @@ class TMXMapLoader:
             "behav": [],
         }
 
+        property_prefixes = {
+            "conditions": ("cond", "condition"),
+            "actions": ("act", "action"),
+            "behav": ("behav", "behavior"),
+        }
+
         for key, value in natsorted(raw_props.items()):
             if not isinstance(key, str):
                 continue
-            if key.startswith("cond"):
-                event_data["conditions"].append(value)
-            elif key.startswith("act"):
-                event_data["actions"].append(value)
-            elif key.startswith("behav"):
-                event_data["behav"].append(value)
+
+            normalized_key = key.strip().lower()
+            if not normalized_key or value is None:
+                continue
+
+            for target, prefixes in property_prefixes.items():
+                if normalized_key.startswith(prefixes):
+                    event_data[target].append(str(value))
+                    break
 
         box = BoundingBox(x=x, y=y, width=w, height=h)
         return event_parser.create_event_object(event_data, obj.name, box)
