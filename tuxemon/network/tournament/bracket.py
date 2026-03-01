@@ -99,6 +99,12 @@ def generate_bracket(tournament: Tournament) -> None:
 
     _schedule_ready_matches(tournament)
 
+    # Bracket generation hands control to match orchestration.
+    # If automatic bye propagation already completed the tournament,
+    # preserve COMPLETED and avoid invalid transitions.
+    if tournament.state == TournamentState.CHECKIN:
+        tournament.transition(TournamentState.IN_PROGRESS)
+
 
 def _schedule_ready_matches(tournament: Tournament) -> None:
     """Creates pending matches for unresolved nodes with both players set."""
