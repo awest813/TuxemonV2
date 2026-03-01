@@ -4,11 +4,11 @@ This roadmap reflects the current state of the branch and outlines practical fol
 
 ## Status Overview
 
-- Overall checklist completion: **24/29**
+- Overall checklist completion: **24/31**
 - Snapshot command: `python run_tuxemon.py --status`
 - Rebrand phase: **Phase A complete** (documentation and messaging aligned; compatibility-first migration policy published)
 - Latest recorded status during this update:
-  - Branch `work`, commit `faff3a3c`
+  - Branch `jules-17203497601987000977-14b0675b`, commit `2d14667`
   - Monsters 411, Techniques 274, Items 221, NPCs 122, Maps 224, Localizations 14
 
 ---

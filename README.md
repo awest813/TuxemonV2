@@ -21,15 +21,15 @@ python run_tuxemon.py --status
 
 Snapshot at the time of this README update:
 
-- Branch: `work`
-- Commit: `faff3a3c`
+- Branch: `jules-17203497601987000977-14b0675b`
+- Commit: `2d14667`
 - Monsters: 411
 - Techniques: 274
 - Items: 221
 - NPCs: 122
 - Maps: 224
 - Localization catalogs (`.po`): 14
-- Roadmap checklist completion: **21/29**
+- Roadmap checklist completion: **24/31**
 
 For milestone details, see [`ROADMAP.md`](ROADMAP.md).
 
