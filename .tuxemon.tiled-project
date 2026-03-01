@@ -1,0 +1,62 @@
+{
+    "automappingRulesFile": "",
+    "commands": [],
+    "extensionsPath": "extensions",
+    "folders": [
+        "."
+    ],
+    "objectTypesFile": ".tuxemon-object-types.xml",
+    "propertyTypes": [
+        {
+            "id": 1,
+            "name": "MapEdges",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "clamped",
+                "looped"
+            ],
+            "valuesAsFlags": false
+        },
+        {
+            "id": 2,
+            "name": "MapType",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "notype",
+                "town",
+                "route",
+                "clinic",
+                "shop",
+                "dungeon"
+            ],
+            "valuesAsFlags": false
+        },
+        {
+            "id": 3,
+            "name": "Direction",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "up",
+                "down",
+                "left",
+                "right"
+            ],
+            "valuesAsFlags": true
+        },
+        {
+            "id": 4,
+            "name": "RegionKey",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "default",
+                "slide",
+                "push_tile"
+            ],
+            "valuesAsFlags": false
+        }
+    ]
+}

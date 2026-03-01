@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    OpenCapsuleMon object type definitions for the Tiled map editor.
+
+    Import this file in Tiled via:
+      Edit > Preferences > Custom Types > Import...
+
+    Or reference it from .tuxemon.tiled-project as "objectTypesFile".
+
+    Object types defined here appear in the "Type" dropdown when you
+    create objects in an Object Layer and give you pre-filled property
+    templates to guide map authoring.
+-->
+<objecttypes>
+
+    <!--
+        collision
+        =========
+        A rectangular region the player (and NPCs) cannot walk through.
+        Place in a layer named "Collisions".
+
+        Optional properties let you restrict movement direction using
+        enter_from / exit_from instead of a hard block.
+    -->
+    <objecttype name="collision" color="#ff0000">
+        <property name="enter_from" type="string" default=""
+            comment="Comma-separated directions: up,down,left,right"/>
+        <property name="exit_from" type="string" default=""
+            comment="Comma-separated directions the player may leave from"/>
+        <property name="endure" type="string" default=""
+            comment="Directions where movement is sustained (e.g. stairs)"/>
+        <property name="key" type="string" default=""
+            comment="Region behaviour: default | slide | push_tile"/>
+        <property name="speed_modifier" type="float" default="1.0"
+            comment="Movement speed multiplier inside this region"/>
+    </objecttype>
+
+    <!--
+        collision-line
+        ==============
+        A polyline (open path) that creates a one-sided collision barrier.
+        Blocks movement across the line from one side only.
+        Must be a polyline, not a polygon.
+    -->
+    <objecttype name="collision-line" color="#ff6600">
+    </objecttype>
+
+    <!--
+        event
+        =====
+        A trigger region.  When the player steps into this area
+        conditions are evaluated and actions are executed.
+
+        Properties follow the naming convention:
+          cond10, cond20, ...   – condition strings  (sorted natural order)
+          act10,  act20,  ...   – action strings     (sorted natural order)
+          behav10, ...          – behaviour strings  (optional)
+
+        At least one act* property is required.
+    -->
+    <objecttype name="event" color="#0000ff">
+        <property name="cond10" type="string" default=""
+            comment="First condition (e.g. 'player_at 5,3')"/>
+        <property name="act10" type="string" default=""
+            comment="First action (e.g. 'teleport player_house_downstairs,3,5,down')"/>
+    </objecttype>
+
+    <!--
+        init
+        ====
+        Like 'event' but runs once when the map loads, regardless of
+        player position.  Useful for setting up map-level variables or
+        triggering cutscenes.
+    -->
+    <objecttype name="init" color="#9900ff">
+        <property name="act10" type="string" default=""
+            comment="First action executed on map load"/>
+    </objecttype>
+
+</objecttypes>
