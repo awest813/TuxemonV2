@@ -22,12 +22,10 @@ from tuxemon.tournament_manager import (
     TournamentPolicy,
     TournamentResult,
     TournamentStatus,
-    _generate_bracket,
     _seeding_slot_order,
     _round_start_position,
 )
 
-import random
 
 
 # ---------------------------------------------------------------------------
@@ -636,6 +634,30 @@ class TestMatchReporting:
         )
         assert isinstance(payload, TournamentChallengeProposal)
         assert payload.correlation_id == "transport-correlation"
+
+
+    def test_build_challenge_dispatch_payload_requires_scheduled_match(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        pending = next(m for m in t.matches if m.status == MatchStatus.PENDING)
+
+        result = manager.build_challenge_dispatch_payload(
+            t.tournament_id, pending.match_id
+        )
+
+        assert result == TournamentResult.INVALID_STATE
+
+    def test_build_challenge_dispatch_payload_requires_both_participants(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+        m.player_b_id = None
+
+        result = manager.build_challenge_dispatch_payload(
+            t.tournament_id, m.match_id
+        )
+
+        assert result == TournamentResult.INVALID_STATE
 
     def test_challenge_callback_accepted_keeps_dispatch_metadata(self):
         manager = _make_manager()
