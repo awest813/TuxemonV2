@@ -55,22 +55,22 @@ Make all key gameplay and online behaviors explicit, configurable, and testable:
 
 ## Delivery Roadmap
 
-## Phase 1 — Foundations for the New Focus (In Progress)
+## Phase 1 — Foundations for the New Focus (Complete)
 
 ### 1.1 Rules and Settings Baseline
-- [ ] Publish a unified rulebook spec for campaign, casual online, and tournament contexts.
-- [ ] Define settings taxonomy: player settings vs host/server settings vs mod/campaign overrides.
-- [ ] Add regression tests for precedence and fallback behavior across rule layers.
+- [x] Publish a unified rulebook spec for campaign, casual online, and tournament contexts.
+- [x] Define settings taxonomy: player settings vs host/server settings vs mod/campaign overrides.
+- [x] Add regression tests for precedence and fallback behavior across rule layers.
 
 ### 1.2 Gold/Silver-Inspired Design Blueprint
-- [ ] Author a content blueprint for day/night/week event cadence and rematch loops.
-- [ ] Identify mandatory engine hooks for time-aware encounters and world-state gates.
-- [ ] Add acceptance criteria for “post-game identity” milestones.
+- [x] Author a content blueprint for day/night/week event cadence and rematch loops.
+- [x] Identify mandatory engine hooks for time-aware encounters and world-state gates.
+- [x] Add acceptance criteria for “post-game identity” milestones.
 
 ### 1.3 Campaign Maker Discovery
-- [ ] Finalize MVP scope for creator workflows (map/event/encounter/quest packaging).
-- [ ] Publish UX wireflow + schema constraints for creator-facing forms.
-- [ ] Prototype validator-backed “new campaign wizard.”
+- [x] Finalize MVP scope for creator workflows (map/event/encounter/quest packaging).
+- [x] Publish UX wireflow + schema constraints for creator-facing forms.
+- [x] Prototype validator-backed “new campaign wizard.”
 
 ---
 
