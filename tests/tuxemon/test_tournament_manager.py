@@ -811,6 +811,101 @@ class TestMatchReporting:
         )
         assert r in (TournamentResult.INVALID_STATE, TournamentResult.INVALID_WINNER)
 
+    def test_build_challenge_proposal_returns_correct_payload(self):
+        """build_challenge_proposal maps a scheduled match to a challenge payload."""
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+
+        payload = manager.build_challenge_proposal(t.tournament_id, m.match_id)
+
+        assert isinstance(payload, dict)
+        assert payload["challenger_player_id"] == str(m.player_a_id)
+        assert payload["challenged_player_id"] == str(m.player_b_id)
+        assert payload["tournament_id"] == str(t.tournament_id)
+        assert payload["match_id"] == str(m.match_id)
+        assert "correlation_id" in payload
+        assert payload["correlation_id"].startswith("tournament:")
+        policy = payload["policy"]
+        assert policy["team_size"] == t.policy.team_size
+        assert policy["level_cap"] == t.policy.level_cap
+        assert policy["turn_timer_seconds"] == t.policy.turn_timer_seconds
+
+    def test_build_challenge_proposal_marks_match_dispatched(self):
+        """build_challenge_proposal sets the correlation metadata on the match."""
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+
+        assert m.challenge_correlation_id is None
+        assert m.challenge_dispatched_at is None
+
+        manager.build_challenge_proposal(t.tournament_id, m.match_id)
+
+        assert m.challenge_correlation_id is not None
+        assert m.challenge_dispatched_at is not None
+
+    def test_build_challenge_proposal_is_idempotent(self):
+        """Calling build_challenge_proposal twice returns the same stable payload."""
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+
+        payload1 = manager.build_challenge_proposal(t.tournament_id, m.match_id)
+        first_dispatched_at = m.challenge_dispatched_at
+
+        payload2 = manager.build_challenge_proposal(t.tournament_id, m.match_id)
+
+        assert isinstance(payload1, dict)
+        assert isinstance(payload2, dict)
+        assert payload1["correlation_id"] == payload2["correlation_id"]
+        assert payload1["match_id"] == payload2["match_id"]
+        # Timestamp must not advance on the second call (idempotency).
+        assert m.challenge_dispatched_at == first_dispatched_at
+
+    def test_build_challenge_proposal_not_found_for_unknown_tournament(self):
+        manager = _make_manager()
+        result = manager.build_challenge_proposal(uuid4(), uuid4())
+        assert result == TournamentResult.NOT_FOUND
+
+    def test_build_challenge_proposal_not_found_for_unknown_match(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        result = manager.build_challenge_proposal(t.tournament_id, uuid4())
+        assert result == TournamentResult.MATCH_NOT_FOUND
+
+    def test_build_challenge_proposal_rejects_non_scheduled_match(self):
+        """Pending or completed matches cannot produce a proposal."""
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        pending = next(
+            (m for m in t.matches if m.status == MatchStatus.PENDING), None
+        )
+        if pending is None:
+            pytest.skip("No pending matches in this bracket configuration")
+        result = manager.build_challenge_proposal(t.tournament_id, pending.match_id)
+        assert result == TournamentResult.INVALID_STATE
+
+    def test_build_challenge_proposal_full_round_dispatch(self):
+        """All first-round scheduled matches can produce proposals and round-trip."""
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager, seed=9999)
+
+        first_round = [m for m in t.matches if m.round_index == 0 and m.status == MatchStatus.SCHEDULED]
+        assert len(first_round) > 0
+
+        seen_correlation_ids: set[str] = set()
+        for match in first_round:
+            payload = manager.build_challenge_proposal(t.tournament_id, match.match_id)
+            assert isinstance(payload, dict)
+            corr = payload["correlation_id"]
+            assert corr not in seen_correlation_ids, "correlation IDs must be unique per match"
+            seen_correlation_ids.add(corr)
+            # Correlation ID is stable — second call returns same ID.
+            payload2 = manager.build_challenge_proposal(t.tournament_id, match.match_id)
+            assert isinstance(payload2, dict)
+            assert payload2["correlation_id"] == corr
+
 
 # ---------------------------------------------------------------------------
 # Tests: full 8-player bracket simulation

@@ -22,7 +22,7 @@ Sprint 3 is considered complete when all of the following are true:
 
 ### Track A — Challenge Dispatch Integration
 
-- [ ] Add orchestration adapter to map a ready tournament match to challenge proposal payload.
+- [x] Add orchestration adapter to map a ready tournament match to challenge proposal payload.
 - [x] Store challenge correlation metadata on tournament match records.
 - [x] Handle challenge lifecycle callbacks (accepted, rejected, expired) and map them to tournament state transitions.
 

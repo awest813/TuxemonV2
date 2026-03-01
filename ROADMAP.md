@@ -67,11 +67,12 @@ The original baseline milestones are complete; this expanded plan now tracks reb
   - Feedback messages wired through localization pipeline with translation keys in `en_US/base.po`.
   - Added `format_params` support for dynamic feedback messages (reconnect timers, turn numbers).
   - Network manager consumes feedback and renders via `T.format()`/`T.translate()` → `open_dialog()`.
-- [ ] **Online tournaments foundation kickoff**
+- [x] **Online tournaments foundation kickoff**
   - Published initial phased tournament roadmap in `docs/online_tournaments_roadmap.md`.
   - Sprint 1 kickoff artifacts published: `docs/online_tournaments_sprint1.md` + draft rules baseline in `docs/online_tournaments_rules_spec.md`.
-  - Next implementation target: complete Phase 0 (rules/flows) and Phase 1 (domain model + persistence) milestones.
-  - Alpha intent: single-elimination MVP orchestration built on existing challenge + battle session systems.
+  - Sprint 2: bracket match scheduling, token-guarded idempotent result ingestion, and test coverage added.
+  - Sprint 3 complete: challenge dispatch orchestration adapter (`build_challenge_proposal`) implemented; match correlation metadata, lifecycle callback mapping (accepted/rejected/expired), no-show timeout resolution, reconnect grace handling, and auto-adjudication event emission all implemented with full test coverage.
+  - M2 (Playable MVP — single-elimination orchestration) milestones are now complete; next target is Phase 3 (UX & Player Communication).
 
 ### Phase 2 — Quality and Reliability
 - [x] **Automated data validation expansion**
