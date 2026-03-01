@@ -602,6 +602,111 @@ class TestMatchReporting:
         )
         assert r2 == TournamentResult.DUPLICATE_RESULT
 
+    def test_challenge_callback_accepted_keeps_dispatch_metadata(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+
+        manager.mark_match_dispatched(
+            t.tournament_id, m.match_id, correlation_id="corr-accepted"
+        )
+        result = manager.handle_challenge_lifecycle_callback(
+            t.tournament_id,
+            correlation_id="corr-accepted",
+            state="accepted",
+        )
+
+        assert result == TournamentResult.SUCCESS
+        assert m.challenge_correlation_id == "corr-accepted"
+
+    def test_challenge_callback_rejected_clears_dispatch_metadata_for_retry(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+
+        manager.mark_match_dispatched(
+            t.tournament_id, m.match_id, correlation_id="corr-rejected"
+        )
+        result = manager.handle_challenge_lifecycle_callback(
+            t.tournament_id,
+            correlation_id="corr-rejected",
+            state="rejected",
+        )
+
+        assert result == TournamentResult.SUCCESS
+        assert m.challenge_correlation_id is None
+        assert m.challenge_dispatched_at is None
+
+        redispatch = manager.mark_match_dispatched(
+            t.tournament_id, m.match_id, correlation_id="corr-retry"
+        )
+        assert redispatch == TournamentResult.SUCCESS
+        assert m.challenge_correlation_id == "corr-retry"
+
+    def test_challenge_callback_expired_clears_dispatch_metadata_for_retry(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+
+        manager.mark_match_dispatched(
+            t.tournament_id, m.match_id, correlation_id="corr-expired"
+        )
+        result = manager.handle_challenge_lifecycle_callback(
+            t.tournament_id,
+            correlation_id="corr-expired",
+            state="expired",
+        )
+
+        assert result == TournamentResult.SUCCESS
+        assert m.challenge_correlation_id is None
+        assert m.challenge_dispatched_at is None
+
+    def test_challenge_callback_full_round_with_rejected_retry(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager, seed=1234)
+
+        first_round = sorted(
+            [m for m in t.matches if m.round_index == 0],
+            key=lambda match: match.match_index,
+        )
+        assert len(first_round) == 4
+
+        for index, match in enumerate(first_round):
+            initial_correlation = f"round1-{index}"
+            dispatch = manager.mark_match_dispatched(
+                t.tournament_id, match.match_id, correlation_id=initial_correlation
+            )
+            assert dispatch == TournamentResult.SUCCESS
+
+            if index % 2 == 0:
+                callback = manager.handle_challenge_lifecycle_callback(
+                    t.tournament_id,
+                    correlation_id=initial_correlation,
+                    state="accepted",
+                )
+                assert callback == TournamentResult.SUCCESS
+                assert match.challenge_correlation_id == initial_correlation
+            else:
+                callback = manager.handle_challenge_lifecycle_callback(
+                    t.tournament_id,
+                    correlation_id=initial_correlation,
+                    state="rejected",
+                )
+                assert callback == TournamentResult.SUCCESS
+                retry = manager.mark_match_dispatched(
+                    t.tournament_id,
+                    match.match_id,
+                    correlation_id=f"round1-retry-{index}",
+                )
+                assert retry == TournamentResult.SUCCESS
+
+            winner = match.player_a_id or match.player_b_id
+            assert winner is not None
+            resolve = manager.report_match_result(
+                t.tournament_id, match.match_id, winner
+            )
+            assert resolve == TournamentResult.SUCCESS
+
     def test_resolve_no_show_timeout_enforces_policy_window(self):
         manager = _make_manager()
         t, _ = _setup_ready_tournament(manager)
