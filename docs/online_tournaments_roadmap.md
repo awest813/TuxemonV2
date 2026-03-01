@@ -59,9 +59,9 @@ These systems are the base for tournament brackets, match orchestration, and pos
   - [x] Create bracket from checked-in participants.
   - [x] Schedule matches for ready nodes (battle challenge wiring pending).
   - [x] Auto-advance winners and handle byes.
-- [ ] Add timeout/disconnect policy hooks:
+- [x] Add timeout/disconnect policy hooks:
   - Reconnect window and no-show handling per policy.
-- [ ] Add idempotent result ingestion:
+- [x] Add idempotent result ingestion:
   - Battle-end events cannot advance bracket twice.
 
 **Exit criteria:** end-to-end bracket progression works in local simulation with deterministic replay.
