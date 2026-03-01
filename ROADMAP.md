@@ -88,7 +88,7 @@ The original baseline milestones are complete; this expanded plan now tracks reb
 - [x] **Debugging workflow standardization**
   - Documented a shared triage flow in `docs/debugging_workflow.md` (status snapshot, narrow repro command, targeted test run, full regression pass).
   - Defined minimum diagnostic output requirements for bugfix PR descriptions in `docs/debugging_workflow.md`.
-- [ ] **Tooling architecture and contributor script polish**
+- [x] **Tooling architecture and contributor script polish**
   - Execute phased plan in `docs/tools_expansion_roadmap.md` for utility modularization, validation hardening, and script UX consistency.
   - Keep backward-compatible import facade during migration from `tuxemon/tools.py`.
 
