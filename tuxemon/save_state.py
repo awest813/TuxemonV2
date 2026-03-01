@@ -83,4 +83,5 @@ class SaveData(BaseModel):
     session_state: SessionSave | None = Field(default=None)
     shop_stock: dict[str, dict[str, Any]] = Field(default_factory=dict)
     multiplayer_battles: dict[str, Any] = Field(default_factory=dict)
+    tournament_data: dict[str, Any] = Field(default_factory=dict)
     persistent_state: list[NPCState] = Field(default_factory=list)
