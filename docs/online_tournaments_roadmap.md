@@ -141,7 +141,7 @@ Sprint board and scope are tracked in `docs/online_tournaments_sprint2.md`.
 
 Sprint board and scope are tracked in `docs/online_tournaments_sprint3.md`.
 
-- [ ] Challenge dispatch transport hooks integrated with tournament ready-match scheduling.
-- [ ] Timeout/disconnect policy hooks wired for no-show adjudication.
-- [ ] Idempotent dispatch callback handling validated with test coverage.
+- [~] Challenge dispatch transport hooks integrated with tournament ready-match scheduling (match dispatch correlation metadata + idempotent dispatch marking added).
+- [~] Timeout/disconnect policy hooks wired for no-show adjudication (scheduled-match no-show timeout resolution hook added).
+- [~] Idempotent dispatch callback handling validated with test coverage (tournament manager dispatch + correlation tests added).
 

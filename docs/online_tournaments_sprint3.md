@@ -23,20 +23,20 @@ Sprint 3 is considered complete when all of the following are true:
 ### Track A — Challenge Dispatch Integration
 
 - [ ] Add orchestration adapter to map a ready tournament match to challenge proposal payload.
-- [ ] Store challenge correlation metadata on tournament match records.
+- [x] Store challenge correlation metadata on tournament match records.
 - [ ] Handle challenge lifecycle callbacks (accepted, rejected, expired) and map them to tournament state transitions.
 
 ### Track B — Timeout/No-Show Policy Hooks
 
-- [ ] Add timeout evaluator that can resolve scheduled matches after policy threshold.
+- [x] Add timeout evaluator that can resolve scheduled matches after policy threshold.
 - [ ] Support reconnect grace handling before no-show adjudication.
 - [ ] Emit explicit moderation/admin events when automated adjudication occurs.
 
 ### Track C — Validation & Reliability
 
 - [ ] Add tests for one full round dispatched through challenge transport with deterministic seeds.
-- [ ] Add tests for duplicate dispatch callback handling.
-- [ ] Add tests for timeout-driven winner resolution and downstream auto-scheduling.
+- [x] Add tests for duplicate dispatch callback handling.
+- [x] Add tests for timeout-driven winner resolution and downstream auto-scheduling.
 
 ## Risks to Watch During Sprint 3
 
