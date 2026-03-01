@@ -17,7 +17,7 @@ from tuxemon.platform.const import buttons
 from tuxemon.platform.const.graphics import BG_PARTY
 from tuxemon.platform.const.sizes import U_KM, U_MI
 from tuxemon.prepare import SCREEN_SIZE
-from tuxemon.tools import fix_measure
+from tuxemon.tools.math import fix_measure
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient

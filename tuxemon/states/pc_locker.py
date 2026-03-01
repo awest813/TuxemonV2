@@ -24,7 +24,8 @@ from tuxemon.platform.const.graphics import BG_PC_LOCKER
 from tuxemon.prepare import SCREEN_SIZE
 from tuxemon.state.state import State
 from tuxemon.states.item_menu import ItemMenuState
-from tuxemon.tools import fix_measure, open_choice_dialog, open_dialog
+from tuxemon.tools.dialog import open_choice_dialog, open_dialog
+from tuxemon.tools.math import fix_measure
 from tuxemon.ui.menu_options import MenuOptions, create_choice_options
 
 logger = logging.getLogger(__name__)

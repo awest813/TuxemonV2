@@ -16,7 +16,7 @@ from tuxemon.menu.menu import PygameMenuState
 from tuxemon.platform.const import buttons
 from tuxemon.platform.const.graphics import BG_JOURNAL, DIMGRAY_COLOR
 from tuxemon.prepare import SCREEN_SIZE
-from tuxemon.tools import fix_measure
+from tuxemon.tools.math import fix_measure
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient

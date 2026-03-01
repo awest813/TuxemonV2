@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, final
 
 from tuxemon.event.eventaction import EventAction
-from tuxemon.tools import get_valid_uuid
+from tuxemon.tools.misc import get_valid_uuid
 
 if TYPE_CHECKING:
     from tuxemon.session import Session

@@ -26,7 +26,7 @@ from tuxemon.platform.const.sizes import MAX_MENU_ITEMS
 from tuxemon.platform.events import PlayerInput
 from tuxemon.session import local_session
 from tuxemon.sprite import Sprite
-from tuxemon.tools import open_choice_dialog, open_dialog
+from tuxemon.tools.dialog import open_choice_dialog, open_dialog
 from tuxemon.ui.paginator import Paginator
 from tuxemon.ui.text import TextArea
 

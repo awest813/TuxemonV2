@@ -12,7 +12,7 @@ from tuxemon.event.eventaction import EventAction
 from tuxemon.formula import modify_monster_custom_stat
 from tuxemon.monster.monster import Monster
 from tuxemon.session import Session
-from tuxemon.tools import get_valid_uuid
+from tuxemon.tools.misc import get_valid_uuid
 
 logger = logging.getLogger(__name__)
 

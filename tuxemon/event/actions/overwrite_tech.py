@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, final
 
 from tuxemon.event.eventaction import EventAction
 from tuxemon.technique.technique import Technique
-from tuxemon.tools import get_valid_uuid
+from tuxemon.tools.misc import get_valid_uuid
 
 if TYPE_CHECKING:
     from tuxemon.monster.monster import Monster

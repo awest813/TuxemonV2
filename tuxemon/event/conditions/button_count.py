@@ -6,7 +6,7 @@ from tuxemon.db import SpatialCondition
 from tuxemon.event.eventcondition import EventCondition
 from tuxemon.platform.const.intentions import constants
 from tuxemon.session import Session
-from tuxemon.tools import compare
+from tuxemon.tools.math import compare
 
 
 class ButtonCountCondition(EventCondition):

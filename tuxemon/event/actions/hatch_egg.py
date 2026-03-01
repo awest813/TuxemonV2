@@ -9,7 +9,7 @@ from typing import final
 from tuxemon.event.eventaction import EventAction
 from tuxemon.locale.locale import T
 from tuxemon.session import Session
-from tuxemon.tools import open_dialog
+from tuxemon.tools.dialog import open_dialog
 
 logger = logging.getLogger(__name__)
 

@@ -14,7 +14,7 @@ from tuxemon.db import ItemModel
 from tuxemon.menu.menu import PygameMenuState
 from tuxemon.menu.theme import get_theme
 from tuxemon.prepare import SCREEN_SIZE
-from tuxemon.tools import fix_measure
+from tuxemon.tools.math import fix_measure
 from tuxemon.ui.menu_options import MenuOptions
 
 if TYPE_CHECKING:

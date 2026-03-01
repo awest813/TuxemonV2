@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 from dataclasses import dataclass
 
 from tuxemon.db import Comparison
-from tuxemon.tools import compare
+from tuxemon.tools.math import compare
 
 
 @dataclass

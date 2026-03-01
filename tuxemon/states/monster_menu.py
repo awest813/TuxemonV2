@@ -24,7 +24,7 @@ from tuxemon.platform.const.graphics import BG_MONSTERS, TRANSPARENT_COLOR
 from tuxemon.platform.const.sizes import PARTY_LIMIT
 from tuxemon.prepare import SCREEN_SIZE
 from tuxemon.sprite import Sprite
-from tuxemon.tools import open_choice_dialog, open_dialog
+from tuxemon.tools.dialog import open_choice_dialog, open_dialog
 from tuxemon.ui.graphic_box import GraphicBox
 from tuxemon.ui.menu_options import (
     MenuOptions,

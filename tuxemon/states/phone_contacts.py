@@ -18,7 +18,7 @@ from tuxemon.platform.const.graphics import BG_PHONE_CONTACTS
 from tuxemon.platform.const.sizes import UNKNOWN_MAP_SLUG
 from tuxemon.prepare import SCREEN_SIZE
 from tuxemon.relationship import RelationshipConstants
-from tuxemon.tools import open_choice_dialog, open_dialog
+from tuxemon.tools.dialog import open_choice_dialog, open_dialog
 from tuxemon.ui.menu_options import MenuOptions, create_choice_options
 
 if TYPE_CHECKING:

@@ -9,7 +9,7 @@ from uuid import UUID
 
 from tuxemon.event.eventaction import EventAction
 from tuxemon.monster.monster import Monster
-from tuxemon.tools import get_valid_uuid
+from tuxemon.tools.misc import get_valid_uuid
 
 if TYPE_CHECKING:
     from tuxemon.session import Session

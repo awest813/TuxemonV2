@@ -61,7 +61,7 @@ from tuxemon.sprite import (
     VisualSpriteList,
 )
 from tuxemon.state.state import State
-from tuxemon.tools import transform_resource_filename
+from tuxemon.tools.misc import transform_resource_filename
 from tuxemon.ui.graphic_box import GraphicBox
 from tuxemon.ui.text_renderer import TextRenderer
 from tuxemon.user_config import CONFIG

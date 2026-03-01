@@ -8,7 +8,7 @@ from typing import final
 
 from tuxemon.event.eventaction import EventAction
 from tuxemon.session import Session
-from tuxemon.tools import parse_flag
+from tuxemon.tools.conditions import parse_flag
 
 logger = logging.getLogger(__name__)
 

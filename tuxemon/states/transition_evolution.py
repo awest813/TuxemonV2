@@ -16,7 +16,7 @@ from tuxemon.platform.const import buttons
 from tuxemon.platform.const.graphics import BLACK_COLOR, WHITE_COLOR
 from tuxemon.prepare import SCREEN_SIZE
 from tuxemon.state.state import State
-from tuxemon.tools import open_dialog
+from tuxemon.tools.dialog import open_dialog
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient

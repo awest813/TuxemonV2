@@ -14,7 +14,8 @@ from tuxemon.menu.interface import MenuItem
 from tuxemon.monster.monster import Monster
 from tuxemon.states.technique_menu import TechniqueMenuState
 from tuxemon.technique.technique import Technique
-from tuxemon.tools import get_valid_uuid, open_choice_dialog
+from tuxemon.tools.dialog import open_choice_dialog
+from tuxemon.tools.misc import get_valid_uuid
 from tuxemon.ui.menu_options import MenuOptions, create_choice_options
 
 if TYPE_CHECKING:

@@ -19,7 +19,7 @@ from tuxemon.script.parser import (
     parse_behav_string,
     parse_condition_string,
 )
-from tuxemon.tools import safe_enum_value
+from tuxemon.tools.misc import safe_enum_value
 
 if TYPE_CHECKING:
     from tuxemon.db import BoundingBox

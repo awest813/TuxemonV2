@@ -10,7 +10,7 @@ from tuxemon.entity.dialogue_profile import DialogueProfileManager
 from tuxemon.event.eventaction import EventAction
 from tuxemon.locale.locale import T
 from tuxemon.session import Session
-from tuxemon.tools import open_dialog
+from tuxemon.tools.dialog import open_dialog
 from tuxemon.ui.text_formatter import TextFormatter
 
 logger = logging.getLogger(__name__)

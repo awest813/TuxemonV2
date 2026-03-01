@@ -12,7 +12,7 @@ from tuxemon.database.yaml_utils import load_yaml
 from tuxemon.event.eventaction import EventAction
 from tuxemon.session import Session
 from tuxemon.technique.technique import Technique
-from tuxemon.tools import get_valid_uuid
+from tuxemon.tools.misc import get_valid_uuid
 
 logger = logging.getLogger(__name__)
 

@@ -17,7 +17,8 @@ from tuxemon.menu.menu import PygameMenuState
 from tuxemon.monster.sprite import MonsterSpriteHandler, SpriteLoader
 from tuxemon.platform.const.graphics import BG_MINIGAME, MISSING_IMAGE
 from tuxemon.prepare import SCREEN_SIZE
-from tuxemon.tools import fix_measure, open_dialog
+from tuxemon.tools.dialog import open_dialog
+from tuxemon.tools.math import fix_measure
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient

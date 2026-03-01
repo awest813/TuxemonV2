@@ -14,7 +14,7 @@ from tuxemon.platform.const.sizes import (
 )
 from tuxemon.session import Session
 from tuxemon.technique.technique import Technique
-from tuxemon.tools import get_valid_uuid
+from tuxemon.tools.misc import get_valid_uuid
 
 logger = logging.getLogger(__name__)
 
