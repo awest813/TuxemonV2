@@ -58,6 +58,7 @@ class TournamentResult(Enum):
     MATCH_NOT_FOUND = "match_not_found"
     INVALID_WINNER = "invalid_winner"
     INVALID_BRACKET_SIZE = "invalid_bracket_size"
+    INVALID_CHALLENGE_STATE = "invalid_challenge_state"
 
 
 @dataclass
@@ -638,6 +639,65 @@ class TournamentManager:
             },
         )
         return TournamentResult.SUCCESS
+
+    def handle_challenge_lifecycle_callback(
+        self,
+        tournament_id: UUID,
+        *,
+        correlation_id: str,
+        state: str,
+    ) -> TournamentResult:
+        """Map challenge transport lifecycle callbacks to match state events.
+
+        Supported callback states:
+        - accepted: challenge accepted, match remains scheduled.
+        - rejected: challenge declined, dispatch metadata is cleared for retry.
+        - expired: challenge timed out, dispatch metadata is cleared for retry.
+        """
+        tournament = self._find_tournament(tournament_id)
+        if tournament is None:
+            return TournamentResult.NOT_FOUND
+
+        match = next(
+            (
+                m
+                for m in tournament.matches
+                if m.challenge_correlation_id == correlation_id
+            ),
+            None,
+        )
+        if match is None:
+            return TournamentResult.MATCH_NOT_FOUND
+        if match.status != MatchStatus.SCHEDULED:
+            return TournamentResult.INVALID_STATE
+
+        normalized_state = state.strip().lower()
+        if normalized_state == "accepted":
+            self.event_bus.publish(
+                "tournament_match_challenge_accepted",
+                {
+                    "tournament_id": str(tournament_id),
+                    "match_id": str(match.match_id),
+                    "correlation_id": correlation_id,
+                },
+            )
+            return TournamentResult.SUCCESS
+
+        if normalized_state in {"rejected", "expired"}:
+            match.challenge_correlation_id = None
+            match.challenge_dispatched_at = None
+            self.event_bus.publish(
+                "tournament_match_challenge_requeue_requested",
+                {
+                    "tournament_id": str(tournament_id),
+                    "match_id": str(match.match_id),
+                    "correlation_id": correlation_id,
+                    "reason": normalized_state,
+                },
+            )
+            return TournamentResult.SUCCESS
+
+        return TournamentResult.INVALID_CHALLENGE_STATE
 
     # ------------------------------------------------------------------
     # Winner advancement
