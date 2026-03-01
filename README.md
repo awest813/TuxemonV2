@@ -1,70 +1,80 @@
 # OpenCapsuleMon (TuxemonV2 Fork)
 
-This repository is the **rebrand transition branch** of TuxemonV2 toward **OpenCapsuleMon**, a free and open-source monster-battling RPG project.
+OpenCapsuleMon is a free and open-source monster-battling RPG project evolving from the TuxemonV2 lineage.
 
-Our immediate goal is to keep shipping practical gameplay systems while we gradually align naming, documentation, and contributor workflows under the OpenCapsuleMon identity.
+This branch is focused on a clear product direction:
 
-> Rebrand note: core runtime commands and package/module names are still Tuxemon-based during this transition.
+- **Gold/Silver-inspired adventure design**
+- **Online tournaments**
+- **Online casino + battle center**
+- **Easy campaign maker for creators**
+- **Polished rules and settings for fair, transparent play**
+
+> Transition note: runtime command names and many internal package paths still use `tuxemon` for compatibility.
 
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
 
 ---
 
-## Current Project Snapshot
+## Vision
 
-Check local status at any time:
+OpenCapsuleMon aims to combine:
 
-```bash
-python run_tuxemon.py --status
-```
+1. **Classic adventure feel** inspired by the depth, rhythm, and replayability associated with Gold/Silver-era monster RPG design.
+2. **Modern online infrastructure** for competitive and social play.
+3. **Creator-first tooling** so players can build and share complete campaigns without deep engine knowledge.
+4. **Reliable rules and settings** that make gameplay expectations explicit in both solo and online modes.
 
-Snapshot at the time of this README update:
-
-- Branch: `jules-17203497601987000977-14b0675b`
-- Commit: `2d14667`
-- Monsters: 411
-- Techniques: 274
-- Items: 221
-- NPCs: 122
-- Maps: 224
-- Localization catalogs (`.po`): 14
-- Roadmap checklist completion: **24/31**
-
-For milestone details, see [`ROADMAP.md`](ROADMAP.md).
-
-For naming conventions and staged compatibility policy, see [`docs/rebrand_transition.md`](docs/rebrand_transition.md).
+If you want the execution details, read [`ROADMAP.md`](ROADMAP.md).
 
 ---
 
-## What OpenCapsuleMon Focuses On
+## Core Focus Areas
 
-Compared with a baseline upstream-oriented workflow, this branch currently emphasizes:
+### 1) Gold/Silver-Inspired Features
+- Time-aware gameplay loops (day/night/weekday impacts).
+- Rematch and world-evolution progression loops.
+- Strong post-game identity connecting campaign and online systems.
 
-- **Progress visibility:** built-in `--status` reporting with content and roadmap summary.
-- **Gameplay systems:** breeding/egg hatching, weather, fishing, and day/night cycles.
-- **Online interaction reliability:** hardened trade and multiplayer challenge lifecycles with persistence and expiration handling.
-- **Backward compatibility:** save/load tolerance for legacy keys and malformed historical records in multiplayer/trade logs.
-- **Transition safety:** incremental rebrand work that avoids breaking existing save/runtime workflows.
+### 2) Online Tournaments
+- Structured brackets, seasonal organization, and adjudication.
+- Reconnect/no-show handling designed for real online operations.
+- Clear player notifications for check-ins, pairings, and outcomes.
+
+### 3) Online Casino + Battle Center
+- Social online hubs for repeatable activities outside standard campaign routes.
+- Casino systems with fairness and anti-abuse safeguards.
+- Battle center support for quick matches, room play, and spectator-ready listing.
+
+### 4) Easy Campaign Maker
+- Guided workflows for maps, events, encounters, and progression.
+- Validation-first UX to prevent broken campaigns before export.
+- Template-driven onboarding for first-time creators.
+
+### 5) Polished Rules and Settings
+- Transparent rulesets and settings precedence.
+- Presets for campaign, casual online, and tournament contexts.
+- Deterministic behavior backed by regression testing.
 
 ---
 
 ## Quick Start
 
-### 1) Clone
+### Clone
 
 ```bash
 git clone <your-fork-url>
 cd TuxemonV2
 ```
 
-### 2) Install (editable)
+### Install (editable)
 
 ```bash
 python -m pip install -e . --no-build-isolation
 ```
 
-### 3) Run
+### Run
 
 ```bash
 python run_tuxemon.py
@@ -74,31 +84,31 @@ python run_tuxemon.py
 
 ## Useful Commands
 
-### Show fork progress summary
+### Status Snapshot
 
 ```bash
 python run_tuxemon.py --status
 ```
 
-### Run headless
+### Headless Run
 
 ```bash
 python run_tuxemon.py --headless
 ```
 
-### Load a specific save slot
+### Load Save Slot
 
 ```bash
 python run_tuxemon.py --load 1
 ```
 
-### Start directly on a map (debug workflow)
+### Map-Focused Debug Entrypoint
 
 ```bash
 python run_tuxemon.py --test-map starting_town
 ```
 
-### Use a custom mod directory
+### Custom Mod Directory
 
 ```bash
 python run_tuxemon.py --mod /path/to/mod
@@ -106,82 +116,45 @@ python run_tuxemon.py --mod /path/to/mod
 
 ---
 
-## Development Notes
+## Development Layout
 
-- Core game code: `tuxemon/`
-- Bundled content and gameplay data: `mods/`
+- Engine and game logic: `tuxemon/`
+- Built-in content and gameplay data: `mods/`
 - Tests: `tests/`
-- Sphinx docs: `docs/`
+- Documentation: `docs/`
 
-Run the test suite with:
+Run tests:
 
 ```bash
-pytest
+pytest -q
 ```
 
-### Debugging quickstart
+---
 
-When something behaves unexpectedly, use this lightweight sequence before deeper changes:
+## Contributor Priorities (Current)
 
-1. Confirm content/roadmap state and commit identity:
+When contributing, prioritize changes that move one or more of these outcomes forward:
 
-   ```bash
-   python run_tuxemon.py --status
-   ```
+1. Gold/Silver-inspired campaign depth and replay loops.
+2. Tournament operations stability and communication UX.
+3. Battle center / casino systems with healthy economy controls.
+4. Campaign maker ergonomics for non-programmer creators.
+5. Rules/settings clarity, predictability, and documentation quality.
 
-2. Reproduce with a narrow entrypoint (headless or map-focused):
+Include in your PR:
 
-   ```bash
-   python run_tuxemon.py --headless
-   python run_tuxemon.py --test-map starting_town
-   ```
-
-3. Run targeted tests first, then full tests if needed:
-
-   ```bash
-   pytest tests/tuxemon/test_network_controller.py -q
-   pytest -q
-   ```
-
-4. If changing save, trade, or multiplayer behavior, verify backward compatibility paths with existing fixtures in `tests/` before merging.
+- Player-facing behavior summary
+- Test or validation evidence
+- Save/migration notes when behavior or schema changes
+- Rule/settings impact notes when applicable
 
 ---
 
-## Next Steps (Recommended Focus)
+## Transition + Attribution
 
-With the completed baseline now expanded into a broader 29-item plan, the next wave focuses on identity transition, quality, and scale:
+OpenCapsuleMon currently builds from TuxemonV2 and preserves upstream attribution and GPLv3 licensing obligations.
 
-1. **OpenCapsuleMon rebrand foundation**
-   - Align project-facing naming and messaging while preserving compatibility.
-2. **Multiplayer battle execution loop**
-   - Move from challenge lifecycle completion to full synchronous battle state exchange.
-3. **Online trading UX + security hardening**
-   - Add clearer user-facing states and robust conflict handling for reconnect/retry scenarios.
-4. **Content pipeline automation**
-   - Expand validation scripts for monsters, maps, and localization consistency in CI.
-5. **Balance and progression tuning**
-   - Audit encounter pacing, move power curves, and economy progression in mid/late game.
-
-Detailed sequencing and ownership notes are tracked in [`ROADMAP.md`](ROADMAP.md).
-
----
-
-## Contributing
-
-Contributions are welcome. When opening a change, include:
-
-- A concise gameplay/tooling impact summary
-- Test results (or clear rationale when a test cannot run)
-- Migration notes for saves/content when relevant
-- Rebrand impact notes when changing user-facing names, docs, or release messaging
-
----
-
-## Upstream Attribution
-
-OpenCapsuleMon currently builds from the TuxemonV2 fork lineage and preserves upstream attribution and GPLv3 licensing obligations.
-
-Tuxemon originated at:
+Tuxemon origins:
 
 - Website: <https://www.tuxemon.org>
 - Upstream source: <https://github.com/Tuxemon/Tuxemon>
