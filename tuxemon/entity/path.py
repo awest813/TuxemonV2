@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from tuxemon.db import Direction, FacingMode
 from tuxemon.map.map import dirs2, get_direction
 from tuxemon.math import Vector2
-from tuxemon.tools import vector2_to_tile_pos
+from tuxemon.tools.math import vector2_to_tile_pos
 
 if TYPE_CHECKING:
     from tuxemon.entity.npc import NPC

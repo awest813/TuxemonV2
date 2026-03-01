@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from tuxemon.locale.locale import T
 from tuxemon.platform.const.sizes import MAX_LOCKER
-from tuxemon.tools import open_dialog
+from tuxemon.tools.dialog import open_dialog
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient

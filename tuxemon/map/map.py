@@ -13,7 +13,7 @@ from tuxemon.compat.rect import ReadOnlyRect
 from tuxemon.db import Direction, Orientation
 from tuxemon.math import Vector2, Vector3
 from tuxemon.prepare import DisplayContext
-from tuxemon.tools import round_to_divisible
+from tuxemon.tools.math import round_to_divisible
 
 if TYPE_CHECKING:
     from tuxemon.map.region import RegionProperties

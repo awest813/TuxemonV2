@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar
 
-from tuxemon.tools import cast_dataclass_parameters
+from tuxemon.tools.casting import cast_dataclass_parameters
 
 if TYPE_CHECKING:
     from tuxemon.item.item import Item
