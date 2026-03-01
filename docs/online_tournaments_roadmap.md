@@ -135,13 +135,13 @@ Sprint board and scope are tracked in `docs/online_tournaments_sprint2.md`.
 - [x] Bracket match scheduling implemented in tournament service layer.
 - [x] Token-guarded idempotent result ingestion implemented.
 - [x] Test coverage added for scheduling + ingestion guards.
-- [ ] Integrate challenge dispatch transport hooks.
+- [x] Integrate challenge dispatch transport hooks.
 
 ## Sprint 3 Kickoff (In Progress)
 
 Sprint board and scope are tracked in `docs/online_tournaments_sprint3.md`.
 
-- [~] Challenge dispatch transport hooks integrated with tournament ready-match scheduling (match dispatch correlation metadata + idempotent dispatch marking added, lifecycle callback mapping for accepted/rejected/expired added).
+- [x] Challenge dispatch transport hooks integrated with tournament ready-match scheduling (match dispatch correlation metadata + idempotent dispatch marking added, lifecycle callback mapping for accepted/rejected/expired added, and challenge proposal payload adapter added).
 - [~] Timeout/disconnect policy hooks wired for no-show adjudication (scheduled-match no-show timeout resolution hook added).
 - [~] Idempotent dispatch callback handling validated with test coverage (tournament manager dispatch/correlation tests + full round dispatch/retry flow coverage added).
 

@@ -62,6 +62,30 @@ class TournamentResult(Enum):
 
 
 @dataclass
+class TournamentChallengeProposal:
+    """Transport payload for dispatching a scheduled tournament match."""
+
+    tournament_id: UUID
+    match_id: UUID
+    challenger_player_id: UUID
+    challenged_player_id: UUID
+    correlation_id: str
+    round_index: int
+    match_index: int
+
+    def to_dict(self) -> dict[str, str | int]:
+        return {
+            "tournament_id": str(self.tournament_id),
+            "match_id": str(self.match_id),
+            "challenger_player_id": str(self.challenger_player_id),
+            "challenged_player_id": str(self.challenged_player_id),
+            "correlation_id": self.correlation_id,
+            "round_index": self.round_index,
+            "match_index": self.match_index,
+        }
+
+
+@dataclass
 class TournamentPolicy:
     team_size: int = 6
     level_cap: int = 50
@@ -639,6 +663,38 @@ class TournamentManager:
             },
         )
         return TournamentResult.SUCCESS
+
+    def build_challenge_dispatch_payload(
+        self,
+        tournament_id: UUID,
+        match_id: UUID,
+    ) -> TournamentResult | TournamentChallengeProposal:
+        """Build challenge transport payload for a scheduled tournament match."""
+        tournament = self._find_tournament(tournament_id)
+        if tournament is None:
+            return TournamentResult.NOT_FOUND
+
+        match = self._find_match(tournament, match_id)
+        if match is None:
+            return TournamentResult.MATCH_NOT_FOUND
+        if match.status != MatchStatus.SCHEDULED:
+            return TournamentResult.INVALID_STATE
+        if match.player_a_id is None or match.player_b_id is None:
+            return TournamentResult.INVALID_STATE
+
+        correlation = match.challenge_correlation_id or self._build_match_correlation_id(
+            tournament_id, match_id
+        )
+
+        return TournamentChallengeProposal(
+            tournament_id=tournament_id,
+            match_id=match_id,
+            challenger_player_id=match.player_a_id,
+            challenged_player_id=match.player_b_id,
+            correlation_id=correlation,
+            round_index=match.round_index,
+            match_index=match.match_index,
+        )
 
     def handle_challenge_lifecycle_callback(
         self,

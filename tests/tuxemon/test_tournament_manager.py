@@ -17,6 +17,7 @@ from tuxemon.tournament_manager import (
     MatchStatus,
     Participant,
     Tournament,
+    TournamentChallengeProposal,
     TournamentManager,
     TournamentPolicy,
     TournamentResult,
@@ -601,6 +602,40 @@ class TestMatchReporting:
             t.tournament_id, m.match_id, correlation_id="corr-2"
         )
         assert r2 == TournamentResult.DUPLICATE_RESULT
+
+    def test_build_challenge_dispatch_payload_for_scheduled_match(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+
+        payload = manager.build_challenge_dispatch_payload(
+            t.tournament_id, m.match_id
+        )
+
+        assert isinstance(payload, TournamentChallengeProposal)
+        assert payload.tournament_id == t.tournament_id
+        assert payload.match_id == m.match_id
+        assert payload.challenger_player_id == m.player_a_id
+        assert payload.challenged_player_id == m.player_b_id
+        assert payload.correlation_id == (
+            f"tournament:{t.tournament_id}:match:{m.match_id}"
+        )
+
+    def test_build_challenge_dispatch_payload_uses_existing_correlation(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+
+        marked = manager.mark_match_dispatched(
+            t.tournament_id, m.match_id, correlation_id="transport-correlation"
+        )
+        assert marked == TournamentResult.SUCCESS
+
+        payload = manager.build_challenge_dispatch_payload(
+            t.tournament_id, m.match_id
+        )
+        assert isinstance(payload, TournamentChallengeProposal)
+        assert payload.correlation_id == "transport-correlation"
 
     def test_challenge_callback_accepted_keeps_dispatch_metadata(self):
         manager = _make_manager()
