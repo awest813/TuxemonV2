@@ -136,3 +136,12 @@ Sprint board and scope are tracked in `docs/online_tournaments_sprint2.md`.
 - [x] Token-guarded idempotent result ingestion implemented.
 - [x] Test coverage added for scheduling + ingestion guards.
 - [ ] Integrate challenge dispatch transport hooks.
+
+## Sprint 3 Kickoff (In Progress)
+
+Sprint board and scope are tracked in `docs/online_tournaments_sprint3.md`.
+
+- [ ] Challenge dispatch transport hooks integrated with tournament ready-match scheduling.
+- [ ] Timeout/disconnect policy hooks wired for no-show adjudication.
+- [ ] Idempotent dispatch callback handling validated with test coverage.
+
