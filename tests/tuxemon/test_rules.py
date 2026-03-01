@@ -154,8 +154,9 @@ def test_single_mod_launch(monkeypatch):
         def __init__(self, client):
             pass
 
-        def launch(self, session, meta):
+        def launch(self, session, meta, start_map=None):
             calls["launched"] = True
+            calls["start_map"] = start_map
 
     monkeypatch.setattr(
         "tuxemon.startup_state_machine.GameLauncher", FakeLauncher
@@ -163,3 +164,31 @@ def test_single_mod_launch(monkeypatch):
     machine = StartupStateMachine(client, config, None)
     machine.run()
     assert calls.get("launched") is True
+
+
+def test_single_mod_launch_passes_test_map(monkeypatch):
+    client = DummyClient()
+    config = DummyConfig()
+    config.skip_titlescreen = True
+    config.mods = ["mod1"]
+    config.test_map = "debug_map.tmx"
+    monkeypatch.setattr(
+        db.mod_metadata,
+        "get_mod_metadata",
+        lambda name: DummyMeta(startup_rules=[]),
+    )
+    calls = {}
+
+    class FakeLauncher:
+        def __init__(self, client):
+            pass
+
+        def launch(self, session, meta, start_map=None):
+            calls["start_map"] = start_map
+
+    monkeypatch.setattr(
+        "tuxemon.startup_state_machine.GameLauncher", FakeLauncher
+    )
+    machine = StartupStateMachine(client, config, None)
+    machine.run()
+    assert calls.get("start_map") == "debug_map.tmx"

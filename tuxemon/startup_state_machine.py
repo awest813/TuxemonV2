@@ -101,7 +101,11 @@ class RuleMods(StartupRule):
         if len(self.config.mods) == 1:
             launcher = GameLauncher(self.client)
             meta = db.mod_metadata.get_mod_metadata(self.config.mods[0])
-            launcher.launch(session=local_session, meta=meta)
+            launcher.launch(
+                session=local_session,
+                meta=meta,
+                start_map=getattr(self.config, "test_map", None),
+            )
         else:
             self.client.push_state("ModsChoice", mods=self.config.mods)
 

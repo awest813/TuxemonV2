@@ -93,6 +93,7 @@ def apply_config_from_args(config: "TuxemonConfig", args: Namespace) -> None:
         config.mods.insert(0, args.mod)
 
     if args.test_map:
+        config.test_map = args.test_map
         config.skip_titlescreen = True
         config.splash = False
 
