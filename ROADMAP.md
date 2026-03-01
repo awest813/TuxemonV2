@@ -10,6 +10,19 @@ This roadmap is now centered on five product pillars:
 
 ---
 
+## In-Game Economy Policy
+
+**The online casino and all wager-based systems use in-game currency exclusively.**
+
+- In-game coins/tokens are earned through gameplay (battles, exploration, quests, daily bonuses).
+- There is no way to purchase, sell, or convert in-game currency using real money.
+- No payment processor, storefront, or external currency system is integrated at any layer.
+- This constraint applies to the casino, battle center wagers, seasonal prizes, and any future reward system.
+
+This is a foundational design rule, not a configuration option. Any contribution that introduces a real-money pathway will be rejected regardless of scope.
+
+---
+
 ## Strategic Focus (2026)
 
 ### Pillar A — Gold/Silver-Inspired Core Experience
@@ -31,9 +44,12 @@ Build the canonical competitive layer around predictable seasons and clear match
 ### Pillar C — Online Casino and Battle Center
 Create social multiplayer destinations that sit between campaign and ranked play:
 
-- **Online casino** with tokenized mini-games, anti-abuse safeguards, and transparent payout rules.
+- **Online casino** — powered exclusively by **in-game currency** (coins/tokens earned through gameplay). No real money, no microtransactions, no external payment systems of any kind.
+- Casino mini-games include anti-abuse safeguards, transparent payout rules, and daily earn caps so the economy stays healthy for all players.
 - **Battle center** featuring public matchmaking desks, private rooms, and spectator-ready match listings.
-- Shared reward economy that avoids pay-to-win pressure and preserves competitive fairness.
+- Shared in-game reward economy that avoids pay-to-win pressure and preserves competitive fairness.
+
+> **Currency Policy:** The casino and all in-game wager systems operate solely on in-game coins/tokens. There is no mechanism to purchase, convert, or exchange in-game currency for real-world money or any external currency. This is a hard design constraint, not an optional setting.
 
 ### Pillar D — Campaign Maker
 Ship a creator-first toolset so non-programmer users can build full campaigns:
@@ -87,9 +103,14 @@ Make all key gameplay and online behaviors explicit, configurable, and testable:
 - [ ] Support spectators/read-only streams for completed and active matches.
 
 ### 2.3 Online Casino MVP
+**All casino systems use in-game currency only. No real money, payments, or external currency is involved at any layer.**
+
 - [ ] Design game catalog with fairness audits and expected-value guardrails.
-- [ ] Implement token wallet, sink/source balancing, and anti-farming protections.
+- [ ] Implement in-game coin/token wallet with earn-only model: coins are earned through gameplay, never purchased.
+- [ ] Enforce daily earn caps and sink/source balancing to prevent exploit farming.
 - [ ] Add integrity telemetry and moderation controls.
+- [ ] Add explicit UI messaging on every casino screen confirming in-game-only currency use.
+- [ ] Ensure no code path, API, or data schema references real-world payment amounts, currencies, or processors.
 
 ---
 
@@ -119,8 +140,9 @@ Make all key gameplay and online behaviors explicit, configurable, and testable:
 - [ ] Add post-credits challenge arc that connects with battle center and tournaments.
 
 ### 4.2 Economy + Progression Balance
-- [ ] Balance casino rewards, battle center rewards, and campaign economy as a single system.
+- [ ] Balance casino rewards, battle center rewards, and campaign economy as a single in-game system.
 - [ ] Validate anti-grind/anti-exploit constraints with simulation + playtests.
+- [ ] Confirm no real-money flow exists in any economy path (audit checklist as part of phase acceptance).
 
 ### 4.3 Ruleset Polish
 - [ ] Finalize default and optional clauses for organized play.
@@ -134,7 +156,7 @@ To declare alpha readiness, all conditions below must be met:
 
 1. **Classic-inspired campaign loop is playable end-to-end**, including day/night/time-aware content and a recognizable post-game track.
 2. **Online tournaments are season-capable** with stable bracket flow, adjudication, and player communication.
-3. **Battle center and casino are live in MVP form** with moderation, anti-abuse controls, and clear economy boundaries.
+3. **Battle center and casino are live in MVP form** with moderation, anti-abuse controls, clear economy boundaries, and verified in-game-only currency use (no real-money path exists anywhere).
 4. **Campaign maker supports non-programmer creators** from project creation through validated export.
 5. **Rules/settings system is polished and reliable**, with documented precedence, UI clarity, and regression coverage.
 
