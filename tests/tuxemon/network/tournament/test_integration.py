@@ -25,9 +25,8 @@ def test_full_bracket_simulation():
     t.transition(TournamentState.CHECKIN)
     t.seed = 12345
 
-    # Generate Bracket
+    # Generate Bracket (transitions to IN_PROGRESS internally)
     generate_bracket(t)
-    t.transition(TournamentState.IN_PROGRESS)
 
     assert len(t.nodes) == 7
 
@@ -79,7 +78,6 @@ def test_idempotent_result():
     t.seed = 1
 
     generate_bracket(t)
-    t.transition(TournamentState.IN_PROGRESS)
 
     node = t.nodes["node_1"]
 
@@ -115,6 +113,9 @@ def test_result_requires_in_progress_state():
     generate_bracket(t)
 
     node = t.nodes["node_1"]
+
+    # Cancel the tournament so it is no longer IN_PROGRESS
+    t.transition(TournamentState.CANCELLED)
 
     with pytest.raises(ValueError):
         process_match_result(t, node.id, node.player1_id, "token1")
