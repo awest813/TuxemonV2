@@ -91,6 +91,7 @@ The original baseline milestones are complete; this expanded plan now tracks reb
 - [ ] **Tooling architecture and contributor script polish**
   - Execute phased plan in `docs/tools_expansion_roadmap.md` for utility modularization, validation hardening, and script UX consistency.
   - Keep backward-compatible import facade during migration from `tuxemon/tools.py`.
+  - Session 1/2 complete: published runtime tool architecture/contracts in `docs/tools_architecture.md`, created extraction issue map in `docs/tools_extraction_issues.md`, and tagged migration candidates in `tuxemon/tools.py` with issue-linked TODO markers.
 
 ### Phase 3 — Content and Balance
 - [ ] **Progression balancing pass**

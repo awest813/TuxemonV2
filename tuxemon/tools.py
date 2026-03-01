@@ -71,6 +71,7 @@ ValidParameterTypes = (
 )
 
 
+# TODO(TOOLS-105): Extract pure math helpers into `tuxemon.tools.math_utils`.
 def safe_floordiv(a: float, b: float) -> int:
     if b == 0:
         return int(a)  # no-op fallback
@@ -85,6 +86,7 @@ ops_dict: Mapping[str, Callable[[float, float], int]] = {
 }
 
 
+# TODO(TOOLS-105): Extract pure math helpers into `tuxemon.tools.math_utils`.
 def get_cell_coordinates(
     rect: ReadOnlyRect,
     point: tuple[int, int],
@@ -97,6 +99,7 @@ def get_cell_coordinates(
     return (cell_x, cell_y)
 
 
+# TODO(TOOLS-105): Extract resource helpers into `tuxemon.tools.resources`.
 def transform_resource_filename(*filename: str) -> str:
     """
     Appends the resource folder name to a filename.
@@ -137,6 +140,7 @@ def scale(number: int, scaling: ScalingStrategy | None = None) -> int:
 TEnum = TypeVar("TEnum", bound=Enum)
 
 
+# TODO(TOOLS-104): Extract enum/identifier safety helpers into `tuxemon.tools.identifiers`.
 def safe_enum_value(
     enum_class: type[TEnum],
     value: str | None,
@@ -160,6 +164,7 @@ def safe_enum_value(
         return default
 
 
+# TODO(TOOLS-104): Extract enum/identifier safety helpers into `tuxemon.tools.identifiers`.
 def get_valid_uuid(
     game_variables: ScopeVariablesManager, variable_name: str
 ) -> UUID | None:
@@ -181,11 +186,13 @@ def get_valid_uuid(
         return None
 
 
+# TODO(TOOLS-105): Extract pure math helpers into `tuxemon.tools.math_utils`.
 def fix_measure(measure: int, percentage: float) -> int:
     """it returns the correct measure based on percentage"""
     return round(measure * percentage)
 
 
+# TODO(TOOLS-103): Extract dialog wrappers into `tuxemon.tools.dialog`.
 def open_dialog(
     client: BaseClient,
     text: Sequence[str],
@@ -241,6 +248,7 @@ def open_dialog(
     )
 
 
+# TODO(TOOLS-103): Extract dialog wrappers into `tuxemon.tools.dialog`.
 def open_choice_dialog(
     client: BaseClient,
     menu: MenuOptions,
@@ -307,6 +315,7 @@ def number_or_variable(variables: dict[str, Any], value: str) -> float:
             )
 
 
+# TODO(TOOLS-101): Extract conversion helpers into `tuxemon.tools.casting`.
 def cast_value(
     i: tuple[tuple[ValidParameterTypes, str], Any],
 ) -> Any:
@@ -628,6 +637,7 @@ def assert_never(value: Never) -> NoReturn:
     assert False, f"Unhandled value: {value} ({type(value).__name__})"
 
 
+# TODO(TOOLS-102): Extract comparator helpers into `tuxemon.tools.conditions`.
 def compare(key: str, value1: int | float, value2: int | float) -> bool:
     """
     It compares and it returns a boleean whether is greater_than or not.
@@ -663,6 +673,7 @@ def compare(key: str, value1: int | float, value2: int | float) -> bool:
         raise ValueError(f"{key} isn't among {list(Comparison)}")
 
 
+# TODO(TOOLS-102): Extract comparator helpers into `tuxemon.tools.conditions`.
 def compare_tuple(
     key: str,
     value1: tuple[int | float, int | float],
