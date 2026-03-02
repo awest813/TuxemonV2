@@ -13,6 +13,7 @@ from datetime import datetime
 from typing import Any
 
 from tuxemon.save_state import TIME_FORMAT, TrainerState
+from tuxemon.time_hooks import RematchEligiblePayload, hooks
 
 logger = logging.getLogger(__name__)
 
@@ -89,9 +90,26 @@ class TrainerStateManager:
             rematch_eligible=state.rematch_eligible,
         )
 
-    def set_rematch_eligible(self, trainer_id: str, eligible: bool) -> None:
-        """Update rematch eligibility for *trainer_id*."""
+    def set_rematch_eligible(
+        self,
+        trainer_id: str,
+        eligible: bool,
+        player_id: str = "",
+    ) -> None:
+        """
+        Update rematch eligibility for *trainer_id*.
+
+        When *eligible* is ``True`` and the trainer was not already eligible,
+        fires Hook 4.6 (``on_rematch_eligible``) so content systems can add
+        the trainer to the phone-contact call pool and enable rematch dialogue.
+
+        Parameters:
+            trainer_id: Stable identifier of the trainer NPC.
+            eligible: New eligibility value.
+            player_id: Slug of the owning player NPC (used in the hook payload).
+        """
         state = self.get(trainer_id)
+        was_eligible = state.rematch_eligible
         self._states[trainer_id] = TrainerState(
             trainer_id=trainer_id,
             defeated=state.defeated,
@@ -99,6 +117,13 @@ class TrainerStateManager:
             rematch_count=state.rematch_count,
             rematch_eligible=eligible,
         )
+        if eligible and not was_eligible:
+            hooks.fire_rematch_eligible(
+                RematchEligiblePayload(
+                    trainer_id=trainer_id,
+                    player_id=player_id,
+                )
+            )
 
     def record_rematch(self, trainer_id: str) -> None:
         """Increment the rematch counter and stamp the current time."""
