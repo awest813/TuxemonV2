@@ -32,9 +32,10 @@ from tuxemon.time_handler import TimeHandler
 from tuxemon.time_hooks import MapZoneEnterPayload, hooks
 from tuxemon.world.clock_watcher import ClockWatcher
 from tuxemon.world.manager import WorldMenuManager
+from tuxemon.world.rematch_progression import RematchProgressionService
 from tuxemon.world.transition import WorldTransition
+from tuxemon.world.weekly_event_loader import load_weekly_event_calendar
 from tuxemon.world.weekly_events import (
-    WeeklyEventCalendar,
     WeeklyEventScheduler,
 )
 
@@ -112,7 +113,10 @@ class WorldState(State):
 
         self.clock_watcher = ClockWatcher()
         self._time_handler = TimeHandler()
-        self.weekly_scheduler = WeeklyEventScheduler(WeeklyEventCalendar())
+        self.rematch_progression = RematchProgressionService(self.player)
+        self.weekly_scheduler = WeeklyEventScheduler(
+            load_weekly_event_calendar()
+        )
         self.client.map_transition.register_post_change_listener(
             self._on_map_changed
         )
@@ -181,6 +185,7 @@ class WorldState(State):
         """
         super().update(time_delta)
         self.clock_watcher.tick()
+        self.rematch_progression.tick()
         self.faction_manager.update(time_delta, self.session)
         self.client.npc_manager.update_npcs(time_delta, self.client)
         self.client.npc_manager.update_npcs_off_map(time_delta, self.client)

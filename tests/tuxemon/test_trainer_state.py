@@ -196,3 +196,54 @@ def test_multiple_trainers_independent(mgr: TrainerStateManager):
     assert mgr.is_defeated("trainer_b") is False
     assert mgr.is_rematch_eligible("trainer_a") is False
     assert mgr.is_rematch_eligible("trainer_b") is True
+
+
+# ---------------------------------------------------------------------------
+# TrainerStateManager — progression-aware eligibility
+# ---------------------------------------------------------------------------
+
+
+def test_evaluate_rematch_eligibility_requires_defeat(mgr: TrainerStateManager):
+    eligible = mgr.evaluate_rematch_eligibility("trainer_1", badge_count=10)
+    assert eligible is False
+    assert mgr.is_rematch_eligible("trainer_1") is False
+
+
+def test_evaluate_rematch_eligibility_respects_badge_threshold(
+    mgr: TrainerStateManager,
+):
+    mgr.record_defeat("trainer_1")
+    eligible = mgr.evaluate_rematch_eligibility(
+        "trainer_1",
+        badge_count=3,
+        required_badges=4,
+    )
+    assert eligible is False
+
+    eligible = mgr.evaluate_rematch_eligibility(
+        "trainer_1",
+        badge_count=4,
+        required_badges=4,
+    )
+    assert eligible is True
+
+
+def test_evaluate_rematch_eligibility_respects_milestones(
+    mgr: TrainerStateManager,
+):
+    mgr.record_defeat("trainer_1")
+    achieved = {"story_complete"}
+    eligible = mgr.evaluate_rematch_eligibility(
+        "trainer_1",
+        required_milestones=("story_complete", "returner"),
+        milestone_checker=lambda milestone_id: milestone_id in achieved,
+    )
+    assert eligible is False
+
+    achieved.add("returner")
+    eligible = mgr.evaluate_rematch_eligibility(
+        "trainer_1",
+        required_milestones=("story_complete", "returner"),
+        milestone_checker=lambda milestone_id: milestone_id in achieved,
+    )
+    assert eligible is True

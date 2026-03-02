@@ -157,9 +157,17 @@ Make all key gameplay and online behaviors explicit, configurable, and testable:
 ## Phase 4 — Gold/Silver-Inspired Content Realization
 
 ### 4.1 Adventure Loop Delivery
-- [ ] Deliver time-based encounter rotations and weekly world events.
-- [ ] Ship rematch progression that responds to player advancement.
-- [ ] Add post-credits challenge arc that connects with battle center and tournaments.
+- [x] Deliver time-based encounter rotations and weekly world events.
+  - `tuxemon/encounter.py` — encounter resolution enforces per-entry time/season/weekday restrictions before each wild roll.
+  - `tuxemon/world/weekly_events.py` — `WeeklyEventScheduler` now enforces per-window idempotency so weekly events do not re-trigger when re-entering a map during the same time window.
+  - `tuxemon/world/weekly_event_loader.py` + `tuxemon/states/world_state.py` — weekly event manifests are auto-discovered from active mods and loaded into the world scheduler at runtime.
+- [x] Ship rematch progression that responds to player advancement.
+  - `tuxemon/world/rematch_progression.py` — `RematchProgressionService` watches player badge/milestone progression and re-evaluates trainer rematch gates when progression changes.
+  - `tuxemon/entity/trainer_state.py` — `evaluate_rematch_eligibility()` centralizes defeat + badge + milestone requirement evaluation for each trainer.
+  - `tuxemon/combat/utils.py` — trainer victories now track rematch wins and re-run progression-based eligibility instead of permanently enabling rematches on first defeat.
+- [x] Add post-credits challenge arc that connects with battle center and tournaments.
+  - `tuxemon/world/milestone_tracker.py` — post-credits progression now records Battle Center match outcomes and unlocks tournament progression only after story completion + required Battle Center wins.
+  - Tier 3 milestone methods (`record_tournament_win`, `record_ladder_threshold`) now require post-credits tournament unlock state, linking battle-center progression to tournament milestone advancement.
 
 ### 4.2 Economy + Progression Balance
 - [ ] Balance casino rewards, battle center rewards, and campaign economy as a single in-game system.

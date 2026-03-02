@@ -169,7 +169,19 @@ class WeeklyEventScheduler:
     def __init__(self, calendar: WeeklyEventCalendar) -> None:
         self.calendar = calendar
         self._open_events: set[str] = set()
+        self._fired_windows: set[tuple[str, str]] = set()
+        self._last_window_token: str | None = None
         self._time_handler = TimeHandler()
+
+    @staticmethod
+    def _window_token(weekday: str, time_segment: str) -> str:
+        """Return a stable token identifying the current calendar window."""
+        return f"{weekday}:{time_segment}"
+
+    @staticmethod
+    def _event_window_key(event_id: str, window_token: str) -> tuple[str, str]:
+        """Return the idempotency key for an event within a window."""
+        return (event_id, window_token)
 
     def tick(self, zone_id: str = "") -> None:
         """
@@ -184,6 +196,11 @@ class WeeklyEventScheduler:
         weekday = snap.weekday
         time_segment = snap.stage_of_day
         now = datetime.now()
+        window_token = self._window_token(weekday, time_segment)
+
+        if self._last_window_token != window_token:
+            self._fired_windows.clear()
+            self._last_window_token = window_token
 
         currently_active: set[str] = set()
 
@@ -201,6 +218,9 @@ class WeeklyEventScheduler:
             event = self.calendar.get_event(event_id)
             if event is None:
                 continue
+            event_window_key = self._event_window_key(event_id, window_token)
+            if event_window_key in self._fired_windows:
+                continue
             payload = WeeklyEventWindowPayload(
                 event_id=event_id,
                 zone_id=zone_id,
@@ -209,6 +229,7 @@ class WeeklyEventScheduler:
                 weekday=weekday,
             )
             hooks.fire_weekly_event_window_open(payload)
+            self._fired_windows.add(event_window_key)
             logger.info("Weekly event window opened: %s", event_id)
 
         for event_id in newly_closed:

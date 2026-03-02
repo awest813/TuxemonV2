@@ -16,6 +16,7 @@ from tuxemon.world.milestone_tracker import (
     BATTLER_THRESHOLD,
     COMPLETIONIST_DEX_PERCENT,
     PostgameMilestoneTracker,
+    TOURNAMENT_UNLOCK_BATTLE_CENTER_WINS,
 )
 
 
@@ -139,12 +140,50 @@ def test_total_rematch_wins_tracked(tracker: PostgameMilestoneTracker):
 # ---------------------------------------------------------------------------
 
 
+def _unlock_tournament_path(tracker: PostgameMilestoneTracker) -> None:
+    tracker.record_story_complete()
+    for _ in range(TOURNAMENT_UNLOCK_BATTLE_CENTER_WINS):
+        tracker.record_battle_center_match(won=True)
+
+
+def test_tournament_path_stays_locked_before_story_complete(
+    tracker: PostgameMilestoneTracker,
+):
+    accepted = tracker.record_battle_center_match(won=True)
+    assert accepted is False
+    assert tracker.tournament_unlocked is False
+
+
+def test_tournament_unlocks_after_battle_center_wins(
+    tracker: PostgameMilestoneTracker,
+):
+    tracker.record_story_complete()
+    for _ in range(TOURNAMENT_UNLOCK_BATTLE_CENTER_WINS - 1):
+        tracker.record_battle_center_match(won=True)
+    assert tracker.tournament_unlocked is False
+
+    tracker.record_battle_center_match(won=True)
+    assert tracker.tournament_unlocked is True
+
+
+def test_tournament_milestone_blocked_until_unlocked(
+    tracker: PostgameMilestoneTracker,
+):
+    fired: list[PostgameMilestonePayload] = []
+    hooks.on_postgame_milestone_reached(fired.append)
+
+    accepted = tracker.record_tournament_win()
+    assert accepted is False
+    assert [p for p in fired if p.milestone_id == "champion_challenger"] == []
+
+
 def test_champion_challenger_fires_on_tournament_win(
     tracker: PostgameMilestoneTracker,
 ):
     fired: list[PostgameMilestonePayload] = []
     hooks.on_postgame_milestone_reached(fired.append)
 
+    _unlock_tournament_path(tracker)
     tracker.record_tournament_win()
 
     cc_events = [p for p in fired if p.milestone_id == "champion_challenger"]
@@ -157,6 +196,7 @@ def test_champion_challenger_fires_on_ladder_threshold(
     fired: list[PostgameMilestonePayload] = []
     hooks.on_postgame_milestone_reached(fired.append)
 
+    _unlock_tournament_path(tracker)
     tracker.record_ladder_threshold()
 
     cc_events = [p for p in fired if p.milestone_id == "champion_challenger"]
@@ -169,6 +209,7 @@ def test_champion_challenger_fires_only_once_across_paths(
     fired: list[PostgameMilestonePayload] = []
     hooks.on_postgame_milestone_reached(fired.append)
 
+    _unlock_tournament_path(tracker)
     tracker.record_tournament_win()
     tracker.record_ladder_threshold()
 
@@ -244,6 +285,8 @@ def test_encode_decode_round_trip(tracker: PostgameMilestoneTracker):
     tracker.record_story_complete()
     for _ in range(BATTLER_THRESHOLD):
         tracker.record_rematch_win()
+    for _ in range(TOURNAMENT_UNLOCK_BATTLE_CENTER_WINS):
+        tracker.record_battle_center_match(won=True)
 
     data = tracker.encode()
 
@@ -254,6 +297,7 @@ def test_encode_decode_round_trip(tracker: PostgameMilestoneTracker):
     assert tracker2.is_achieved("returner")
     assert tracker2.is_achieved("battler")
     assert tracker2.total_rematch_wins == BATTLER_THRESHOLD
+    assert tracker2.tournament_unlocked is True
 
 
 def test_decode_empty_dict_gives_clean_state(

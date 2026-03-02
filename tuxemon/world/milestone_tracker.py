@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 BATTLER_THRESHOLD = 10
 COMPLETIONIST_DEX_PERCENT = 80.0
+TOURNAMENT_UNLOCK_BATTLE_CENTER_WINS = 3
 
 
 class PostgameMilestoneTracker:
@@ -58,6 +59,9 @@ class PostgameMilestoneTracker:
         self._total_rematch_wins: int = 0
         self._story_complete: bool = False
         self._dex_completion_pct: float = 0.0
+        self._battle_center_wins: int = 0
+        self._battle_center_matches: int = 0
+        self._tournament_unlocked: bool = False
 
     # ------------------------------------------------------------------
     # Milestone recording
@@ -67,6 +71,26 @@ class PostgameMilestoneTracker:
         """Mark the campaign story as finished; fires Tier 0 milestone."""
         self._story_complete = True
         self._try_fire("story_complete")
+
+    def record_battle_center_match(self, *, won: bool) -> bool:
+        """
+        Record one post-credits Battle Center match.
+
+        Returns:
+            ``True`` when the result was accepted into progression state.
+            ``False`` when the story has not been completed yet.
+        """
+        if not self._story_complete:
+            return False
+        self._battle_center_matches += 1
+        if won:
+            self._battle_center_wins += 1
+            if (
+                self._battle_center_wins
+                >= TOURNAMENT_UNLOCK_BATTLE_CENTER_WINS
+            ):
+                self._tournament_unlocked = True
+        return True
 
     def record_rematch_win(self) -> None:
         """
@@ -81,13 +105,24 @@ class PostgameMilestoneTracker:
         if self._total_rematch_wins >= BATTLER_THRESHOLD:
             self._try_fire("battler")
 
-    def record_tournament_win(self) -> None:
-        """Record a tournament bracket victory; fires Tier 3 milestone."""
-        self._try_fire("champion_challenger")
+    def record_tournament_win(self) -> bool:
+        """
+        Record a tournament bracket victory; fires Tier 3 milestone.
 
-    def record_ladder_threshold(self) -> None:
-        """Record reaching the top-10 of the casual ladder; fires Tier 3."""
+        Tournament progression is unlocked by completing the story and then
+        winning enough Battle Center matches in the post-credits arc.
+        """
+        if not self._tournament_unlocked:
+            return False
         self._try_fire("champion_challenger")
+        return True
+
+    def record_ladder_threshold(self) -> bool:
+        """Record reaching the top-10 of the casual ladder; fires Tier 3."""
+        if not self._tournament_unlocked:
+            return False
+        self._try_fire("champion_challenger")
+        return True
 
     def record_dex_completion(self, completion_pct: float) -> None:
         """
@@ -125,6 +160,21 @@ class PostgameMilestoneTracker:
         """Last recorded monster journal completion percentage."""
         return self._dex_completion_pct
 
+    @property
+    def battle_center_wins(self) -> int:
+        """Number of post-credits Battle Center wins."""
+        return self._battle_center_wins
+
+    @property
+    def battle_center_matches(self) -> int:
+        """Number of post-credits Battle Center matches played."""
+        return self._battle_center_matches
+
+    @property
+    def tournament_unlocked(self) -> bool:
+        """True when post-credits tournament progression is unlocked."""
+        return self._tournament_unlocked
+
     # ------------------------------------------------------------------
     # Internal
     # ------------------------------------------------------------------
@@ -158,6 +208,9 @@ class PostgameMilestoneTracker:
             "total_rematch_wins": self._total_rematch_wins,
             "story_complete": self._story_complete,
             "dex_completion_pct": self._dex_completion_pct,
+            "battle_center_wins": self._battle_center_wins,
+            "battle_center_matches": self._battle_center_matches,
+            "tournament_unlocked": self._tournament_unlocked,
         }
 
     def decode(self, data: dict[str, Any]) -> None:
@@ -166,3 +219,8 @@ class PostgameMilestoneTracker:
         self._total_rematch_wins = int(data.get("total_rematch_wins", 0))
         self._story_complete = bool(data.get("story_complete", False))
         self._dex_completion_pct = float(data.get("dex_completion_pct", 0.0))
+        self._battle_center_wins = int(data.get("battle_center_wins", 0))
+        self._battle_center_matches = int(data.get("battle_center_matches", 0))
+        self._tournament_unlocked = bool(
+            data.get("tournament_unlocked", False)
+        )
