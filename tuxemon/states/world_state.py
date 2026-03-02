@@ -28,8 +28,12 @@ from tuxemon.prepare import DEV_TOOLS
 from tuxemon.save_state import WorldSave
 from tuxemon.session import Session
 from tuxemon.state.state import State
+from tuxemon.time_handler import TimeHandler
+from tuxemon.time_hooks import MapZoneEnterPayload, hooks
+from tuxemon.world.clock_watcher import ClockWatcher
 from tuxemon.world.manager import WorldMenuManager
 from tuxemon.world.transition import WorldTransition
+from tuxemon.world.weekly_events import WeeklyEventCalendar, WeeklyEventScheduler
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient
@@ -103,6 +107,27 @@ class WorldState(State):
             )
         self.client.event_manager.add_middleware(self.command_mw, priority=30)
 
+        self.clock_watcher = ClockWatcher()
+        self._time_handler = TimeHandler()
+        self.weekly_scheduler = WeeklyEventScheduler(WeeklyEventCalendar())
+        self.client.map_transition.register_post_change_listener(
+            self._on_map_changed
+        )
+
+    def _on_map_changed(self, zone_slug: str) -> None:
+        """Fire Hook 4.3 (on_map_zone_enter) after every successful map load."""
+        snap = self._time_handler.get_time_variables()
+        payload = MapZoneEnterPayload(
+            zone_id=zone_slug,
+            player_id=self.player.slug,
+            current_time=__import__("datetime").datetime.now(),
+            time_segment=snap.stage_of_day,
+            weekday=snap.weekday,
+            season=snap.season,
+        )
+        hooks.fire_map_zone_enter(payload)
+        self.weekly_scheduler.tick(zone_id=zone_slug)
+
     def get_state(self, session: Session) -> WorldSave:
         """Returns a WorldSave model representing the current world state."""
         return WorldSave(
@@ -152,10 +177,15 @@ class WorldState(State):
             time_delta: Amount of time passed since last frame.
         """
         super().update(time_delta)
+        self.clock_watcher.tick()
         self.faction_manager.update(time_delta, self.session)
         self.client.npc_manager.update_npcs(time_delta, self.client)
         self.client.npc_manager.update_npcs_off_map(time_delta, self.client)
         self.client.map_renderer.update(time_delta)
+        current_map = self.client.map_manager.current_map
+        if current_map is not None:
+            zone_slug = getattr(current_map, "filename", "") or ""
+            self.weekly_scheduler.tick(zone_id=zone_slug)
 
     def draw(self, surface: Surface) -> None:
         """Draw the game world to the screen."""

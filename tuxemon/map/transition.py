@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from tuxemon.map.tuxemon import AbstractMap
@@ -16,6 +17,10 @@ if TYPE_CHECKING:
     from tuxemon.npc_manager import NPCManager
 
 logger = logging.getLogger(__name__)
+
+#: Type alias for post-change listener callbacks.
+#: Receives the new map slug (empty string for NullMap / yaml-loaded maps).
+MapChangeListener = Callable[[str], None]
 
 
 class MapTransition:
@@ -34,6 +39,20 @@ class MapTransition:
         self.npc_manager = npc_manager
         self.boundary = boundary
         self.event_engine = event_engine
+        self._post_change_listeners: list[MapChangeListener] = []
+
+    def register_post_change_listener(self, listener: MapChangeListener) -> None:
+        """
+        Register a callback that fires after every successful map change.
+
+        The callback receives the new map slug (the ``map_name`` argument
+        that was passed to ``change_map``).  Subscribers use this to fire
+        Hook 4.3 (``on_map_zone_enter``) or update any other per-zone state.
+
+        Parameters:
+            listener: Callable accepting a single ``str`` (map slug).
+        """
+        self._post_change_listeners.append(listener)
 
     def change_map(
         self, map_name: str | None = None, yaml_path: str | None = None
@@ -53,6 +72,15 @@ class MapTransition:
         self._reset_events(map_data)
         self._update_map_state(map_data)
         self._update_boundaries()
+
+        zone_slug = map_name or ""
+        for listener in self._post_change_listeners:
+            try:
+                listener(zone_slug)
+            except Exception:
+                logger.exception(
+                    "post-change listener %s raised an exception", listener
+                )
 
     def validate_coordinates(self, x: int, y: int) -> None:
         if not self.boundary.is_within_boundaries((x, y)):

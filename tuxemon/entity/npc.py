@@ -19,7 +19,9 @@ from tuxemon.entity.path import PathController
 from tuxemon.entity.routing import RoutingPolicy
 from tuxemon.entity.sheet import CombatSheet
 from tuxemon.entity.steps import StepManager
+from tuxemon.economy.coin_wallet import CoinWallet
 from tuxemon.entity.trainer_state import TrainerStateManager
+from tuxemon.world.milestone_tracker import PostgameMilestoneTracker
 from tuxemon.game_variables import GameVariablesManager, PlayerVariablesManager
 from tuxemon.locale.locale import T
 from tuxemon.map.view import SpriteController
@@ -120,6 +122,8 @@ class NPC(Entity):
         self.dialogue: DialogueProfile | None = None
         self.sprite_controller = SpriteController(self)
         self.trainer_state_manager = TrainerStateManager()
+        self.coin_wallet = CoinWallet()
+        self.milestone_tracker = PostgameMilestoneTracker(player_id=npc_slug)
 
         # PathController manages all path/pathfinding state & logic.
         self.path_controller = PathController(
@@ -252,6 +256,8 @@ class NPC(Entity):
         base.evolution_registry = self.evolution_registry.encode_registry()
         base.routing_policy = self.party.routing_policy.to_dict()
         base.trainer_states = self.trainer_state_manager.encode()
+        base.coin_wallet = self.coin_wallet.encode()
+        base.milestone_state = self.milestone_tracker.encode()
 
         return base
 
@@ -296,6 +302,10 @@ class NPC(Entity):
             self.appearance_manager.load_state(save_data.appearance)
 
         self.trainer_state_manager.decode(save_data.trainer_states)
+        if save_data.coin_wallet:
+            self.coin_wallet.decode(save_data.coin_wallet)
+        if save_data.milestone_state:
+            self.milestone_tracker.decode(save_data.milestone_state)
 
     def get_active_battle_music(
         self, default_music: BattleMusicModel

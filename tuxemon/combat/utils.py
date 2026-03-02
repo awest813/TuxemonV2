@@ -9,12 +9,14 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Sequence
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from tuxemon.combat.combat_context import CombatType
 from tuxemon.db import BattleMusicModel, OutputBattle
 from tuxemon.locale.locale import T
 from tuxemon.menu.formatter import CurrencyFormatter
+from tuxemon.time_hooks import TrainerDefeatedPayload, hooks
 
 if TYPE_CHECKING:
     from tuxemon.entity.npc import NPC
@@ -200,6 +202,20 @@ def _handle_win(
             money_manager = winner.money_controller.money_manager
             remaining = money_manager.apply_all_battle_shares(prize)
             money_manager.add_money(remaining)
+
+            now = datetime.now()
+            for loser in losers:
+                winner.trainer_state_manager.record_defeat(loser.slug)
+                hooks.fire_trainer_defeated(
+                    TrainerDefeatedPayload(
+                        trainer_id=loser.slug,
+                        player_id=winner.slug,
+                        timestamp=now,
+                    )
+                )
+                winner.trainer_state_manager.set_rematch_eligible(
+                    loser.slug, eligible=True, player_id=winner.slug
+                )
 
             if remaining > 0:
                 formatter = CurrencyFormatter()

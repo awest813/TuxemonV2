@@ -113,6 +113,21 @@ class NPCState(BaseModel):
             "trainer the player has encountered."
         ),
     )
+    coin_wallet: dict[str, Any] = Field(
+        default_factory=dict,
+        description=(
+            "Serialised CoinWallet state (balance, daily_earned, daily_earn_cap). "
+            "In-game currency only — no real-money pathway exists."
+        ),
+    )
+    milestone_state: dict[str, Any] = Field(
+        default_factory=dict,
+        description=(
+            "Serialised PostgameMilestoneTracker state. "
+            "Tracks which post-game milestone tiers (0-5) the player has achieved "
+            "and cumulative rematch-win count."
+        ),
+    )
 
 
 class SaveData(BaseModel):
