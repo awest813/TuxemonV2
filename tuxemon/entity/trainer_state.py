@@ -76,6 +76,51 @@ class TrainerStateManager:
         elapsed_hours = (datetime.now() - last).total_seconds() / 3600
         return elapsed_hours >= cooldown_hours
 
+    def trainer_ids(self) -> tuple[str, ...]:
+        """Return all known trainer IDs tracked by this manager."""
+        return tuple(self._states.keys())
+
+    def evaluate_rematch_eligibility(
+        self,
+        trainer_id: str,
+        *,
+        badge_count: int = 0,
+        required_badges: int = 0,
+        required_milestones: tuple[str, ...] = (),
+        milestone_checker: Any | None = None,
+        player_id: str = "",
+    ) -> bool:
+        """
+        Evaluate and persist rematch eligibility for one trainer.
+
+        Eligibility requires all of the following:
+        1. The trainer has been defeated at least once.
+        2. The player has reached the badge threshold.
+        3. Every required milestone is achieved.
+        """
+        state = self.get(trainer_id)
+        milestones_met = True
+        if required_milestones:
+            if milestone_checker is None:
+                milestones_met = False
+            else:
+                milestones_met = all(
+                    bool(milestone_checker(mid))
+                    for mid in required_milestones
+                )
+
+        eligible = (
+            state.defeated
+            and badge_count >= max(0, required_badges)
+            and milestones_met
+        )
+        self.set_rematch_eligible(
+            trainer_id=trainer_id,
+            eligible=eligible,
+            player_id=player_id,
+        )
+        return eligible
+
     # ------------------------------------------------------------------
     # Write helpers
     # ------------------------------------------------------------------

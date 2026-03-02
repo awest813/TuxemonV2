@@ -27,6 +27,16 @@ if TYPE_CHECKING:
 logger = logging.getLogger()
 
 
+def _player_badge_count(character: NPC) -> int:
+    """Return player's badge progress counter used by rematch gating."""
+    raw = character.variable_manager.player.get("progress.badges", 0)
+    try:
+        return max(0, int(raw))
+    except (TypeError, ValueError):
+        logger.warning("Invalid player badge counter: %r", raw)
+        return 0
+
+
 def check_battle_legal(character: NPC) -> bool:
     """
     Checks if the character has monsters fit for battle.
@@ -205,6 +215,9 @@ def _handle_win(
 
             now = datetime.now()
             for loser in losers:
+                was_defeated = winner.trainer_state_manager.is_defeated(
+                    loser.slug
+                )
                 winner.trainer_state_manager.record_defeat(loser.slug)
                 hooks.fire_trainer_defeated(
                     TrainerDefeatedPayload(
@@ -213,8 +226,13 @@ def _handle_win(
                         timestamp=now,
                     )
                 )
-                winner.trainer_state_manager.set_rematch_eligible(
-                    loser.slug, eligible=True, player_id=winner.slug
+                if was_defeated:
+                    winner.trainer_state_manager.record_rematch(loser.slug)
+                    winner.milestone_tracker.record_rematch_win()
+                winner.trainer_state_manager.evaluate_rematch_eligibility(
+                    trainer_id=loser.slug,
+                    badge_count=_player_badge_count(winner),
+                    player_id=winner.slug,
                 )
 
             if remaining > 0:
