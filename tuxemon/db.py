@@ -2249,6 +2249,25 @@ class HeldItemProbability(BaseModel):
         return v
 
 
+VALID_TIME_SEGMENTS: frozenset[str] = frozenset(
+    {"dawn", "morning", "afternoon", "dusk", "night"}
+)
+VALID_SEASONS: frozenset[str] = frozenset(
+    {"spring", "summer", "autumn", "winter"}
+)
+VALID_WEEKDAYS: frozenset[str] = frozenset(
+    {
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+    }
+)
+
+
 class EncounterItemModel(BaseModel):
     monster: str = Field(..., description="Monster slug for this encounter")
     encounter_rate: float = Field(
@@ -2299,6 +2318,57 @@ class EncounterItemModel(BaseModel):
         None,
         description="Range used for random offset when scaling level overrides are applied (e.g. [-3, +4])",
     )
+    time_restrictions: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Time segments during which this encounter is eligible "
+            "(e.g. ['night', 'dawn']). Empty list means always eligible."
+        ),
+    )
+    season_restrictions: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Seasons during which this encounter is eligible "
+            "(e.g. ['winter', 'spring']). Empty list means always eligible."
+        ),
+    )
+    weekday_restrictions: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Weekdays on which this encounter is eligible "
+            "(e.g. ['friday', 'saturday']). Empty list means always eligible."
+        ),
+    )
+
+    @field_validator("time_restrictions")
+    def validate_time_restrictions(cls, v: list[str]) -> list[str]:
+        invalid = set(v) - VALID_TIME_SEGMENTS
+        if invalid:
+            raise ValueError(
+                f"Invalid time segment(s): {invalid}. "
+                f"Allowed: {sorted(VALID_TIME_SEGMENTS)}"
+            )
+        return v
+
+    @field_validator("season_restrictions")
+    def validate_season_restrictions(cls, v: list[str]) -> list[str]:
+        invalid = set(v) - VALID_SEASONS
+        if invalid:
+            raise ValueError(
+                f"Invalid season(s): {invalid}. "
+                f"Allowed: {sorted(VALID_SEASONS)}"
+            )
+        return v
+
+    @field_validator("weekday_restrictions")
+    def validate_weekday_restrictions(cls, v: list[str]) -> list[str]:
+        invalid = set(v) - VALID_WEEKDAYS
+        if invalid:
+            raise ValueError(
+                f"Invalid weekday(s): {invalid}. "
+                f"Allowed: {sorted(VALID_WEEKDAYS)}"
+            )
+        return v
 
     @field_validator("monster")
     def monster_exists(cls, v: str) -> str:

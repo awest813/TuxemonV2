@@ -19,6 +19,7 @@ from tuxemon.entity.path import PathController
 from tuxemon.entity.routing import RoutingPolicy
 from tuxemon.entity.sheet import CombatSheet
 from tuxemon.entity.steps import StepManager
+from tuxemon.entity.trainer_state import TrainerStateManager
 from tuxemon.game_variables import GameVariablesManager, PlayerVariablesManager
 from tuxemon.locale.locale import T
 from tuxemon.map.view import SpriteController
@@ -118,6 +119,7 @@ class NPC(Entity):
         self.steps: float = 0.0
         self.dialogue: DialogueProfile | None = None
         self.sprite_controller = SpriteController(self)
+        self.trainer_state_manager = TrainerStateManager()
 
         # PathController manages all path/pathfinding state & logic.
         self.path_controller = PathController(
@@ -249,6 +251,7 @@ class NPC(Entity):
         base.unlocked_letters = encode_cipher(self.unlocked_letters)
         base.evolution_registry = self.evolution_registry.encode_registry()
         base.routing_policy = self.party.routing_policy.to_dict()
+        base.trainer_states = self.trainer_state_manager.encode()
 
         return base
 
@@ -291,6 +294,8 @@ class NPC(Entity):
 
         if save_data.appearance:
             self.appearance_manager.load_state(save_data.appearance)
+
+        self.trainer_state_manager.decode(save_data.trainer_states)
 
     def get_active_battle_music(
         self, default_music: BattleMusicModel

@@ -1,0 +1,131 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
+"""
+Trainer state management for the rematch loop system.
+
+Implements the trainer state model described in
+docs/gold_silver_blueprint.md §3.1 and §3.2.
+"""
+from __future__ import annotations
+
+import logging
+from datetime import datetime
+from typing import Any
+
+from tuxemon.save_state import TIME_FORMAT, TrainerState
+
+logger = logging.getLogger(__name__)
+
+_REMATCH_COOLDOWN_HOURS = 24
+
+
+class TrainerStateManager:
+    """
+    Manages the persistent state of all trainers encountered by a single NPC
+    (typically the player character).
+
+    Trainer state includes defeat status, rematch eligibility, and cooldowns,
+    all of which are persisted in the save file under ``npc_state.trainer_states``.
+    """
+
+    def __init__(self) -> None:
+        self._states: dict[str, TrainerState] = {}
+
+    # ------------------------------------------------------------------
+    # Read helpers
+    # ------------------------------------------------------------------
+
+    def get(self, trainer_id: str) -> TrainerState:
+        """Return the state for *trainer_id*, creating it if absent."""
+        if trainer_id not in self._states:
+            self._states[trainer_id] = TrainerState(trainer_id=trainer_id)
+        return self._states[trainer_id]
+
+    def is_defeated(self, trainer_id: str) -> bool:
+        return self.get(trainer_id).defeated
+
+    def is_rematch_eligible(self, trainer_id: str) -> bool:
+        return self.get(trainer_id).rematch_eligible
+
+    def is_rematch_ready(
+        self, trainer_id: str, cooldown_hours: int = _REMATCH_COOLDOWN_HOURS
+    ) -> bool:
+        """
+        Return True when a rematch is immediately available.
+
+        Conditions:
+        1. Trainer is rematch-eligible.
+        2. Cooldown since the last rematch has elapsed.
+        """
+        state = self.get(trainer_id)
+        if not state.rematch_eligible:
+            return False
+        if state.last_rematch_at is None:
+            return True
+        try:
+            last = datetime.strptime(state.last_rematch_at, TIME_FORMAT)
+        except ValueError:
+            logger.warning(
+                "Unparseable last_rematch_at for trainer %s: %r",
+                trainer_id,
+                state.last_rematch_at,
+            )
+            return True
+        elapsed_hours = (datetime.now() - last).total_seconds() / 3600
+        return elapsed_hours >= cooldown_hours
+
+    # ------------------------------------------------------------------
+    # Write helpers
+    # ------------------------------------------------------------------
+
+    def record_defeat(self, trainer_id: str) -> None:
+        """Mark *trainer_id* as defeated (first encounter win)."""
+        state = self.get(trainer_id)
+        self._states[trainer_id] = TrainerState(
+            trainer_id=trainer_id,
+            defeated=True,
+            last_rematch_at=state.last_rematch_at,
+            rematch_count=state.rematch_count,
+            rematch_eligible=state.rematch_eligible,
+        )
+
+    def set_rematch_eligible(self, trainer_id: str, eligible: bool) -> None:
+        """Update rematch eligibility for *trainer_id*."""
+        state = self.get(trainer_id)
+        self._states[trainer_id] = TrainerState(
+            trainer_id=trainer_id,
+            defeated=state.defeated,
+            last_rematch_at=state.last_rematch_at,
+            rematch_count=state.rematch_count,
+            rematch_eligible=eligible,
+        )
+
+    def record_rematch(self, trainer_id: str) -> None:
+        """Increment the rematch counter and stamp the current time."""
+        state = self.get(trainer_id)
+        self._states[trainer_id] = TrainerState(
+            trainer_id=trainer_id,
+            defeated=state.defeated,
+            last_rematch_at=datetime.now().strftime(TIME_FORMAT),
+            rematch_count=state.rematch_count + 1,
+            rematch_eligible=state.rematch_eligible,
+        )
+
+    # ------------------------------------------------------------------
+    # Save / load
+    # ------------------------------------------------------------------
+
+    def encode(self) -> dict[str, Any]:
+        """Serialise all trainer states for inclusion in the save file."""
+        return {tid: s.model_dump() for tid, s in self._states.items()}
+
+    def decode(self, data: dict[str, Any]) -> None:
+        """Restore trainer states from a previously encoded dict."""
+        self._states = {}
+        for tid, raw in data.items():
+            try:
+                self._states[tid] = TrainerState(**raw)
+            except Exception:
+                logger.warning(
+                    "Could not decode trainer state for %r: %r", tid, raw
+                )
