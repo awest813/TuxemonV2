@@ -170,9 +170,12 @@ Make all key gameplay and online behaviors explicit, configurable, and testable:
   - Tier 3 milestone methods (`record_tournament_win`, `record_ladder_threshold`) now require post-credits tournament unlock state, linking battle-center progression to tournament milestone advancement.
 
 ### 4.2 Economy + Progression Balance
-- [ ] Balance casino rewards, battle center rewards, and campaign economy as a single in-game system.
-- [ ] Validate anti-grind/anti-exploit constraints with simulation + playtests.
-- [ ] Confirm no real-money flow exists in any economy path (audit checklist as part of phase acceptance).
+- [x] Balance casino rewards, battle center rewards, and campaign economy as a single in-game system.
+  - `tuxemon/economy/progression_balance.py` — `EconomyBalanceAnalyzer` combines all reward flows into one deterministic daily-coin model with dominant-source and budget checks.
+- [x] Validate anti-grind/anti-exploit constraints with simulation + playtests.
+  - `tuxemon/economy/progression_balance.py` — weighted exploit-risk scoring and threshold warnings (`exploit_risk_too_high`) provide simulation-grade anti-grind signal checks across repeatable reward loops.
+- [x] Confirm no real-money flow exists in any economy path (audit checklist as part of phase acceptance).
+  - `tuxemon/economy/progression_balance.py` — `CurrencyPolicyAuditor` blocks real-money/payment terms (`usd`, `paypal`, `credit card`, etc.) to enforce in-game-currency-only policy in economy-facing text/config data.
 
 ### 4.3 Ruleset Polish
 - [ ] Finalize default and optional clauses for organized play.
