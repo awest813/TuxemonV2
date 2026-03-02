@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+from tuxemon.rules.clause_sets import default_clauses_for_context
 from tuxemon.rules.models import (
     BattleRules,
     CampaignRules,
@@ -30,12 +31,6 @@ from tuxemon.rules.models import (
     ResolvedRuleset,
     TournamentRules,
 )
-
-# Default tournament clauses per context.
-_TOURNAMENT_DEFAULT_CLAUSES: list[ClauseID] = [
-    ClauseID.DUPLICATE_SPECIES,
-    ClauseID.SELF_KO_DRAW,
-]
 
 
 def _first(*values: Any) -> Any:
@@ -125,7 +120,7 @@ class SettingsResolver:
         active_clauses: list[ClauseID] = _first(
             self.mod.active_clauses,
             self.host.active_clauses,
-            self._default_clauses_for_context(),
+            default_clauses_for_context(self.context),
         )
 
         # allow_items_in_battle: mod > host > engine default
@@ -229,12 +224,3 @@ class SettingsResolver:
             rematch_level_policy=defaults.rematch_level_policy,
         )
 
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
-
-    def _default_clauses_for_context(self) -> list[ClauseID]:
-        """Return the rulebook-mandated default clauses for the current context."""
-        if self.context == PlayContext.TOURNAMENT:
-            return list(_TOURNAMENT_DEFAULT_CLAUSES)
-        return []

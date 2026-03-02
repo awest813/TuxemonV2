@@ -63,6 +63,14 @@ Default active clauses by context:
 | Casual Online | *(none — host-configurable)* |
 | Tournament | `duplicate_species`, `self_ko_draw` |
 
+Optional clauses by context (legal but not active by default):
+
+| Context | Optional Clauses |
+|---|---|
+| Campaign | `duplicate_species` |
+| Casual Online | `duplicate_species`, `duplicate_item`, `sleep_limit`, `ohko_ban`, `evasion_limit`, `self_ko_draw` |
+| Tournament | `duplicate_item`, `sleep_limit`, `ohko_ban`, `evasion_limit` |
+
 ### 1.5 Battle Result Finality
 
 - A battle result is final when the authoritative battle session records a winner or draw.
@@ -125,7 +133,7 @@ Casual online battles are player-initiated, unranked, and have minimal enforceme
 ### 3.2 Joining Player Rights
 
 - Joining players may decline and leave the session without penalty.
-- Joining players see all active rule overrides before confirming the match.
+- Joining players see a pre-match rules snapshot containing: baseline defaults for the selected context, resolved final values, and a field-level difference list before confirming the match.
 - Disconnecting during battle: no forced result; battle is abandoned.
 
 ### 3.3 Result Recording
