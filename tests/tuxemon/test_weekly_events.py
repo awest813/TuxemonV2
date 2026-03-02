@@ -254,6 +254,19 @@ class TestWeeklyEventScheduler:
 
         assert len(opened) == 1  # hook fired only once
 
+    def test_reentering_zone_same_window_does_not_refire_open_hook(self):
+        opened: list[WeeklyEventWindowPayload] = []
+        hooks.on_weekly_event_window_open(opened.append)
+
+        sched = self._make()
+        _patch_time(sched, _snap("tuesday", "morning"))
+
+        sched.tick(zone_id="national_park")  # initial open
+        sched.tick(zone_id="route_1")  # leave the event map
+        sched.tick(zone_id="national_park")  # re-enter same time window
+
+        assert len(opened) == 1
+
     def test_event_without_map_fires_for_any_zone(self):
         cal = WeeklyEventCalendar(
             weekly_events=[
