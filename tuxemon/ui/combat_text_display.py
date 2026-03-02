@@ -53,6 +53,9 @@ class CombatTextDisplay:
         pg_draw.rect(overlay, (10, 20, 32, 110), overlay.get_rect(), border_radius=4)
         hud.image.blit(overlay, text_strip.topleft)
 
-        hud.image.blit(self._shadow_text(label_data["line1"]), line1_rect)
-        if label_data["line2"]:
-            hud.image.blit(self._shadow_text(label_data["line2"]), line2_rect)
+        line1 = label_data.get("line1", "")
+        line2 = label_data.get("line2", "")
+        if line1:
+            hud.image.blit(self._shadow_text(line1), line1_rect)
+        if line2:
+            hud.image.blit(self._shadow_text(line2), line2_rect)

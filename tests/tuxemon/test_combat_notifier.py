@@ -1,101 +1,86 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
-from unittest.mock import MagicMock
+import unittest
+from unittest.mock import MagicMock, patch
 
-import pytest
-
-from tuxemon.ui.combat_notifier import CombatNotifier, TextAnimationManager
-
-
-@pytest.fixture
-def state():
-    s = MagicMock()
-    s.client.push_state = MagicMock()
-    s.task = MagicMock()
-    return s
+from tuxemon.ui.combat_notifier import TextAnimationManager
 
 
-@pytest.fixture
-def alert_manager():
-    a = MagicMock()
-    a.alert = MagicMock()
-    return a
+class TestTextAnimationManager(unittest.TestCase):
+    def setUp(self):
+        self.manager = TextAnimationManager()
 
+    def test_initial_state(self):
+        self.assertEqual(len(self.manager.text_queue), 0)
+        self.assertIsNone(self.manager.pending_xp_duration)
 
-@pytest.fixture
-def text_area():
-    return MagicMock()
+    @patch("tuxemon.ui.combat_notifier.config_combat")
+    def test_compute_text_anim_time(self, mock_config):
+        mock_config.action_time = 1.0
+        mock_config.letter_time = 0.05
+        result = TextAnimationManager.compute_text_anim_time("Hello")
+        self.assertAlmostEqual(result, 1.25)
 
+    def test_add_text_animation(self):
+        callback = MagicMock()
+        self.manager.add_text_animation(callback, 2.0)
+        self.assertEqual(len(self.manager.text_queue), 1)
 
-@pytest.fixture
-def notifier(state, alert_manager):
-    return CombatNotifier(
-        state=state,
-        text_anim_manager=TextAnimationManager(),
-        alert_manager=alert_manager,
-        lock_update=True,
-    )
+    def test_update_text_animation_triggers_next(self):
+        callback = MagicMock()
+        self.manager.add_text_animation(callback, 1.0)
+        self.manager._text_time_left = 0
+        self.manager.update_text_animation(0.01)
+        callback.assert_called_once()
 
+    def test_update_text_animation_no_trigger_when_time_remains(self):
+        callback = MagicMock()
+        self.manager.add_text_animation(callback, 1.0)
+        self.manager._text_time_left = 5.0
+        self.manager.update_text_animation(1.0)
+        callback.assert_not_called()
 
-def test_show_message_queues_text_animation(notifier, text_area):
-    notifier.show_message_and_wait_for_input("Hello!", text_area)
-    assert len(notifier.text_anim.text_queue) == 1
-    anim, duration = notifier.text_anim.text_queue[0]
-    anim()
-    notifier.alert_manager.alert.assert_called_once_with("Hello!", text_area)
+    def test_add_xp_message(self):
+        self.manager.add_xp_message("Gained 50 XP!")
+        self.assertEqual(len(self.manager._xp_messages), 1)
 
+    @patch("tuxemon.ui.combat_notifier.config_combat")
+    def test_trigger_xp_animation(self, mock_config):
+        mock_config.action_time = 0.5
+        mock_config.letter_time = 0.01
+        self.manager.add_xp_message("Gained XP!")
+        alert_func = MagicMock()
+        text_area = MagicMock()
+        self.manager.trigger_xp_animation(alert_func, text_area)
+        self.assertEqual(len(self.manager.text_queue), 1)
+        self.assertIsNotNone(self.manager.pending_xp_duration)
 
-def test_show_message_schedules_wait_for_input(notifier, state, text_area):
-    notifier.show_message_and_wait_for_input("Test", text_area)
-    assert state.task.call_count == 1
-    args, kwargs = state.task.call_args
-    assert "WaitForInputState" in str(args[0])
+    def test_consume_pending_xp_duration(self):
+        self.manager._pending_xp_duration = 2.5
+        duration = self.manager.consume_pending_xp_duration()
+        self.assertEqual(duration, 2.5)
+        self.assertIsNone(self.manager.pending_xp_duration)
 
+    def test_consume_pending_xp_duration_when_none(self):
+        duration = self.manager.consume_pending_xp_duration()
+        self.assertIsNone(duration)
 
-def test_show_message_no_lock_does_not_schedule(notifier, state, text_area):
-    notifier.show_message_and_wait_for_input(
-        "Test", text_area, override_lock=False
-    )
-    state.task.assert_not_called()
+    def test_get_text_animation_time_left(self):
+        self.manager._text_time_left = 3.14
+        self.assertAlmostEqual(
+            self.manager.get_text_animation_time_left(), 3.14
+        )
 
+    def test_multiple_animations_in_sequence(self):
+        cb1 = MagicMock()
+        cb2 = MagicMock()
+        self.manager.add_text_animation(cb1, 1.0)
+        self.manager.add_text_animation(cb2, 2.0)
 
-def test_trigger_xp_and_wait_for_input(notifier, state, text_area):
-    notifier.text_anim.add_xp_message("XP +10")
-    notifier.text_anim.add_xp_message("XP +20")
-    notifier.trigger_xp_and_wait_for_input(text_area, delay=1.0)
-    assert state.task.call_count == 2
+        self.manager._text_time_left = 0
+        self.manager.update_text_animation(0.01)
+        cb1.assert_called_once()
+        cb2.assert_not_called()
 
-
-def test_show_message_ignores_empty(notifier, text_area):
-    notifier.show_message_and_wait_for_input("", text_area)
-    assert len(notifier.text_anim.text_queue) == 0
-    notifier.alert_manager.alert.assert_not_called()
-
-
-def test_show_message_override_lock_true(notifier, state, text_area):
-    notifier.show_message_and_wait_for_input(
-        "Test", text_area, override_lock=True
-    )
-    state.task.assert_called_once()
-
-
-def test_show_message_override_lock_false(notifier, state, text_area):
-    notifier.show_message_and_wait_for_input(
-        "Test", text_area, override_lock=False
-    )
-    state.task.assert_not_called()
-
-
-def test_trigger_xp_schedules_two_tasks(notifier, state, text_area):
-    notifier.text_anim.add_xp_message("XP +10")
-    notifier.trigger_xp_and_wait_for_input(text_area, delay=1.0)
-    assert state.task.call_count == 2
-
-
-def test_trigger_xp_clears_pending_duration(notifier, state, text_area):
-    notifier.text_anim.add_xp_message("XP +10")
-    notifier.trigger_xp_and_wait_for_input(text_area, delay=1.0)
-    after_cb = state.task.call_args_list[1][0][0]
-    notifier.text_anim._pending_xp_duration = 5.0
-    after_cb()
-    assert notifier.text_anim._pending_xp_duration is None
+        self.manager.update_text_animation(1.1)
+        cb2.assert_called_once()

@@ -40,6 +40,12 @@ class SwapTracker:
         self._swapped_this_turn.clear()
         self._temp_blocked_swaps.clear()
 
+    def reset_all(self) -> None:
+        """Reset all swap state including persistent blocks (e.g. on battle end)."""
+        self._swapped_this_turn.clear()
+        self._temp_blocked_swaps.clear()
+        self._persistent_blocked_swaps.clear()
+
     def can_swap(self, monster: Monster) -> bool:
         """True if the monster hasn't swapped this turn and isn't blocked."""
         return (

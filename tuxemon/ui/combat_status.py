@@ -40,7 +40,7 @@ class StatusIconManager:
 
     def create_icon_cache(self, active_monsters: Sequence[Monster]) -> None:
         for monster in active_monsters:
-            ui = self._tracker._monster_ui.get(monster)
+            ui = self._tracker.get_monster_ui(monster)
             if not ui:
                 logger.warning(f"No UI found for monster '{monster}'")
                 continue
@@ -74,19 +74,17 @@ class StatusIconManager:
         self, active_monsters: Sequence[Monster]
     ) -> None:
         """Reset status icons for monsters."""
-        # Remove all existing icons
-        for ui in self._tracker._monster_ui.values():
+        for monster, ui in self._tracker.iter_monster_ui().items():
             for icon in ui.status_icons:
                 icon.kill()
             ui.status_icons = []
 
-        # Recreate icons and add to sprite layer
         self.create_icon_cache(active_monsters)
         self.add_all_icons()
 
     def add_all_icons(self) -> None:
         """Add all status icons to the sprite layer."""
-        for ui in self._tracker._monster_ui.values():
+        for _monster, ui in self._tracker.iter_monster_ui().items():
             for icon in ui.status_icons:
                 self.add_icon(icon)
 
@@ -98,7 +96,7 @@ class StatusIconManager:
 
     def remove_monster_icons(self, monster: Monster) -> None:
         """Remove all icons associated with a specific monster."""
-        ui = self._tracker._monster_ui.get(monster)
+        ui = self._tracker.get_monster_ui(monster)
         if ui:
             for icon in ui.status_icons:
                 icon.kill()
@@ -106,7 +104,7 @@ class StatusIconManager:
 
     def get_icons_for_monster(self, monster: Monster) -> list[Sprite]:
         """Retrieve the list of icons for a specific monster."""
-        ui = self._tracker._monster_ui.get(monster)
+        ui = self._tracker.get_monster_ui(monster)
         return ui.status_icons if ui else []
 
     def animate_icons(
@@ -143,7 +141,7 @@ class StatusIconManager:
         return position
 
     def recalculate_icon_positions(self) -> None:
-        for monster, ui in self._tracker._monster_ui.items():
+        for monster, ui in self._tracker.iter_monster_ui().items():
             index = ui.slot_index
             pos = self.get_icon_position(monster, index)
             for icon in ui.status_icons:

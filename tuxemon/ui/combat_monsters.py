@@ -20,10 +20,8 @@ class MonsterSpriteMap:
         self.sprite_map: MutableMapping[NPC | Monster, Sprite] = {}
 
     def get_sprite(self, entity: NPC | Monster) -> Sprite | None:
-        """Retrieves the sprite for the given entity, raising an error if not found."""
-        if entity not in self.sprite_map:
-            return None
-        return self.sprite_map[entity]
+        """Retrieves the sprite for the given entity, or None if not found."""
+        return self.sprite_map.get(entity)
 
     def add_sprite(self, entity: NPC | Monster, sprite: Sprite) -> None:
         """Associates a sprite with the given entity."""

@@ -44,6 +44,7 @@ __all__ = (
     "calculate_alignment_offset",
 )
 
+_FONT_SIZE_CACHE_MAX = 4096
 font_size_cache: dict[str, tuple[int, int]] = {}
 
 
@@ -86,6 +87,8 @@ def get_text_size(
     font: Font,
 ) -> tuple[int, int]:
     if text not in font_size_cache:
+        if len(font_size_cache) >= _FONT_SIZE_CACHE_MAX:
+            font_size_cache.clear()
         font_size_cache[text] = font.size(text)
     return font_size_cache[text]
 
@@ -372,7 +375,7 @@ def constrain_width(
                 if not scrap:
                     if strict_mode:
                         raise RuntimeError(
-                            "message is too large for width", text
+                            f"message is too large for width: {text!r}"
                         )
                     else:
                         logger.error(

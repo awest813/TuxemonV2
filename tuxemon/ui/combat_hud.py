@@ -52,6 +52,14 @@ class CombatLayoutManager:
     def hud_map(self) -> dict[Monster, Sprite]:
         return self._hud_sprites
 
+    def get_monster_ui(self, monster: Monster) -> MonsterUI | None:
+        """Public accessor for a monster's UI data."""
+        return self._monster_ui.get(monster)
+
+    def iter_monster_ui(self) -> dict[Monster, MonsterUI]:
+        """Read-only view of all monster UI entries."""
+        return dict(self._monster_ui)
+
     def assign(
         self, nr_players: int, npc: NPC, monster: Monster, is_double: bool
     ) -> None:
@@ -84,8 +92,12 @@ class CombatLayoutManager:
     def get_key(self, npc: NPC, monster: Monster) -> str:
         return self._layout_keys.get((npc, monster), "home")
 
-    def get_open_slot(self, npc: NPC) -> int:
-        used = set()
+    def get_open_slot(self, npc: NPC) -> int | None:
+        """
+        Returns the next available slot index for the given NPC,
+        or None if all slots are occupied.
+        """
+        used: set[int] = set()
         for (n, _), key in self._layout_keys.items():
             if n != npc:
                 continue
@@ -94,7 +106,10 @@ class CombatLayoutManager:
             elif key.startswith("home") and key[-1].isdigit():
                 used.add(int(key[-1]))
 
-        return 0 if 0 not in used else 1 if 1 not in used else 0
+        for i in range(2):
+            if i not in used:
+                return i
+        return None
 
     def get_rect(self, npc: NPC, key: str) -> Rect:
         layout = self._layouts.get(npc)
