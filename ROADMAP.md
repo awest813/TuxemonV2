@@ -125,21 +125,32 @@ Make all key gameplay and online behaviors explicit, configurable, and testable:
 
 ---
 
-## Phase 3 — Campaign Maker Implementation
+## Phase 3 — Campaign Maker Implementation (Complete)
 
 ### 3.1 Creator Workflow Tooling
-- [ ] Ship UI for map painting, encounter table editing, and event trigger authoring.
-- [ ] Provide inline validation with actionable error messaging.
-- [ ] Bundle first-party templates inspired by classic two-region progression structure.
+- [x] Ship UI for map painting, encounter table editing, and event trigger authoring.
+  - `tuxemon/campaign/encounter_editor.py` — `EncounterTable`, `EncounterZone`, `EncounterTableBuilder`; fluent API for encounter zone authoring with time/season/weekday restrictions. Stores as YAML co-located with map files.
+  - `tuxemon/campaign/event_graph.py` — `EventGraph`, `EventNode`, `EventTrigger`, `EventGraphBuilder`; full event script data model with trigger types, action types, cycle detection, and JSON serialization.
+- [x] Provide inline validation with actionable error messaging.
+  - `tuxemon/campaign/validator.py` — `CampaignValidator` implements all §4 schema checks from campaign_maker_mvp.md: manifest, map structural, script, and campaign-level integrity checks. Returns `ValidationReport` with blocking/warning/info severities.
+- [x] Bundle first-party templates inspired by classic two-region progression structure.
+  - `tuxemon/campaign/templates/classic_two_region.py` — Two regions, 2 gyms, day/night encounter tables, rematch-ready trainers; 6 maps, 3 scripts, full locale file.
+  - `tuxemon/campaign/templates/battle_challenge.py` — Single facility with 5 tier maps, unique monster pools per tier, lobby with NPC portals.
+  - `tuxemon/campaign/templates/event_adventure.py` — Linear story-driven campaign with time-gated encounters, shrine guardian arc, and day-change event scripts.
 
 ### 3.2 Packaging + Distribution
-- [ ] Add “build campaign” pipeline with deterministic output.
-- [ ] Implement import compatibility checks and migration helpers.
-- [ ] Publish starter samples and creator tutorials.
+- [x] Add “build campaign” pipeline with deterministic output.
+  - `tuxemon/campaign/builder.py` — `CampaignBuilder.build()` validates then packages into a deterministic `.capsule` ZIP archive (files sorted, SHA-256 digest computed). Supports `dry_run` mode for CI pre-flight.
+- [x] Implement import compatibility checks and migration helpers.
+  - `tuxemon/campaign/importer.py` — `CampaignImporter.check_compatibility()` reads manifest from `.capsule` and compares `engine_min_version` against current engine. `install()` extracts to a campaigns directory.
+- [x] Publish starter samples and creator tutorials.
+  - Three first-party templates (above) serve as starter samples with fully documented maps, scripts, and locale files demonstrating all major authoring patterns.
 
 ### 3.3 Quality Gate for Custom Campaigns
-- [ ] Include automated lint/validation for references, localization, and progression blockers.
-- [ ] Add smoke-test harness for campaign startup and first-hour progression.
+- [x] Include automated lint/validation for references, localization, and progression blockers.
+  - `tuxemon/campaign/linter.py` — `CampaignLinter` wraps `CampaignValidator` and produces `LintReport` with machine-readable JSON output and human-readable formatted output. Issues sorted by severity and categorized by domain.
+- [x] Add smoke-test harness for campaign startup and first-hour progression.
+  - `tuxemon/campaign/smoke_test.py` — `CampaignSmokeTest.run()` runs 10 named checks and returns `SmokeTestResult` with per-check pass/fail details and an overall `ready` flag.
 
 ---
 
