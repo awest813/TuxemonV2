@@ -202,7 +202,9 @@ class TestStateQueue(unittest.TestCase):
         )
 
     def test_state_skipped_due_to_unmet_condition(self):
-        condition = lambda: False
+        def condition() -> bool:
+            return False
+
         self.state_queue_manager.queue_state(
             "locked_state", condition=condition
         )

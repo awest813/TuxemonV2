@@ -3,6 +3,7 @@
 """
 Tests for tuxemon.campaign.models — schema validation.
 """
+
 import pytest
 from pydantic import ValidationError
 
@@ -68,7 +69,9 @@ class TestCampaignManifest:
 
     def test_start_map_must_be_tmx(self):
         with pytest.raises(ValidationError):
-            CampaignManifest(**self._valid_manifest(start_map="maps/start.json"))
+            CampaignManifest(
+                **self._valid_manifest(start_map="maps/start.json")
+            )
 
     def test_description_too_short(self):
         with pytest.raises(ValidationError):
@@ -98,7 +101,9 @@ class TestCampaignManifest:
 
 class TestEncounterEntry:
     def test_valid_entry(self):
-        e = EncounterEntry(monster_id="porcupinito", weight=5, level_min=3, level_max=8)
+        e = EncounterEntry(
+            monster_id="porcupinito", weight=5, level_min=3, level_max=8
+        )
         assert e.monster_id == "porcupinito"
         assert e.weight == 5
 
@@ -108,7 +113,9 @@ class TestEncounterEntry:
 
     def test_invalid_time_restriction(self):
         with pytest.raises(ValidationError):
-            EncounterEntry(monster_id="porcupinito", time_restrictions=["lunchtime"])
+            EncounterEntry(
+                monster_id="porcupinito", time_restrictions=["lunchtime"]
+            )
 
     def test_valid_time_restrictions(self):
         e = EncounterEntry(
@@ -119,15 +126,21 @@ class TestEncounterEntry:
 
     def test_invalid_season_restriction(self):
         with pytest.raises(ValidationError):
-            EncounterEntry(monster_id="porcupinito", season_restrictions=["monsoon"])
+            EncounterEntry(
+                monster_id="porcupinito", season_restrictions=["monsoon"]
+            )
 
     def test_valid_season_restrictions(self):
-        e = EncounterEntry(monster_id="porcupinito", season_restrictions=["winter", "spring"])
+        e = EncounterEntry(
+            monster_id="porcupinito", season_restrictions=["winter", "spring"]
+        )
         assert "winter" in e.season_restrictions
 
     def test_invalid_weekday_restriction(self):
         with pytest.raises(ValidationError):
-            EncounterEntry(monster_id="porcupinito", weekday_restrictions=["funday"])
+            EncounterEntry(
+                monster_id="porcupinito", weekday_restrictions=["funday"]
+            )
 
     def test_valid_weekday_restrictions(self):
         e = EncounterEntry(
@@ -161,7 +174,12 @@ class TestWizardStep1:
 
     def test_description_min_length(self):
         with pytest.raises(ValidationError):
-            WizardStep1(id="my_campaign", name="My Campaign", author="Me", description="Short")
+            WizardStep1(
+                id="my_campaign",
+                name="My Campaign",
+                author="Me",
+                description="Short",
+            )
 
 
 class TestWizardStep2:
@@ -169,7 +187,12 @@ class TestWizardStep2:
         assert WizardStep2(template="blank").template == "blank"
 
     def test_valid_templates(self):
-        for t in ("blank", "classic_two_region", "battle_challenge", "event_adventure"):
+        for t in (
+            "blank",
+            "classic_two_region",
+            "battle_challenge",
+            "event_adventure",
+        ):
             assert WizardStep2(template=t).template == t
 
     def test_invalid_template(self):
@@ -199,4 +222,7 @@ class TestScaffoldDirectory:
         scaffold = ScaffoldDirectory.from_root(tmp_path / "my_campaign")
         assert scaffold.maps_dir == tmp_path / "my_campaign" / "maps"
         assert scaffold.scripts_dir == tmp_path / "my_campaign" / "scripts"
-        assert scaffold.manifest_path == tmp_path / "my_campaign" / "campaign.yaml"
+        assert (
+            scaffold.manifest_path
+            == tmp_path / "my_campaign" / "campaign.yaml"
+        )

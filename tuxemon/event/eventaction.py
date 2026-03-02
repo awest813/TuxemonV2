@@ -209,7 +209,7 @@ class EventAction(ABC):
         method for subclass logic.
         """
         if self.cancelled:
-            logger.debug(f"Action is cancelled, not starting")
+            logger.debug("Action is cancelled, not starting")
             self.stop()
             return
         try:

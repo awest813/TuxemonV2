@@ -6,8 +6,6 @@ import logging
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from tuxemon.monster.monster import Monster
-
 if TYPE_CHECKING:
     from tuxemon.monster.monster import Monster
 

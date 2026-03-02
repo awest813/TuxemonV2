@@ -3,6 +3,7 @@
 """
 Tests for IntegrityLedger and ModerationController — Phase 2.3.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -11,7 +12,6 @@ from tuxemon.casino.integrity import (
     IntegrityLedger,
     ModerationController,
     ModerationFlag,
-    RoundRecord,
 )
 
 
@@ -27,14 +27,18 @@ def ledger() -> IntegrityLedger:
 
 class TestIntegrityLedgerRecord:
     def test_record_win_round(self, ledger):
-        r = ledger.record_round(wager=50, payout=100, win=True, outcome_label="heads")
+        r = ledger.record_round(
+            wager=50, payout=100, win=True, outcome_label="heads"
+        )
         assert r.wager == 50
         assert r.payout == 100
         assert r.win is True
         assert r.outcome_label == "heads"
 
     def test_record_loss_round(self, ledger):
-        r = ledger.record_round(wager=50, payout=0, win=False, outcome_label="tails")
+        r = ledger.record_round(
+            wager=50, payout=0, win=False, outcome_label="tails"
+        )
         assert r.win is False
         assert r.net() == -50
 
@@ -161,10 +165,15 @@ class TestModerationController:
     def test_win_rate_anomaly_needs_min_rounds(self, ledger):
         ledger.record_round(10, 20, True)
         ctrl = ModerationController(
-            ledger, expected_win_rate=0.5, win_rate_deviation=0.10, min_rounds_for_stats=30
+            ledger,
+            expected_win_rate=0.5,
+            win_rate_deviation=0.10,
+            min_rounds_for_stats=30,
         )
         flags = ctrl.evaluate()
-        assert not any(f.flag == ModerationFlag.WIN_RATE_ANOMALY for f in flags)
+        assert not any(
+            f.flag == ModerationFlag.WIN_RATE_ANOMALY for f in flags
+        )
 
     def test_win_rate_anomaly_detected_with_enough_rounds(self, ledger):
         for _ in range(35):
@@ -183,7 +192,9 @@ class TestModerationController:
             ledger.record_round(10, 0, False)
         ctrl = ModerationController(ledger, expected_win_rate=None)
         flags = ctrl.evaluate()
-        assert not any(f.flag == ModerationFlag.WIN_RATE_ANOMALY for f in flags)
+        assert not any(
+            f.flag == ModerationFlag.WIN_RATE_ANOMALY for f in flags
+        )
 
     def test_rapid_play_flag(self, ledger):
         for _ in range(80):

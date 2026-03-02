@@ -19,6 +19,7 @@ Content generated:
   locale/
     en_US.ini
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -114,7 +115,13 @@ class EventAdventureTemplate(CampaignTemplate):
                 width=24,
                 height=18,
                 events_xml="\n  ".join(
-                    [enc_day, enc_dawn_only, spawn_forest, shrine_trans, village_back]
+                    [
+                        enc_day,
+                        enc_dawn_only,
+                        spawn_forest,
+                        shrine_trans,
+                        village_back,
+                    ]
                 ),
             )
         )

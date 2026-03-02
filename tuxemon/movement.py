@@ -19,7 +19,6 @@ from tuxemon.user_config import CONFIG
 
 if TYPE_CHECKING:
     from tuxemon.boundary import BoundaryChecker
-    from tuxemon.db import Direction
     from tuxemon.entity.npc import NPC
     from tuxemon.event.eventmanager import EventManager
     from tuxemon.map.collision_manager import CollisionManager, CollisionMap

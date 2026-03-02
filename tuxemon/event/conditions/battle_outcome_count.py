@@ -53,7 +53,7 @@ class BattleOutcomeCountCondition(EventCondition):
         try:
             fighter, outcome, opponent, count_str = condition.parameters[:4]
             required_count = int(count_str)
-        except (ValueError, IndexError) as e:
+        except (ValueError, IndexError):
             logger.error(
                 f"Invalid parameters for battle_outcome_count: {condition.parameters}"
             )

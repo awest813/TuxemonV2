@@ -28,6 +28,7 @@ Usage::
     wallet2 = CoinWallet()
     wallet2.decode(data)
 """
+
 from __future__ import annotations
 
 import logging

@@ -34,7 +34,11 @@ def test_disable_normalizes_key_input() -> None:
 
 def test_group_by_prefix_normalizes_input() -> None:
     options = MenuOptions(
-        [ChoiceOption("ui_inventory"), ChoiceOption("ui_settings"), ChoiceOption("combat")]
+        [
+            ChoiceOption("ui_inventory"),
+            ChoiceOption("ui_settings"),
+            ChoiceOption("combat"),
+        ]
     )
 
     grouped = options.group_by_prefix(" UI_ ")

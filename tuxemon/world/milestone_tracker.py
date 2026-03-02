@@ -18,6 +18,7 @@ Tier definitions:
 Tiers 3-5 require systems introduced in Phase 2/Phase 4; their detection
 methods are stubs here that Phase 2+ systems can invoke directly.
 """
+
 from __future__ import annotations
 
 import logging

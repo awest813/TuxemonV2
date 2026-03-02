@@ -3,9 +3,10 @@
 """
 Tests for ClockWatcher — Hook 4.1 and Hook 4.2 integration.
 """
+
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -44,7 +45,9 @@ def clear_hooks():
 def _make_watcher(initial_segment: str = "morning") -> ClockWatcher:
     watcher = ClockWatcher.__new__(ClockWatcher)
     watcher._time_handler = MagicMock()
-    watcher._time_handler.get_time_variables.return_value = _snap(initial_segment)
+    watcher._time_handler.get_time_variables.return_value = _snap(
+        initial_segment
+    )
     watcher._last_segment = initial_segment
     watcher._last_date = date(2026, 3, 1)
     return watcher
@@ -56,7 +59,9 @@ class TestClockWatcherTimeSegment:
         hooks.on_time_segment_change(fired.append)
 
         watcher = _make_watcher("morning")
-        watcher._time_handler.get_time_variables.return_value = _snap("morning")
+        watcher._time_handler.get_time_variables.return_value = _snap(
+            "morning"
+        )
         with patch("tuxemon.world.clock_watcher.date") as mock_date:
             mock_date.today.return_value = date(2026, 3, 1)
             watcher.tick()
@@ -68,7 +73,9 @@ class TestClockWatcherTimeSegment:
         hooks.on_time_segment_change(fired.append)
 
         watcher = _make_watcher("morning")
-        watcher._time_handler.get_time_variables.return_value = _snap("afternoon")
+        watcher._time_handler.get_time_variables.return_value = _snap(
+            "afternoon"
+        )
         with patch("tuxemon.world.clock_watcher.date") as mock_date:
             mock_date.today.return_value = date(2026, 3, 1)
             watcher.tick()
@@ -79,7 +86,9 @@ class TestClockWatcherTimeSegment:
 
     def test_last_segment_updated_after_change(self):
         watcher = _make_watcher("morning")
-        watcher._time_handler.get_time_variables.return_value = _snap("afternoon")
+        watcher._time_handler.get_time_variables.return_value = _snap(
+            "afternoon"
+        )
         with patch("tuxemon.world.clock_watcher.date") as mock_date:
             mock_date.today.return_value = date(2026, 3, 1)
             watcher.tick()
@@ -91,7 +100,9 @@ class TestClockWatcherTimeSegment:
         hooks.on_time_segment_change(fired.append)
 
         watcher = _make_watcher("morning")
-        watcher._time_handler.get_time_variables.return_value = _snap("afternoon")
+        watcher._time_handler.get_time_variables.return_value = _snap(
+            "afternoon"
+        )
         with patch("tuxemon.world.clock_watcher.date") as mock_date:
             mock_date.today.return_value = date(2026, 3, 1)
             watcher.tick()
@@ -105,7 +116,9 @@ class TestClockWatcherTimeSegment:
         watcher = _make_watcher("morning")
 
         for new_seg in ["afternoon", "dusk", "night"]:
-            watcher._time_handler.get_time_variables.return_value = _snap(new_seg)
+            watcher._time_handler.get_time_variables.return_value = _snap(
+                new_seg
+            )
             with patch("tuxemon.world.clock_watcher.date") as mock_date:
                 mock_date.today.return_value = date(2026, 3, 1)
                 watcher.tick()
@@ -120,7 +133,9 @@ class TestClockWatcherDayChange:
         hooks.on_day_change(fired.append)
 
         watcher = _make_watcher("morning")
-        watcher._time_handler.get_time_variables.return_value = _snap("morning")
+        watcher._time_handler.get_time_variables.return_value = _snap(
+            "morning"
+        )
         with patch("tuxemon.world.clock_watcher.date") as mock_date:
             mock_date.today.return_value = date(2026, 3, 1)
             watcher.tick()
@@ -146,7 +161,9 @@ class TestClockWatcherDayChange:
 
     def test_last_date_updated_after_day_change(self):
         watcher = _make_watcher("morning")
-        watcher._time_handler.get_time_variables.return_value = _snap("morning")
+        watcher._time_handler.get_time_variables.return_value = _snap(
+            "morning"
+        )
         with patch("tuxemon.world.clock_watcher.date") as mock_date:
             mock_date.today.return_value = date(2026, 3, 2)
             watcher.tick()

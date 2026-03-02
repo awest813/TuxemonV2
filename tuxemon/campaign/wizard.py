@@ -8,6 +8,7 @@ Each step is validated independently before the wizard advances.
 The final step produces a CampaignManifest and optionally generates
 the scaffold directory structure on disk.
 """
+
 from __future__ import annotations
 
 import logging
@@ -158,7 +159,9 @@ class CampaignWizard:
         except ValidationError as exc:
             raise WizardValidationError(3, exc.errors()) from exc
         self._step3 = step
-        logger.debug("Wizard step 3 accepted: difficulty=%s", default_difficulty)
+        logger.debug(
+            "Wizard step 3 accepted: difficulty=%s", default_difficulty
+        )
         return step
 
     # ------------------------------------------------------------------
@@ -250,7 +253,9 @@ class CampaignWizard:
         scaffold.manifest_path.write_text(manifest_text, encoding="utf-8")
 
         logger.info(
-            "Campaign scaffold generated at %s (id=%s)", output_dir, manifest.id
+            "Campaign scaffold generated at %s (id=%s)",
+            output_dir,
+            manifest.id,
         )
         return scaffold
 

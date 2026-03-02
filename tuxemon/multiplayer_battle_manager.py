@@ -170,7 +170,9 @@ class ActiveBattleSession:
     current_turn: int = 1
     turn_timeout_seconds: int = 60
     reconnect_grace_seconds: int = 30
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
     last_activity_at: datetime = field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
@@ -220,9 +222,13 @@ class ActiveBattleSession:
             session_id=UUID(str(data["session_id"])),
             current_turn=int(data.get("current_turn", 1)),
             turn_timeout_seconds=int(data.get("turn_timeout_seconds", 60)),
-            reconnect_grace_seconds=int(data.get("reconnect_grace_seconds", 30)),
+            reconnect_grace_seconds=int(
+                data.get("reconnect_grace_seconds", 30)
+            ),
             created_at=_coerce_utc_timestamp(str(data["created_at"])),
-            last_activity_at=_coerce_utc_timestamp(str(data["last_activity_at"])),
+            last_activity_at=_coerce_utc_timestamp(
+                str(data["last_activity_at"])
+            ),
             disconnected_at=disconnected_at,
             turn_actions=turn_actions,
         )
@@ -291,7 +297,9 @@ class MultiplayerBattleManager:
     ) -> list[BattleTurnAction]:
         """Build a deterministic resolution order owned by the server."""
 
-        def conflict_sort_key(turn_action: BattleTurnAction) -> tuple[int, int, str, str]:
+        def conflict_sort_key(
+            turn_action: BattleTurnAction,
+        ) -> tuple[int, int, str, str]:
             raw_priority = turn_action.action.get("priority", 0)
             priority = raw_priority if isinstance(raw_priority, int) else 0
             raw_speed = turn_action.action.get("speed", 0)
@@ -374,9 +382,13 @@ class MultiplayerBattleManager:
         removed = 0
 
         for battle_session in self.active_battle_sessions:
-            if self._is_battle_session_expired(battle_session, now=current_time):
+            if self._is_battle_session_expired(
+                battle_session, now=current_time
+            ):
                 removed += 1
-                self.event_bus.publish("multiplayer_battle_session_expired", battle_session)
+                self.event_bus.publish(
+                    "multiplayer_battle_session_expired", battle_session
+                )
                 continue
 
             active_sessions.append(battle_session)
@@ -442,7 +454,9 @@ class MultiplayerBattleManager:
         if battle_session is None:
             return TurnSubmissionResult.NOT_FOUND
 
-        if player_id not in set(self._participant_ids_for_session(battle_session)):
+        if player_id not in set(
+            self._participant_ids_for_session(battle_session)
+        ):
             return TurnSubmissionResult.UNAUTHORIZED
 
         if self._is_battle_session_expired(battle_session):
@@ -636,7 +650,10 @@ class MultiplayerBattleManager:
                 retryable=True,
             )
 
-        for participant_id_str, disconnected_at in battle_session.disconnected_at.items():
+        for (
+            participant_id_str,
+            disconnected_at,
+        ) in battle_session.disconnected_at.items():
             if disconnected_at is None:
                 continue
 
@@ -651,7 +668,9 @@ class MultiplayerBattleManager:
                     retryable=True,
                 )
 
-            seconds_left = max(0, int((grace_ends_at - current_time).total_seconds()))
+            seconds_left = max(
+                0, int((grace_ends_at - current_time).total_seconds())
+            )
             if participant_id_str == str(player_id):
                 return OnlineActionFeedback(
                     state=OnlineActionState.PENDING,
@@ -1012,15 +1031,15 @@ class MultiplayerBattleManager:
             except (KeyError, TypeError, ValueError):
                 continue
         self.pending_challenges = pending_challenges
-        raw_history = data.get("battle_history", data.get("completed_battles", []))
+        raw_history = data.get(
+            "battle_history", data.get("completed_battles", [])
+        )
         history: list[BattleRecord] = []
         for entry in raw_history:
             if not isinstance(entry, Mapping):
                 continue
             try:
-                history.append(
-                    BattleRecord.from_dict(dict(entry))
-                )
+                history.append(BattleRecord.from_dict(dict(entry)))
             except (KeyError, TypeError, ValueError):
                 continue
         self.battle_history = history

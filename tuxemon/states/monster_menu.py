@@ -37,7 +37,6 @@ if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient
     from tuxemon.entity.party import PartyHandler
     from tuxemon.item.item import Item
-    from tuxemon.monster.monster import Monster
     from tuxemon.prepare import DisplayContext
 
 LAYER_MONSTER_ICONS = 20

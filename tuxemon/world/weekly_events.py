@@ -24,6 +24,7 @@ YAML format example::
         map: "goldenrod_market_square"
         trigger_script: "open_farmers_market"
 """
+
 from __future__ import annotations
 
 import logging
@@ -135,7 +136,11 @@ class WeeklyEventCalendar(BaseModel):
         self, weekday: str, time_segment: str
     ) -> list[WeeklyEventEntry]:
         """Return all events that are currently active."""
-        return [e for e in self.weekly_events if e.is_active_now(weekday, time_segment)]
+        return [
+            e
+            for e in self.weekly_events
+            if e.is_active_now(weekday, time_segment)
+        ]
 
     def get_event(self, event_id: str) -> WeeklyEventEntry | None:
         """Look up an event by its stable identifier."""

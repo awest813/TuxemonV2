@@ -14,11 +14,14 @@ starter templates defined in docs/campaign_maker_mvp.md §3 Workflow F:
 Templates are applied by CampaignTemplateEngine.apply() after the wizard
 generates the base scaffold directory.
 """
+
 from __future__ import annotations
 
 from tuxemon.campaign.templates._base import CampaignTemplate
 from tuxemon.campaign.templates.battle_challenge import BattleChallengeTemplate
-from tuxemon.campaign.templates.classic_two_region import ClassicTwoRegionTemplate
+from tuxemon.campaign.templates.classic_two_region import (
+    ClassicTwoRegionTemplate,
+)
 from tuxemon.campaign.templates.event_adventure import EventAdventureTemplate
 
 _REGISTRY: dict[str, CampaignTemplate] = {

@@ -127,6 +127,6 @@ class TestTranslatorPo(unittest.TestCase):
         po.translate = MagicMock(return_value="Hi")
         self.assertEqual(po.maybe_translate("Hello"), "Hi")
 
-    def test_maybe_translate_none(self):
+    def test_maybe_translate_none_returns_empty(self):
         po = TranslatorPo("en", "base", Path("."), "en")
         self.assertEqual(po.maybe_translate(None), "")

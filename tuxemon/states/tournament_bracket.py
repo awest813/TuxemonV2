@@ -67,7 +67,9 @@ class TournamentBracketState(PygameMenuState):
 
         if manager is None:
             menu.add.label(T.translate("tournament_none_available"))
-            menu.add.button(T.translate("tournament_close").upper(), self._close)
+            menu.add.button(
+                T.translate("tournament_close").upper(), self._close
+            )
             return
 
         tournament: Tournament | None = manager._find_tournament(
@@ -75,7 +77,9 @@ class TournamentBracketState(PygameMenuState):
         )
         if tournament is None:
             menu.add.label(T.translate("tournament_none_available"))
-            menu.add.button(T.translate("tournament_close").upper(), self._close)
+            menu.add.button(
+                T.translate("tournament_close").upper(), self._close
+            )
             return
 
         menu.add.label(
@@ -167,9 +171,7 @@ class TournamentBracketState(PygameMenuState):
             if match.is_bye:
                 suffix = f" ({T.translate('tournament_match_walkover')})"
             else:
-                suffix = (
-                    f" → {T.translate('tournament_match_winner')}: {winner_name}"
-                )
+                suffix = f" → {T.translate('tournament_match_winner')}: {winner_name}"
             line = vs_text + suffix
         elif match.status == MatchStatus.SCHEDULED:
             line = vs_text + f" ({T.translate('tournament_match_scheduled')})"
@@ -182,10 +184,7 @@ class TournamentBracketState(PygameMenuState):
         self.client.pop_state()
 
     def process_event(self, event: PlayerInput) -> PlayerInput | None:
-        if (
-            event.button in (buttons.B, buttons.BACK)
-            and event.pressed
-        ):
+        if event.button in (buttons.B, buttons.BACK) and event.pressed:
             self._close()
             return None
         return super().process_event(event)

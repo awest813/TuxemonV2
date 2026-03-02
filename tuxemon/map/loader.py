@@ -301,7 +301,7 @@ class YAMLEventLoader:
                 y = int(collision_data.get("y", 0))
                 w = int(collision_data.get("width", 1))
                 h = int(collision_data.get("height", 1))
-                event_type = str(collision_data.get("type"))
+                str(collision_data.get("type"))
                 coords = [(x + i, y + j) for i in range(w) for j in range(h)]
                 for coord in coords:
                     collision_dict[coord] = None

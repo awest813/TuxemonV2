@@ -53,6 +53,7 @@ Usage::
     result = session.play("coin_flip", wager=50)
     print(result.outcome_label, result.payout, result.net)
 """
+
 from __future__ import annotations
 
 import logging

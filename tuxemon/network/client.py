@@ -86,9 +86,7 @@ class TuxemonClient:
         self.available_games: list[tuple[str, int]] = []
         self.server_list: list[str] = []
         self.selected_game: tuple[str, int] | None = None
-        self.pending_feedback: list[
-            list[tuple[str, dict[str, str]]]
-        ] = []
+        self.pending_feedback: list[list[tuple[str, dict[str, str]]]] = []
 
         self.populated: bool = False
         self.listening: bool = False
@@ -463,7 +461,9 @@ class InteractionManager:
     ) -> tuple[UUID, UUID] | None:
         """Resolve duel participants as (challenger, challenged)."""
         try:
-            local_player_id = getattr(local_session.player, "instance_id", None)
+            local_player_id = getattr(
+                local_session.player, "instance_id", None
+            )
         except Exception:
             local_player_id = None
         if not isinstance(local_player_id, UUID):
@@ -554,7 +554,9 @@ class InteractionManager:
                 return
 
         if not isinstance(event, EventData):
-            logger.debug("Ignoring unsupported combat event payload: %r", event)
+            logger.debug(
+                "Ignoring unsupported combat event payload: %r", event
+            )
             return
         if (event.interaction or "").upper() != "DUEL":
             return
@@ -589,11 +591,15 @@ class InteractionManager:
                     rejecting_player_id=challenge.challenged_player_id,
                 )
             else:
-                logger.warning("Unknown duel response token: %r", event.response)
+                logger.warning(
+                    "Unknown duel response token: %r", event.response
+                )
                 return
 
             action = "accept" if response == "accept" else "reject"
-            feedback = manager.get_challenge_action_feedback(result, action=action)
+            feedback = manager.get_challenge_action_feedback(
+                result, action=action
+            )
 
         manager.event_bus.publish("multiplayer_combat_feedback", feedback)
         self.client.queue_feedback_formatted(

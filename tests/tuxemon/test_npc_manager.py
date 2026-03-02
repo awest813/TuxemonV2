@@ -137,7 +137,7 @@ def test_load_persistent_mixed_valid_invalid(MockNPC, npc_manager, session):
 
 
 @patch("tuxemon.npc_manager.NPC.from_save")
-def test_load_persistent_does_not_clear_existing(
+def test_load_persistent_does_not_clear_existing_again(
     MockNPC, npc_manager, session
 ):
     existing = MagicMock(slug="existing")

@@ -19,9 +19,9 @@ Checks performed:
 9. Ruleset override (if present) passes BattleRules validation.
 10. No duplicate IDs across maps, scripts, or encounter zones.
 """
+
 from __future__ import annotations
 
-import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -31,7 +31,6 @@ import yaml
 
 from tuxemon.campaign.validator import (
     CampaignValidator,
-    Severity,
     ValidationReport,
 )
 
@@ -90,7 +89,9 @@ class SmokeTestResult:
 
     def format_report(self) -> str:
         lines: list[str] = []
-        dir_label = str(self.campaign_dir) if self.campaign_dir else "(unknown)"
+        dir_label = (
+            str(self.campaign_dir) if self.campaign_dir else "(unknown)"
+        )
         lines.append(f"Campaign Smoke Test: {dir_label}")
         lines.append("=" * 60)
 
@@ -125,9 +126,7 @@ class CampaignSmokeTest:
         assert result.ready, "Campaign not ready to launch"
     """
 
-    def __init__(
-        self, validator: Optional[CampaignValidator] = None
-    ) -> None:
+    def __init__(self, validator: Optional[CampaignValidator] = None) -> None:
         self._validator = validator or CampaignValidator()
 
     def run(self, campaign_dir: Path) -> SmokeTestResult:
@@ -157,9 +156,7 @@ class CampaignSmokeTest:
 
         # --- Check 2: Manifest present and valid ---
         manifest_issues = [
-            i
-            for i in report.blocking
-            if "manifest" in i.check_id
+            i for i in report.blocking if "manifest" in i.check_id
         ]
         result.checks.append(
             SmokeCheck(
@@ -223,7 +220,9 @@ class CampaignSmokeTest:
 
         # --- Check 6: No transition target errors ---
         trans_issues = [
-            i for i in report.blocking if i.check_id == "transition_target_valid"
+            i
+            for i in report.blocking
+            if i.check_id == "transition_target_valid"
         ]
         result.checks.append(
             SmokeCheck(
@@ -299,7 +298,8 @@ class CampaignSmokeTest:
 
         # Determine overall readiness: all BLOCKING checks must pass
         blocking_failures = [
-            c for c in result.checks
+            c
+            for c in result.checks
             if not c.passed and c.severity == "blocking"
         ]
         result.ready = len(blocking_failures) == 0

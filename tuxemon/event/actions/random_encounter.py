@@ -62,7 +62,7 @@ class RandomEncounterAction(EventAction):
             return
 
         if check_repellent(player):
-            logger.info(f"Repellent active, skipping encounter.")
+            logger.info("Repellent active, skipping encounter.")
             return
 
         if not encounter.load_zone(self.encounter_slug):
@@ -139,5 +139,4 @@ class RandomEncounterAction(EventAction):
                 self.stop()
 
     def cleanup(self, session: Session) -> None:
-        npc = None
         session.client.npc_manager.remove_npc("wild_encounter")

@@ -92,11 +92,15 @@ class TournamentPolicy:
             team_size=int(data.get("team_size", 6)),
             level_cap=int(data.get("level_cap", 50)),
             turn_timer_seconds=int(data.get("turn_timer_seconds", 60)),
-            reconnect_grace_seconds=int(data.get("reconnect_grace_seconds", 90)),
+            reconnect_grace_seconds=int(
+                data.get("reconnect_grace_seconds", 90)
+            ),
             duplicate_species_clause=bool(
                 data.get("duplicate_species_clause", True)
             ),
-            no_show_timeout_seconds=int(data.get("no_show_timeout_seconds", 180)),
+            no_show_timeout_seconds=int(
+                data.get("no_show_timeout_seconds", 180)
+            ),
             min_viable_players=int(data.get("min_viable_players", 8)),
         )
 
@@ -120,7 +124,9 @@ class Participant:
             "seed": self.seed,
             "disqualified": self.disqualified,
             "disqualified_at": (
-                self.disqualified_at.isoformat() if self.disqualified_at else None
+                self.disqualified_at.isoformat()
+                if self.disqualified_at
+                else None
             ),
         }
 
@@ -163,8 +169,12 @@ class Match:
             "match_id": str(self.match_id),
             "round_index": self.round_index,
             "match_index": self.match_index,
-            "player_a_id": (str(self.player_a_id) if self.player_a_id else None),
-            "player_b_id": (str(self.player_b_id) if self.player_b_id else None),
+            "player_a_id": (
+                str(self.player_a_id) if self.player_a_id else None
+            ),
+            "player_b_id": (
+                str(self.player_b_id) if self.player_b_id else None
+            ),
             "winner_id": (str(self.winner_id) if self.winner_id else None),
             "resolution_token": self.resolution_token,
             "status": self.status.value,
@@ -190,10 +200,14 @@ class Match:
             round_index=int(data["round_index"]),
             match_index=int(data["match_index"]),
             player_a_id=(
-                UUID(str(data["player_a_id"])) if data.get("player_a_id") else None
+                UUID(str(data["player_a_id"]))
+                if data.get("player_a_id")
+                else None
             ),
             player_b_id=(
-                UUID(str(data["player_b_id"])) if data.get("player_b_id") else None
+                UUID(str(data["player_b_id"]))
+                if data.get("player_b_id")
+                else None
             ),
             winner_id=(
                 UUID(str(data["winner_id"])) if data.get("winner_id") else None
@@ -247,7 +261,9 @@ class BracketNode:
             position=int(data["position"]),
             round_index=int(data["round_index"]),
             match_index=int(data["match_index"]),
-            match_id=(UUID(str(data["match_id"])) if data.get("match_id") else None),
+            match_id=(
+                UUID(str(data["match_id"])) if data.get("match_id") else None
+            ),
             feeds_into=(
                 int(data["feeds_into"])
                 if data.get("feeds_into") is not None
@@ -308,7 +324,9 @@ class Tournament:
                 if self.checkin_closes_at
                 else None
             ),
-            "champion_id": (str(self.champion_id) if self.champion_id else None),
+            "champion_id": (
+                str(self.champion_id) if self.champion_id else None
+            ),
             "cancel_reason": self.cancel_reason,
             "admin_notes": list(self.admin_notes),
         }
@@ -365,7 +383,9 @@ class Tournament:
                 else None
             ),
             champion_id=(
-                UUID(str(data["champion_id"])) if data.get("champion_id") else None
+                UUID(str(data["champion_id"]))
+                if data.get("champion_id")
+                else None
             ),
             cancel_reason=data.get("cancel_reason"),
             admin_notes=list(data.get("admin_notes", [])),
@@ -688,7 +708,9 @@ class TournamentManager:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _build_match_correlation_id(tournament_id: UUID, match_id: UUID) -> str:
+    def _build_match_correlation_id(
+        tournament_id: UUID, match_id: UUID
+    ) -> str:
         """Return a stable correlation key for challenge transport wiring."""
         return f"tournament:{tournament_id}:match:{match_id}"
 
@@ -768,7 +790,9 @@ class TournamentManager:
         if match.player_a_id is None or match.player_b_id is None:
             return TournamentResult.INVALID_STATE
 
-        correlation_id = self._build_match_correlation_id(tournament_id, match_id)
+        correlation_id = self._build_match_correlation_id(
+            tournament_id, match_id
+        )
         result = self.mark_match_dispatched(
             tournament_id, match_id, correlation_id=correlation_id, now=now
         )
@@ -1380,7 +1404,10 @@ class TournamentManager:
         )
 
         for match in tournament.matches:
-            if match.status not in (MatchStatus.SCHEDULED, MatchStatus.PENDING):
+            if match.status not in (
+                MatchStatus.SCHEDULED,
+                MatchStatus.PENDING,
+            ):
                 continue
             opponent_id: UUID | None = None
             if match.player_a_id == player_id:
@@ -1550,7 +1577,9 @@ class TournamentManager:
                 "placement": placement,
                 "points_awarded": points,
                 "season_id": (
-                    self.active_season.season_id if self.active_season else None
+                    self.active_season.season_id
+                    if self.active_season
+                    else None
                 ),
                 "timestamp": current_time.isoformat(),
             },
@@ -1573,7 +1602,9 @@ class TournamentManager:
 
     def get_season_standings(self) -> list[SeasonStandingEntry]:
         """Return a copy of season standings sorted by points descending."""
-        return sorted(self.season_standings, key=lambda e: e.points, reverse=True)
+        return sorted(
+            self.season_standings, key=lambda e: e.points, reverse=True
+        )
 
     # ------------------------------------------------------------------
     # Player notifications

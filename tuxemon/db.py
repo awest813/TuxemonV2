@@ -992,7 +992,7 @@ class MonsterEvolutionItemModel(BaseModel):
     @field_validator("moves")
     def validate_moves(cls, v: Sequence[str]) -> Sequence[str]:
         if not v:
-            raise ValueError(f"Moves must contain at least 1 technique")
+            raise ValueError("Moves must contain at least 1 technique")
         return v
 
     @field_validator("tech")

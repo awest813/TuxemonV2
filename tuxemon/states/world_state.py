@@ -33,7 +33,10 @@ from tuxemon.time_hooks import MapZoneEnterPayload, hooks
 from tuxemon.world.clock_watcher import ClockWatcher
 from tuxemon.world.manager import WorldMenuManager
 from tuxemon.world.transition import WorldTransition
-from tuxemon.world.weekly_events import WeeklyEventCalendar, WeeklyEventScheduler
+from tuxemon.world.weekly_events import (
+    WeeklyEventCalendar,
+    WeeklyEventScheduler,
+)
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient

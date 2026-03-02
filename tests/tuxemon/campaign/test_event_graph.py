@@ -4,10 +4,10 @@
 Tests for tuxemon.campaign.event_graph — EventGraph, EventNode, EventTrigger,
 and EventGraphBuilder.
 """
+
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
@@ -28,7 +28,9 @@ class TestEventTrigger:
         assert t.type == TriggerType.GAME_START
 
     def test_trigger_with_args(self):
-        t = EventTrigger(type=TriggerType.MAP_ZONE_ENTER, args={"zone": "village_zone"})
+        t = EventTrigger(
+            type=TriggerType.MAP_ZONE_ENTER, args={"zone": "village_zone"}
+        )
         assert t.args["zone"] == "village_zone"
 
     def test_invalid_trigger_type(self):
@@ -38,7 +40,9 @@ class TestEventTrigger:
 
 class TestEventNode:
     def test_valid_node(self):
-        node = EventNode(id="node_a", action=ActionType.DIALOG, args={"text_key": "k"})
+        node = EventNode(
+            id="node_a", action=ActionType.DIALOG, args={"text_key": "k"}
+        )
         assert node.id == "node_a"
 
     def test_invalid_node_id_uppercase(self):

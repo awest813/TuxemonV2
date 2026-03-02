@@ -9,13 +9,14 @@ docs/campaign_maker_mvp.md §3.2.
 The builder validates a campaign directory and, if valid, packages it into
 a deterministic .capsule archive (ZIP format) suitable for distribution.
 """
+
 from __future__ import annotations
 
 import hashlib
 import io
 import logging
 import zipfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
@@ -153,9 +154,7 @@ class CampaignBuilder:
             )
 
         # Collect files in deterministic order
-        file_paths = sorted(
-            p for p in campaign_dir.rglob("*") if p.is_file()
-        )
+        file_paths = sorted(p for p in campaign_dir.rglob("*") if p.is_file())
 
         # Build the archive into a buffer for hashing (avoids partial writes)
         buf = io.BytesIO()
@@ -206,4 +205,6 @@ class CampaignBuilder:
         build() so creators can go from wizard → packaged archive in one call.
         """
         scaffold = wizard.generate_scaffold(base_dir)
-        return self.build(scaffold.root, output_path=output_path, dry_run=dry_run)
+        return self.build(
+            scaffold.root, output_path=output_path, dry_run=dry_run
+        )

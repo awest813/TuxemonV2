@@ -31,6 +31,7 @@ Usage::
     mgr.accept_room(room.room_code, "bob")
     assert mgr.get_room(room.room_code).status == RoomStatus.CONFIRMED
 """
+
 from __future__ import annotations
 
 import logging
@@ -180,7 +181,10 @@ class PrivateRoomManager:
         )
         self._rooms[code] = room
         logger.info(
-            "Private room %s created: %s challenged %s", code, host_id, guest_id
+            "Private room %s created: %s challenged %s",
+            code,
+            host_id,
+            guest_id,
         )
         return room
 

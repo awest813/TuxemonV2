@@ -124,7 +124,9 @@ class Bar:
 
         # Add a subtle gloss overlay to make bars easier to read.
         gloss = Surface(inner.size, SRCALPHA)
-        pg_draw.rect(gloss, (255, 255, 255, 25), gloss.get_rect(), border_radius=2)
+        pg_draw.rect(
+            gloss, (255, 255, 255, 25), gloss.get_rect(), border_radius=2
+        )
         gloss_height = max(1, inner.height // 2)
         pg_draw.rect(
             gloss,
@@ -138,7 +140,9 @@ class Bar:
             fill = inner.copy()
             fill.width = int(inner.width * self.value)
             if fill.width > 0:
-                pg_draw.rect(surface, self.get_fill_color(), fill, border_radius=2)
+                pg_draw.rect(
+                    surface, self.get_fill_color(), fill, border_radius=2
+                )
         self.border.draw(surface, rect)
 
     def get_fill_color(self) -> ColorLike:

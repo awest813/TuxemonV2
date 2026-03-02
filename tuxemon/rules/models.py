@@ -5,6 +5,7 @@ Pydantic models for the OpenCapsuleMon rules and settings system.
 
 Each model corresponds to a settings layer as described in docs/settings_taxonomy.md.
 """
+
 from __future__ import annotations
 
 from enum import Enum
@@ -201,7 +202,9 @@ class ModOverride(BaseModel):
     active_clauses: Optional[list[ClauseID]] = None
     allow_items_in_battle: Optional[bool] = None
     allow_held_items: Optional[bool] = None
-    encounter_rate_modifier: Optional[float] = Field(default=None, ge=0.0, le=2.0)
+    encounter_rate_modifier: Optional[float] = Field(
+        default=None, ge=0.0, le=2.0
+    )
     time_restrictions: Optional[list[str]] = None
     rematch_policy: Optional[RematchPolicy] = None
     permadeath: Optional[bool] = None

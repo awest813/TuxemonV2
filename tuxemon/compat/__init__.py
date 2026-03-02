@@ -7,4 +7,4 @@ Rect: type[ReadOnlyRect]
 try:
     from pygame.rect import Rect
 except ImportError:
-    from tuxemon.compat.rect import Rect
+    Rect = ReadOnlyRect

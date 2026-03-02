@@ -10,6 +10,7 @@ from uuid import UUID
 from tuxemon.boxes import ItemBoxes, MonsterBoxes
 from tuxemon.database.runtime import db
 from tuxemon.db import DialogueProfile, NpcModel
+from tuxemon.economy.coin_wallet import CoinWallet
 from tuxemon.entity.appearance import AppearanceManager
 from tuxemon.entity.bag import BagHandler
 from tuxemon.entity.battle import BattlesHandler
@@ -19,9 +20,7 @@ from tuxemon.entity.path import PathController
 from tuxemon.entity.routing import RoutingPolicy
 from tuxemon.entity.sheet import CombatSheet
 from tuxemon.entity.steps import StepManager
-from tuxemon.economy.coin_wallet import CoinWallet
 from tuxemon.entity.trainer_state import TrainerStateManager
-from tuxemon.world.milestone_tracker import PostgameMilestoneTracker
 from tuxemon.game_variables import GameVariablesManager, PlayerVariablesManager
 from tuxemon.locale.locale import T
 from tuxemon.map.view import SpriteController
@@ -46,6 +45,7 @@ from tuxemon.tuxepedia.manager import (
     encode_tuxepedia,
 )
 from tuxemon.ui.cipher_processor import decode_cipher, encode_cipher
+from tuxemon.world.milestone_tracker import PostgameMilestoneTracker
 
 if TYPE_CHECKING:
     from tuxemon.db import BattleMusicModel

@@ -12,6 +12,7 @@ Coverage map (from docs/settings_taxonomy.md §5):
        falls through to the next authorized layer.
   R6 — Battle snapshot: resolved ruleset frozen at battle start.
 """
+
 import pytest
 
 from tuxemon.rules.models import (
@@ -20,12 +21,11 @@ from tuxemon.rules.models import (
     DifficultyPreset,
     HostConfig,
     ModOverride,
-    PlayerConfig,
     PlayContext,
+    PlayerConfig,
     RematchPolicy,
 )
 from tuxemon.rules.resolver import SettingsResolver
-
 
 # ---------------------------------------------------------------------------
 # R1 — Default resolution
@@ -87,27 +87,37 @@ class TestPlayerOverride:
 
     def test_player_sets_encounter_rate(self):
         player = PlayerConfig(encounter_rate_modifier=0.5)
-        r = SettingsResolver(context=PlayContext.CAMPAIGN, player=player).resolve()
+        r = SettingsResolver(
+            context=PlayContext.CAMPAIGN, player=player
+        ).resolve()
         assert r.encounter.encounter_rate_modifier == 0.5
 
     def test_player_sets_difficulty(self):
         player = PlayerConfig(difficulty=DifficultyPreset.HARD)
-        r = SettingsResolver(context=PlayContext.CAMPAIGN, player=player).resolve()
+        r = SettingsResolver(
+            context=PlayContext.CAMPAIGN, player=player
+        ).resolve()
         assert r.campaign.difficulty == DifficultyPreset.HARD
 
     def test_player_easy_difficulty(self):
         player = PlayerConfig(difficulty=DifficultyPreset.EASY)
-        r = SettingsResolver(context=PlayContext.CAMPAIGN, player=player).resolve()
+        r = SettingsResolver(
+            context=PlayContext.CAMPAIGN, player=player
+        ).resolve()
         assert r.campaign.difficulty == DifficultyPreset.EASY
 
     def test_player_max_encounter_rate(self):
         player = PlayerConfig(encounter_rate_modifier=2.0)
-        r = SettingsResolver(context=PlayContext.CAMPAIGN, player=player).resolve()
+        r = SettingsResolver(
+            context=PlayContext.CAMPAIGN, player=player
+        ).resolve()
         assert r.encounter.encounter_rate_modifier == 2.0
 
     def test_player_zero_encounter_rate(self):
         player = PlayerConfig(encounter_rate_modifier=0.0)
-        r = SettingsResolver(context=PlayContext.CAMPAIGN, player=player).resolve()
+        r = SettingsResolver(
+            context=PlayContext.CAMPAIGN, player=player
+        ).resolve()
         assert r.encounter.encounter_rate_modifier == 0.0
 
 
@@ -121,42 +131,58 @@ class TestHostOverride:
 
     def test_host_sets_team_size(self):
         host = HostConfig(team_size=3)
-        r = SettingsResolver(context=PlayContext.CASUAL_ONLINE, host=host).resolve()
+        r = SettingsResolver(
+            context=PlayContext.CASUAL_ONLINE, host=host
+        ).resolve()
         assert r.battle.team_size == 3
 
     def test_host_sets_level_cap(self):
         host = HostConfig(level_cap=50)
-        r = SettingsResolver(context=PlayContext.TOURNAMENT, host=host).resolve()
+        r = SettingsResolver(
+            context=PlayContext.TOURNAMENT, host=host
+        ).resolve()
         assert r.battle.level_cap == 50
 
     def test_host_sets_timer(self):
         host = HostConfig(turn_timer_seconds=60)
-        r = SettingsResolver(context=PlayContext.TOURNAMENT, host=host).resolve()
+        r = SettingsResolver(
+            context=PlayContext.TOURNAMENT, host=host
+        ).resolve()
         assert r.battle.turn_timer_seconds == 60
 
     def test_host_disables_timer(self):
         host = HostConfig(turn_timer_seconds=0)
-        r = SettingsResolver(context=PlayContext.CASUAL_ONLINE, host=host).resolve()
+        r = SettingsResolver(
+            context=PlayContext.CASUAL_ONLINE, host=host
+        ).resolve()
         assert r.battle.turn_timer_seconds == 0
 
     def test_host_sets_clauses(self):
         host = HostConfig(active_clauses=[ClauseID.SLEEP_LIMIT])
-        r = SettingsResolver(context=PlayContext.CASUAL_ONLINE, host=host).resolve()
+        r = SettingsResolver(
+            context=PlayContext.CASUAL_ONLINE, host=host
+        ).resolve()
         assert r.battle.active_clauses == [ClauseID.SLEEP_LIMIT]
 
     def test_host_disables_items(self):
         host = HostConfig(allow_items_in_battle=False)
-        r = SettingsResolver(context=PlayContext.CASUAL_ONLINE, host=host).resolve()
+        r = SettingsResolver(
+            context=PlayContext.CASUAL_ONLINE, host=host
+        ).resolve()
         assert r.battle.allow_items_in_battle is False
 
     def test_host_overrides_bracket_size(self):
         host = HostConfig(bracket_size=16)
-        r = SettingsResolver(context=PlayContext.TOURNAMENT, host=host).resolve()
+        r = SettingsResolver(
+            context=PlayContext.TOURNAMENT, host=host
+        ).resolve()
         assert r.tournament.bracket_size == 16
 
     def test_host_sets_reconnect_grace(self):
         host = HostConfig(reconnect_grace_seconds=30)
-        r = SettingsResolver(context=PlayContext.TOURNAMENT, host=host).resolve()
+        r = SettingsResolver(
+            context=PlayContext.TOURNAMENT, host=host
+        ).resolve()
         assert r.tournament.reconnect_grace_seconds == 30
 
     def test_host_overrides_player_encounter_rate(self):
@@ -171,7 +197,9 @@ class TestHostOverride:
     def test_host_clauses_override_tournament_defaults(self):
         """A host clause list replaces the default tournament clauses."""
         host = HostConfig(active_clauses=[ClauseID.OHKO_BAN])
-        r = SettingsResolver(context=PlayContext.TOURNAMENT, host=host).resolve()
+        r = SettingsResolver(
+            context=PlayContext.TOURNAMENT, host=host
+        ).resolve()
         assert r.battle.active_clauses == [ClauseID.OHKO_BAN]
         assert ClauseID.DUPLICATE_SPECIES not in r.battle.active_clauses
 
@@ -249,7 +277,9 @@ class TestModOverride:
         """Mod beats host and player simultaneously."""
         player = PlayerConfig(encounter_rate_modifier=1.5)
         host = HostConfig(level_cap=40, team_size=4)
-        mod = ModOverride(level_cap=10, team_size=2, encounter_rate_modifier=0.0)
+        mod = ModOverride(
+            level_cap=10, team_size=2, encounter_rate_modifier=0.0
+        )
         r = SettingsResolver(
             context=PlayContext.CAMPAIGN, player=player, host=host, mod=mod
         ).resolve()

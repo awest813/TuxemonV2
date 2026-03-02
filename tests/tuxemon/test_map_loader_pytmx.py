@@ -132,9 +132,7 @@ def test_load_event_accepts_editor_aliases_and_case(mocker):
 
     event_data, name, box = event_parser.create_event_object.call_args[0]
     assert event_data["conditions"] == ["is player_at,5,8"]
-    assert event_data["actions"] == [
-        "transition_teleport player,map.tmx,1,2"
-    ]
+    assert event_data["actions"] == ["transition_teleport player,map.tmx,1,2"]
     assert event_data["behav"] == ["walk:north"]
     assert name == "my_event"
     assert (box.x, box.y, box.width, box.height) == (2, 3, 1, 1)

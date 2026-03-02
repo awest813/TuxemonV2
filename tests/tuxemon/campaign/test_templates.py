@@ -3,6 +3,7 @@
 """
 Tests for tuxemon.campaign.templates — starter template generation.
 """
+
 from __future__ import annotations
 
 import json
@@ -18,7 +19,6 @@ from tuxemon.campaign.templates import (
     get_template,
     list_templates,
 )
-
 
 # ---------------------------------------------------------------------------
 # Registry tests
@@ -185,7 +185,9 @@ class TestBattleChallengeTemplate:
         scaffold, _ = self._apply(tmp_path)
         for i in range(1, 6):
             content = (scaffold / "maps" / f"tier{i}_floor.tmx").read_text()
-            assert 'type="encounter_zone"' in content, f"tier{i}_floor missing encounter zone"
+            assert (
+                'type="encounter_zone"' in content
+            ), f"tier{i}_floor missing encounter zone"
 
     def test_creates_facility_scripts(self, tmp_path):
         scaffold, _ = self._apply(tmp_path)

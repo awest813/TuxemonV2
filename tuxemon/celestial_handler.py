@@ -120,7 +120,7 @@ def validate_phase_lengths(
             f"Celestial cycle '{name}' must have a positive length, got {length}."
         )
 
-    total_length = sum(l for l, _ in phase_data)
+    total_length = sum(phase_length for phase_length, _ in phase_data)
     if total_length != length:
         raise ValueError(
             f"Celestial cycle '{name}' has invalid total length {total_length}; "
@@ -132,7 +132,7 @@ def get_celestial_phase(target_day_of_year: int, cycle: CelestialCycle) -> str:
     if not cycle.phase_data:
         raise ValueError(f"Celestial cycle '{cycle.name}' has no phase data.")
 
-    total_length = sum(l for l, _ in cycle.phase_data)
+    total_length = sum(phase_length for phase_length, _ in cycle.phase_data)
     if total_length != cycle.length:
         raise ValueError(
             f"Celestial cycle '{cycle.name}' has invalid total length {total_length}; "

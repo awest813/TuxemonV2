@@ -4,9 +4,8 @@
 Tests for tuxemon.campaign.encounter_editor — EncounterTable, EncounterZone,
 and EncounterTableBuilder.
 """
-from __future__ import annotations
 
-from pathlib import Path
+from __future__ import annotations
 
 import pytest
 from pydantic import ValidationError
@@ -21,7 +20,9 @@ from tuxemon.campaign.models import EncounterEntry
 
 class TestEncounterZone:
     def test_valid_zone(self):
-        entry = EncounterEntry(monster_id="porcupinito", weight=10, level_min=3, level_max=7)
+        entry = EncounterEntry(
+            monster_id="porcupinito", weight=10, level_min=3, level_max=7
+        )
         zone = EncounterZone(zone_id="route_1_grass", entries=[entry])
         assert zone.zone_id == "route_1_grass"
         assert zone.total_weight() == 10
@@ -230,12 +231,7 @@ class TestEncounterTableBuilder:
             EncounterTableBuilder("route_5").add("porcupinito")
 
     def test_builder_produces_encounter_table(self):
-        table = (
-            EncounterTableBuilder("route_6")
-            .zone("z")
-            .add("m")
-            .build()
-        )
+        table = EncounterTableBuilder("route_6").zone("z").add("m").build()
         assert isinstance(table, EncounterTable)
 
     def test_zone_with_time_slot_restriction(self):

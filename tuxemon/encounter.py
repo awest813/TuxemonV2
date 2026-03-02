@@ -15,7 +15,8 @@ from tuxemon.db import (
     EncounterModel,
     EncounterType,
 )
-from tuxemon.time_handler import TimeHandler, TimeSnapshot as _TimeSnapshot
+from tuxemon.time_handler import TimeHandler
+from tuxemon.time_handler import TimeSnapshot as _TimeSnapshot
 from tuxemon.time_hooks import EncounterTableQueryPayload, hooks
 from tuxemon.user_config import CONFIG
 
@@ -134,13 +135,24 @@ class Encounter:
 
         return True
 
-    def _is_time_valid(self, enc: EncounterItemModel, snapshot: _TimeSnapshot) -> bool:
+    def _is_time_valid(
+        self, enc: EncounterItemModel, snapshot: _TimeSnapshot
+    ) -> bool:
         """Return False if enc fails any active time/season/weekday restriction."""
-        if enc.time_restrictions and snapshot.stage_of_day not in enc.time_restrictions:
+        if (
+            enc.time_restrictions
+            and snapshot.stage_of_day not in enc.time_restrictions
+        ):
             return False
-        if enc.season_restrictions and snapshot.season not in enc.season_restrictions:
+        if (
+            enc.season_restrictions
+            and snapshot.season not in enc.season_restrictions
+        ):
             return False
-        if enc.weekday_restrictions and snapshot.weekday not in enc.weekday_restrictions:
+        if (
+            enc.weekday_restrictions
+            and snapshot.weekday not in enc.weekday_restrictions
+        ):
             return False
         return True
 
@@ -161,8 +173,7 @@ class Encounter:
             return pre_filtered
 
         table_dicts = [
-            e.model_dump() for e in pre_filtered
-            if hasattr(e, "model_dump")
+            e.model_dump() for e in pre_filtered if hasattr(e, "model_dump")
         ]
         payload = EncounterTableQueryPayload(
             zone_id=zone_id,
@@ -186,7 +197,9 @@ class Encounter:
         if self.zone.encounter_type != EncounterType.SINGLE:
             return None
 
-        time_filtered = self._apply_time_filter(list(self._cache), self.zone.slug)
+        time_filtered = self._apply_time_filter(
+            list(self._cache), self.zone.slug
+        )
         valid = [e for e in time_filtered if self._is_valid(e, character)]
         if not valid:
             logger.error(f"No valid monsters for zone: {self.zone.slug}")

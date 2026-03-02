@@ -68,6 +68,7 @@ class ResolutionScaling:
 
     @overload
     def scale_tuple(self, coords: tuple[int, int]) -> tuple[int, int]: ...
+
     @overload
     def scale_tuple(
         self, coords: tuple[int, int, int, int]

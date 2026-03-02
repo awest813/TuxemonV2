@@ -9,12 +9,11 @@ Tests for Sprint 4 tournament UX additions:
   - PlayerNotification / drain_notifications()
   - save_log / load_log round-trip for season data and notifications
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
-
-import pytest
 
 from tuxemon.tournament_manager import (
     MatchStatus,
@@ -22,12 +21,10 @@ from tuxemon.tournament_manager import (
     SeasonStandingEntry,
     Tournament,
     TournamentManager,
-    TournamentPolicy,
     TournamentResult,
     TournamentSeason,
     TournamentStatus,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -43,7 +40,9 @@ def _make_8_player_tournament(
     *,
     seed: int = 42,
 ) -> Tournament:
-    result = manager.create_tournament("Test Tournament", 8, tournament_seed=seed)
+    result = manager.create_tournament(
+        "Test Tournament", 8, tournament_seed=seed
+    )
     assert isinstance(result, Tournament)
     return result
 
@@ -105,7 +104,7 @@ class TestGetVisibleTournaments:
     def test_completed_tournament_remains_visible(self) -> None:
         manager = _make_manager()
         t = _make_8_player_tournament(manager)
-        player_ids = _fill_and_start(manager, t)
+        _fill_and_start(manager, t)
         # Advance the entire bracket by force-reporting all matches.
         while t.status != TournamentStatus.COMPLETED:
             scheduled = [
@@ -166,7 +165,8 @@ class TestGetRegistrationStatus:
         pid = uuid4()
         manager.register_participant(t.tournament_id, pid, "Alice")
         assert (
-            manager.get_registration_status(t.tournament_id, pid) == "registered"
+            manager.get_registration_status(t.tournament_id, pid)
+            == "registered"
         )
 
     def test_checked_in_player(self) -> None:
@@ -178,7 +178,8 @@ class TestGetRegistrationStatus:
         manager.close_registration(t.tournament_id)
         manager.check_in_participant(t.tournament_id, pid)
         assert (
-            manager.get_registration_status(t.tournament_id, pid) == "checked_in"
+            manager.get_registration_status(t.tournament_id, pid)
+            == "checked_in"
         )
 
     def test_disqualified_player(self) -> None:
@@ -254,7 +255,9 @@ class TestSeasonStandingEntry:
 
 
 class TestSeasonStandings:
-    def _make_started_tournament(self) -> tuple[TournamentManager, Tournament, list]:
+    def _make_started_tournament(
+        self,
+    ) -> tuple[TournamentManager, Tournament, list]:
         manager = _make_manager()
         t = _make_8_player_tournament(manager)
         player_ids = _fill_and_start(manager, t)
@@ -262,7 +265,7 @@ class TestSeasonStandings:
 
     def test_set_season_resets_standings(self) -> None:
         manager = _make_manager()
-        t = _make_8_player_tournament(manager)
+        _make_8_player_tournament(manager)
         manager.season_standings.append(
             SeasonStandingEntry(uuid4(), "Stale", points=50)
         )
@@ -403,7 +406,7 @@ class TestPlayerNotifications:
     def test_no_show_pushes_notification(self) -> None:
         manager = _make_manager()
         t = _make_8_player_tournament(manager)
-        player_ids = _fill_and_start(manager, t)
+        _fill_and_start(manager, t)
 
         scheduled = [m for m in t.matches if m.status == MatchStatus.SCHEDULED]
         assert scheduled
@@ -426,7 +429,8 @@ class TestPlayerNotifications:
         winner_notes = manager.drain_notifications(winner)
         absent_notes = manager.drain_notifications(absent)
         assert any(
-            n.message_key == "tournament_notification_no_show" for n in winner_notes
+            n.message_key == "tournament_notification_no_show"
+            for n in winner_notes
         )
         assert any(
             n.message_key == "tournament_notification_eliminated"
@@ -442,7 +446,9 @@ class TestPlayerNotifications:
 class TestSaveLoadSeason:
     def test_season_round_trip(self) -> None:
         manager = _make_manager()
-        season = TournamentSeason("2026-S2", "Summer 2026", reward_pool_coins=1500)
+        season = TournamentSeason(
+            "2026-S2", "Summer 2026", reward_pool_coins=1500
+        )
         manager.set_season(season)
 
         snapshot = manager.save_log()

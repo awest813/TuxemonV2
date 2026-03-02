@@ -4,6 +4,7 @@
 Tests for tuxemon.campaign.wizard — CampaignWizard step-by-step validation
 and scaffold generation.
 """
+
 import pytest
 
 from tuxemon.campaign.models import CampaignManifest
@@ -51,11 +52,15 @@ class TestWizardStepOrder:
         assert wizard.completed_steps == [1]
 
     def test_cannot_skip_to_step2(self, wizard):
-        with pytest.raises(RuntimeError, match="Step 1 has not been submitted"):
+        with pytest.raises(
+            RuntimeError, match="Step 1 has not been submitted"
+        ):
             wizard.submit_step2()
 
     def test_cannot_skip_to_step3(self, wizard):
-        with pytest.raises(RuntimeError, match="Step 2 has not been submitted"):
+        with pytest.raises(
+            RuntimeError, match="Step 2 has not been submitted"
+        ):
             wizard.submit_step3()
 
     def test_cannot_build_without_step3(self, wizard):
@@ -66,7 +71,9 @@ class TestWizardStepOrder:
             description="A description long enough.",
         )
         wizard.submit_step2()
-        with pytest.raises(RuntimeError, match="Step 3 has not been submitted"):
+        with pytest.raises(
+            RuntimeError, match="Step 3 has not been submitted"
+        ):
             wizard.build_manifest()
 
 
@@ -199,7 +206,9 @@ class TestManifestConstruction:
         assert ClauseID.DUPLICATE_SPECIES in manifest.ruleset.active_clauses
 
     def test_manifest_hard_difficulty(self, wizard):
-        manifest = _complete_wizard(wizard, step3={"default_difficulty": "hard"})
+        manifest = _complete_wizard(
+            wizard, step3={"default_difficulty": "hard"}
+        )
         assert manifest.ruleset.default_difficulty == DifficultyPreset.HARD
 
     def test_manifest_is_campaign_manifest_instance(self, wizard):
@@ -266,5 +275,7 @@ class TestWizardReset:
     def test_can_reuse_after_reset(self, wizard, tmp_path):
         _complete_wizard(wizard)
         wizard.reset()
-        manifest = _complete_wizard(wizard, step1={"id": "second_campaign", "name": "Second"})
+        manifest = _complete_wizard(
+            wizard, step1={"id": "second_campaign", "name": "Second"}
+        )
         assert manifest.id == "second_campaign"

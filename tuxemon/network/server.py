@@ -266,9 +266,7 @@ class TuxemonServer:
             except ValueError:
                 facing = None
             if facing is not None:
-                self.client_registry.update_char_field(
-                    cuuid, "facing", facing
-                )
+                self.client_registry.update_char_field(cuuid, "facing", facing)
         self.notify_client(cuuid, event_data)
 
     def handle_client_move_complete_event(

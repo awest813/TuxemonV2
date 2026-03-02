@@ -21,6 +21,7 @@ Content generated:
   locale/
     en_US.ini
 """
+
 from __future__ import annotations
 
 from pathlib import Path

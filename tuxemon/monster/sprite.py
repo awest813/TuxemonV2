@@ -11,11 +11,11 @@ from typing import TYPE_CHECKING, Any
 from pygame.surface import Surface
 
 from tuxemon import graphics
-from tuxemon.tools.misc import transform_resource_filename
 from tuxemon.database.runtime import db
 from tuxemon.db import ColorModel, FlairModel
 from tuxemon.platform.const.graphics import MISSING_IMAGE
 from tuxemon.sprite import Sprite
+from tuxemon.tools.misc import transform_resource_filename
 
 if TYPE_CHECKING:
     from tuxemon.db import MonsterModel

@@ -30,6 +30,7 @@ The actual pygame drawing remains in :class:`~tuxemon.menu.interface.Bar`
 state machines that produce normalised ``[0, 1]`` values for the draw
 layer to consume.
 """
+
 from __future__ import annotations
 
 import math

@@ -6,6 +6,7 @@ Save compatibility test matrix.
 Regression tests for old/new save migrations around trade and multiplayer
 logs, including malformed-history fixtures to preserve tolerant loading.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -21,7 +22,6 @@ from tuxemon.multiplayer_battle_manager import (
 from tuxemon.save_state import SaveData
 from tuxemon.save_upgrader import SAVE_VERSION, upgrade_save
 from tuxemon.trade_manager import TradeManager
-
 
 # ---------------------------------------------------------------------------
 # Fixtures: canonical save data at various schema versions
@@ -42,7 +42,10 @@ def _minimal_npc_state(**overrides):
         "monster_boxes": {},
         "item_boxes": {},
         "relationships": {},
-        "appearance": {"sprite_name": "adventurer", "combat_sheet": "adventurer"},
+        "appearance": {
+            "sprite_name": "adventurer",
+            "combat_sheet": "adventurer",
+        },
     }
     base.update(overrides)
     return base
@@ -108,7 +111,9 @@ class TestSaveUpgrader:
         save["npc_state"]["monsters"] = [
             {"slug": "axylightl", "name": "Axylightl", "moves": []},
         ]
-        save["npc_state"]["tuxepedia"] = {"axylightl": {"status": "caught", "appearance_count": 1}}
+        save["npc_state"]["tuxepedia"] = {
+            "axylightl": {"status": "caught", "appearance_count": 1}
+        }
         upgraded = upgrade_save(save)
         assert upgraded["npc_state"]["monsters"][0]["slug"] == "axolightl"
         assert "axolightl" in upgraded["npc_state"]["tuxepedia"]
@@ -120,7 +125,10 @@ class TestSaveUpgrader:
             {"slug": "tux", "name": "Tux", "moves": [{"slug": "venom"}]},
         ]
         upgraded = upgrade_save(save)
-        assert upgraded["npc_state"]["monsters"][0]["moves"][0]["slug"] == "caustic_spray"
+        assert (
+            upgraded["npc_state"]["monsters"][0]["moves"][0]["slug"]
+            == "caustic_spray"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -273,7 +281,9 @@ class TestTradeLogCompatibility:
         now = datetime.now(timezone.utc)
         manager = TradeManager(npc_manager)
         manager.global_trade_log.append(
-            __import__("tuxemon.trade_manager", fromlist=["TradeRecord"]).TradeRecord(
+            __import__(
+                "tuxemon.trade_manager", fromlist=["TradeRecord"]
+            ).TradeRecord(
                 from_player="Ash",
                 to_player="Gary",
                 from_player_id=uuid4(),
@@ -327,7 +337,9 @@ class TestMultiplayerBattleLogCompatibility:
             }
         )
         assert len(manager.battle_history) == 1
-        assert manager.battle_history[0].resolution == BattleResolution.ACCEPTED
+        assert (
+            manager.battle_history[0].resolution == BattleResolution.ACCEPTED
+        )
 
     def test_malformed_pending_challenges_skipped(self):
         valid = {
@@ -373,7 +385,9 @@ class TestMultiplayerBattleLogCompatibility:
             }
         )
         assert len(manager.battle_history) == 1
-        assert manager.battle_history[0].resolution == BattleResolution.REJECTED
+        assert (
+            manager.battle_history[0].resolution == BattleResolution.REJECTED
+        )
 
     def test_expired_challenges_purged_on_load(self):
         now = datetime.now(timezone.utc)
@@ -392,9 +406,7 @@ class TestMultiplayerBattleLogCompatibility:
             "expires_at": (now - timedelta(minutes=5)).isoformat(),
         }
         manager = MultiplayerBattleManager()
-        manager.load_log(
-            {"pending_challenges": [active, expired]}
-        )
+        manager.load_log({"pending_challenges": [active, expired]})
         assert len(manager.pending_challenges) == 1
 
     def test_stale_battle_sessions_purged_on_load(self):
@@ -532,9 +544,11 @@ class TestCombinedSaveData:
             "active_battle_sessions": [],
         }
 
-        save = SaveData(**_v3_save_data(
-            multiplayer_battles=battle_log,
-        ))
+        save = SaveData(
+            **_v3_save_data(
+                multiplayer_battles=battle_log,
+            )
+        )
 
         trade_manager = TradeManager(npc_manager)
         trade_manager.load_log(trade_log)

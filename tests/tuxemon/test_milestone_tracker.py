@@ -6,6 +6,7 @@ Tests for PostgameMilestoneTracker — Hook 4.9 integration.
 Covers the milestone tier structure defined in
 docs/gold_silver_blueprint.md §5.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -66,7 +67,9 @@ def test_story_complete_is_achieved(tracker: PostgameMilestoneTracker):
 # ---------------------------------------------------------------------------
 
 
-def test_returner_fires_on_first_rematch_win(tracker: PostgameMilestoneTracker):
+def test_returner_fires_on_first_rematch_win(
+    tracker: PostgameMilestoneTracker,
+):
     fired: list[PostgameMilestonePayload] = []
     hooks.on_postgame_milestone_reached(fired.append)
 
@@ -136,7 +139,9 @@ def test_total_rematch_wins_tracked(tracker: PostgameMilestoneTracker):
 # ---------------------------------------------------------------------------
 
 
-def test_champion_challenger_fires_on_tournament_win(tracker: PostgameMilestoneTracker):
+def test_champion_challenger_fires_on_tournament_win(
+    tracker: PostgameMilestoneTracker,
+):
     fired: list[PostgameMilestonePayload] = []
     hooks.on_postgame_milestone_reached(fired.append)
 
@@ -176,7 +181,9 @@ def test_champion_challenger_fires_only_once_across_paths(
 # ---------------------------------------------------------------------------
 
 
-def test_completionist_not_fired_below_threshold(tracker: PostgameMilestoneTracker):
+def test_completionist_not_fired_below_threshold(
+    tracker: PostgameMilestoneTracker,
+):
     fired: list[PostgameMilestonePayload] = []
     hooks.on_postgame_milestone_reached(fired.append)
 
@@ -196,7 +203,9 @@ def test_completionist_fires_at_threshold(tracker: PostgameMilestoneTracker):
     assert len(co_events) == 1
 
 
-def test_completionist_fires_above_threshold(tracker: PostgameMilestoneTracker):
+def test_completionist_fires_above_threshold(
+    tracker: PostgameMilestoneTracker,
+):
     fired: list[PostgameMilestonePayload] = []
     hooks.on_postgame_milestone_reached(fired.append)
 
@@ -247,7 +256,9 @@ def test_encode_decode_round_trip(tracker: PostgameMilestoneTracker):
     assert tracker2.total_rematch_wins == BATTLER_THRESHOLD
 
 
-def test_decode_empty_dict_gives_clean_state(tracker: PostgameMilestoneTracker):
+def test_decode_empty_dict_gives_clean_state(
+    tracker: PostgameMilestoneTracker,
+):
     tracker.record_story_complete()
     tracker.decode({})
     assert not tracker.is_achieved("story_complete")
@@ -259,10 +270,14 @@ def test_decode_does_not_re_fire_hooks():
     hooks.on_postgame_milestone_reached(fired.append)
 
     tracker = PostgameMilestoneTracker(player_id="p")
-    tracker.decode({"achieved": ["story_complete", "returner"], "total_rematch_wins": 1})
+    tracker.decode(
+        {"achieved": ["story_complete", "returner"], "total_rematch_wins": 1}
+    )
 
     assert fired == [], "decode() must not re-fire already-achieved milestones"
 
 
-def test_is_achieved_false_for_unknown_milestone(tracker: PostgameMilestoneTracker):
+def test_is_achieved_false_for_unknown_milestone(
+    tracker: PostgameMilestoneTracker,
+):
     assert tracker.is_achieved("nonexistent") is False

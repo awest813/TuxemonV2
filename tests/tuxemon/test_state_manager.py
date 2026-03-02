@@ -40,7 +40,7 @@ def register_state(state_manager):
 
 # PushWhenEmpty
 def test_push_when_empty(state_manager, register_state):
-    state_a = register_state("a")
+    register_state("a")
     pushed = state_manager.push_state("a")
     state_manager.update(0)
 
@@ -53,8 +53,8 @@ def test_push_when_empty(state_manager, register_state):
 
 # PushWhenNotEmpty
 def test_push_when_not_empty(state_manager, register_state):
-    state_a = register_state("a")
-    state_b = register_state("b")
+    register_state("a")
+    register_state("b")
 
     pushed_a = state_manager.push_state("a")
     pushed_b = state_manager.push_state("b")
@@ -75,8 +75,8 @@ def test_push_when_not_empty(state_manager, register_state):
 
 # Pop
 def test_pop_state(state_manager, register_state):
-    state_a = register_state("a")
-    state_b = register_state("b")
+    register_state("a")
+    register_state("b")
 
     pushed_a = state_manager.push_state("a")
     pushed_b = state_manager.push_state("b")
@@ -99,7 +99,7 @@ def test_pop_state(state_manager, register_state):
 
 # Resume
 def test_resume_called(state_manager, register_state):
-    state_a = register_state("a")
+    register_state("a")
     pushed_a = state_manager.push_state("a")
 
     assert pushed_a.update.call_count == 0
@@ -109,8 +109,8 @@ def test_resume_called(state_manager, register_state):
     assert pushed_a.update.call_count == 1
     assert pushed_a.resume.call_count == 1
 
-    state_b = register_state("b")
-    pushed_b = state_manager.push_state("b")
+    register_state("b")
+    state_manager.push_state("b")
     state_manager.pop_state()
     state_manager.update(0)
 
@@ -121,8 +121,8 @@ def test_resume_called(state_manager, register_state):
 
 # RemoveWhenCurrent
 def test_remove_when_current(state_manager, register_state):
-    state_a = register_state("a")
-    state_b = register_state("b")
+    register_state("a")
+    register_state("b")
 
     pushed_a = state_manager.push_state("a")
     pushed_b = state_manager.push_state("b")
@@ -140,8 +140,8 @@ def test_remove_when_current(state_manager, register_state):
 
 # RemoveWhenNotCurrent
 def test_remove_when_not_current(state_manager, register_state):
-    state_a = register_state("a")
-    state_b = register_state("b")
+    register_state("a")
+    register_state("b")
 
     pushed_a = state_manager.push_state("a")
     pushed_b = state_manager.push_state("b")
@@ -159,8 +159,8 @@ def test_remove_when_not_current(state_manager, register_state):
 
 # Replace
 def test_replace_state(state_manager, register_state):
-    state_a = register_state("a")
-    state_b = register_state("b")
+    register_state("a")
+    register_state("b")
 
     pushed_a = state_manager.push_state("a")
     pushed_b = state_manager.replace_state("b")
@@ -176,11 +176,11 @@ def test_replace_state(state_manager, register_state):
 
 # Enqueue
 def test_enqueue_state(state_manager, register_state):
-    state_a = register_state("a")
-    state_b = register_state("b")
-    state_c = register_state("c")
+    register_state("a")
+    register_state("b")
+    register_state("c")
 
-    pushed_a = state_manager.push_state("a")
+    state_manager.push_state("a")
     pushed_b = state_manager.push_state("b")
     state_manager.queue_state("c")
     state_manager.update(0)
@@ -192,9 +192,9 @@ def test_enqueue_state(state_manager, register_state):
 
 # EnqueueThenPop
 def test_enqueue_then_pop(state_manager, register_state):
-    state_a = register_state("a")
-    state_b = register_state("b")
-    state_c = register_state("c")
+    register_state("a")
+    register_state("b")
+    register_state("c")
 
     state_manager.push_state("a")
     state_manager.push_state("b")
@@ -286,8 +286,8 @@ def test_resume_called_when_popping_state(resume_state_manager):
     ],
 )
 def test_push_pop_parametrized(state_manager, register_state, first, second):
-    s1 = register_state(first)
-    s2 = register_state(second)
+    register_state(first)
+    register_state(second)
 
     pushed1 = state_manager.push_state(first)
     pushed2 = state_manager.push_state(second)
@@ -307,10 +307,10 @@ def test_push_pop_parametrized(state_manager, register_state, first, second):
 
 # Edge Case: Multiple Queued States
 def test_multiple_queued_states(state_manager, register_state):
-    s1 = register_state("a")
-    s2 = register_state("b")
-    s3 = register_state("c")
-    s4 = register_state("d")
+    register_state("a")
+    register_state("b")
+    register_state("c")
+    register_state("d")
 
     state_manager.push_state("a")
     state_manager.push_state("b")
@@ -330,9 +330,9 @@ def test_multiple_queued_states(state_manager, register_state):
 
 # Edge Case: Replace When Stack Has >1 States
 def test_replace_with_multiple_states(state_manager, register_state):
-    s1 = register_state("a")
-    s2 = register_state("b")
-    s3 = register_state("c")
+    register_state("a")
+    register_state("b")
+    register_state("c")
 
     state_manager.push_state("a")
     state_manager.push_state("b")
@@ -348,8 +348,8 @@ def test_replace_with_multiple_states(state_manager, register_state):
 
 # Edge Case: Popping Until Empty and Then Pushing Again
 def test_pop_until_empty_then_push_again(state_manager, register_state):
-    s1 = register_state("a")
-    s2 = register_state("b")
+    register_state("a")
+    register_state("b")
 
     state_manager.push_state("a")
     state_manager.push_state("b")
@@ -361,7 +361,7 @@ def test_pop_until_empty_then_push_again(state_manager, register_state):
     assert state_manager.current_state is None
     assert not state_manager.active_states
 
-    s3 = register_state("c")
+    register_state("c")
     pushed = state_manager.push_state("c")
     state_manager.update(0)
 
@@ -371,9 +371,9 @@ def test_pop_until_empty_then_push_again(state_manager, register_state):
 
 # Integration Check: Active States Order
 def test_active_states_order(state_manager, register_state):
-    s1 = register_state("a")
-    s2 = register_state("b")
-    s3 = register_state("c")
+    register_state("a")
+    register_state("b")
+    register_state("c")
 
     state_manager.push_state("a")
     state_manager.push_state("b")

@@ -3,12 +3,12 @@
 """
 Tests for the casino game catalog and fairness audit — Phase 2.3.
 """
+
 from __future__ import annotations
 
 import pytest
 
 from tuxemon.casino.catalog import (
-    CatalogError,
     DuplicateGameError,
     FairnessGuardrailError,
     GameCatalog,
@@ -16,7 +16,6 @@ from tuxemon.casino.catalog import (
     Outcome,
     _compute_audit,
 )
-
 
 # ---------------------------------------------------------------------------
 # Outcome
@@ -61,9 +60,9 @@ def _coin_flip_outcomes() -> list[Outcome]:
 def _slot_outcomes() -> list[Outcome]:
     return [
         Outcome("jackpot", probability=0.01, multiplier=50.0),
-        Outcome("triple",  probability=0.05, multiplier=5.0),
-        Outcome("double",  probability=0.10, multiplier=2.0),
-        Outcome("no_win",  probability=0.84, multiplier=0.0),
+        Outcome("triple", probability=0.05, multiplier=5.0),
+        Outcome("double", probability=0.10, multiplier=2.0),
+        Outcome("no_win", probability=0.84, multiplier=0.0),
     ]
 
 
@@ -185,28 +184,40 @@ class TestGameDefinition:
 
     def test_clamp_wager_below_min(self):
         game = GameDefinition(
-            slug="x", display_name="X", min_wager=10, max_wager=100,
+            slug="x",
+            display_name="X",
+            min_wager=10,
+            max_wager=100,
             outcomes=_coin_flip_outcomes(),
         )
         assert game.clamp_wager(5) == 10
 
     def test_clamp_wager_above_max(self):
         game = GameDefinition(
-            slug="x", display_name="X", min_wager=10, max_wager=100,
+            slug="x",
+            display_name="X",
+            min_wager=10,
+            max_wager=100,
             outcomes=_coin_flip_outcomes(),
         )
         assert game.clamp_wager(200) == 100
 
     def test_clamp_wager_in_range(self):
         game = GameDefinition(
-            slug="x", display_name="X", min_wager=10, max_wager=100,
+            slug="x",
+            display_name="X",
+            min_wager=10,
+            max_wager=100,
             outcomes=_coin_flip_outcomes(),
         )
         assert game.clamp_wager(50) == 50
 
     def test_to_dict_has_expected_keys(self):
         game = GameDefinition(
-            slug="x", display_name="X", min_wager=10, max_wager=100,
+            slug="x",
+            display_name="X",
+            min_wager=10,
+            max_wager=100,
             outcomes=_coin_flip_outcomes(),
         )
         d = game.to_dict()

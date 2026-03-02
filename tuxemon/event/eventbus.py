@@ -55,7 +55,8 @@ class EventBus:
 
         self._listeners[event_name].append(Listener(priority, listener))
         self._listeners[event_name].sort(
-            key=lambda l: l.priority, reverse=True
+            key=lambda registered_listener: registered_listener.priority,
+            reverse=True,
         )
 
     def unsubscribe(
@@ -83,11 +84,14 @@ class EventBus:
             return
 
         self._listeners[event_name] = [
-            l
-            for l in self._listeners[event_name]
+            registered_listener
+            for registered_listener in self._listeners[event_name]
             if not (
-                l.callback == listener
-                and (priority is None or l.priority == priority)
+                registered_listener.callback == listener
+                and (
+                    priority is None
+                    or registered_listener.priority == priority
+                )
             )
         ]
 

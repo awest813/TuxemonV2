@@ -29,13 +29,13 @@ Usage::
         )
     )
 """
+
 from __future__ import annotations
 
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -170,8 +170,12 @@ class HookRegistry:
     _encounter_table_query: list[EncounterTableQueryHandler] = field(
         default_factory=list
     )
-    _trainer_defeated: list[TrainerDefeatedHandler] = field(default_factory=list)
-    _rematch_eligible: list[RematchEligibleHandler] = field(default_factory=list)
+    _trainer_defeated: list[TrainerDefeatedHandler] = field(
+        default_factory=list
+    )
+    _rematch_eligible: list[RematchEligibleHandler] = field(
+        default_factory=list
+    )
     _weekly_event_window_open: list[WeeklyEventWindowHandler] = field(
         default_factory=list
     )
@@ -198,7 +202,9 @@ class HookRegistry:
         self._day_change.append(fn)
         return fn
 
-    def on_map_zone_enter(self, fn: MapZoneEnterHandler) -> MapZoneEnterHandler:
+    def on_map_zone_enter(
+        self, fn: MapZoneEnterHandler
+    ) -> MapZoneEnterHandler:
         """Register a handler for zone entry (Hook 4.3)."""
         self._map_zone_enter.append(fn)
         return fn
@@ -255,14 +261,17 @@ class HookRegistry:
     # Fire methods — called by the engine
     # ------------------------------------------------------------------
 
-    def fire_time_segment_change(self, payload: TimeSegmentChangePayload) -> None:
+    def fire_time_segment_change(
+        self, payload: TimeSegmentChangePayload
+    ) -> None:
         """Fire Hook 4.1."""
         for handler in self._time_segment_change:
             try:
                 handler(payload)
             except Exception:
                 logger.exception(
-                    "time_segment_change handler %s raised an exception", handler
+                    "time_segment_change handler %s raised an exception",
+                    handler,
                 )
 
     def fire_day_change(self, payload: DayChangePayload) -> None:
@@ -311,7 +320,8 @@ class HookRegistry:
                 current_table = filtered
             except Exception:
                 logger.exception(
-                    "encounter_table_query handler %s raised an exception", handler
+                    "encounter_table_query handler %s raised an exception",
+                    handler,
                 )
         return current_table
 

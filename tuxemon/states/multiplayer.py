@@ -100,9 +100,7 @@ class MultiplayerMenu(PygameMenuState):
         """Attempts to reconnect to the most recently selected server."""
         self.join()
 
-    def _parse_target_server(
-        self, raw_target: str
-    ) -> tuple[str, int] | None:
+    def _parse_target_server(self, raw_target: str) -> tuple[str, int] | None:
         """Parse and normalize an input target into host + port."""
         assert self.network.client
         target = raw_target.strip()
@@ -116,7 +114,8 @@ class MultiplayerMenu(PygameMenuState):
             if host_end <= 1:
                 return None
             host = target[1:host_end].strip()
-            suffix = target[host_end + 1 :].strip()
+            suffix_start = host_end + 1
+            suffix = target[suffix_start:].strip()
             if not suffix:
                 return host, default_port
             if not suffix.startswith(":"):
@@ -187,7 +186,9 @@ class MultiplayerMenu(PygameMenuState):
 
         ip, port = self.network.client.selected_game
         self.network.client.connect_to_host(ip, port)
-        open_dialog(self.client, [T.translate("multiplayer_connecting_status")])
+        open_dialog(
+            self.client, [T.translate("multiplayer_connecting_status")]
+        )
 
 
 class MultiplayerSelect(PopUpMenu[tuple[str, int]]):

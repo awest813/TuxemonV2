@@ -3,6 +3,7 @@
 """
 Tests for SpectatorManager — Phase 2.2 read-only match streams.
 """
+
 from __future__ import annotations
 
 import pytest

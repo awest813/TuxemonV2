@@ -3,16 +3,20 @@
 """
 Tests for tuxemon.campaign.smoke_test — CampaignSmokeTest.
 """
+
 from __future__ import annotations
 
 import json
 import textwrap
 from pathlib import Path
 
-import pytest
 import yaml
 
-from tuxemon.campaign.smoke_test import CampaignSmokeTest, SmokeCheck, SmokeTestResult
+from tuxemon.campaign.smoke_test import (
+    CampaignSmokeTest,
+    SmokeCheck,
+    SmokeTestResult,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -108,24 +112,22 @@ class TestSmokeCheck:
         assert "my_check" in str(c)
 
     def test_str_fail(self):
-        c = SmokeCheck(name="my_check", passed=False, message="Something wrong.")
+        c = SmokeCheck(
+            name="my_check", passed=False, message="Something wrong."
+        )
         assert "[FAIL]" in str(c)
 
 
 class TestSmokeTestResult:
     def test_format_report_ready(self):
         result = SmokeTestResult(ready=True)
-        result.checks.append(
-            SmokeCheck("check_a", True, "Passed!")
-        )
+        result.checks.append(SmokeCheck("check_a", True, "Passed!"))
         report = result.format_report()
         assert "READY" in report
 
     def test_format_report_not_ready(self):
         result = SmokeTestResult(ready=False)
-        result.checks.append(
-            SmokeCheck("check_a", False, "Failed!")
-        )
+        result.checks.append(SmokeCheck("check_a", False, "Failed!"))
         report = result.format_report()
         assert "NOT READY" in report
 
@@ -167,14 +169,18 @@ class TestCampaignSmokeTest:
         runner = CampaignSmokeTest()
         result = runner.run(tmp_path / "ghost_campaign")
         # Should have checked for dir existence and returned early
-        assert any(c.name == "campaign_directory_exists" for c in result.checks)
+        assert any(
+            c.name == "campaign_directory_exists" for c in result.checks
+        )
 
     def test_invalid_manifest_not_ready(self, tmp_path):
         campaign_dir = _make_campaign(tmp_path, manifest={"id": "bad id!"})
         runner = CampaignSmokeTest()
         result = runner.run(campaign_dir)
         assert not result.ready
-        assert any(c.name == "manifest_valid" and not c.passed for c in result.checks)
+        assert any(
+            c.name == "manifest_valid" and not c.passed for c in result.checks
+        )
 
     def test_missing_start_map_not_ready(self, tmp_path):
         campaign_dir = _make_campaign(
@@ -183,7 +189,10 @@ class TestCampaignSmokeTest:
         runner = CampaignSmokeTest()
         result = runner.run(campaign_dir)
         assert not result.ready
-        assert any(c.name == "start_map_exists" and not c.passed for c in result.checks)
+        assert any(
+            c.name == "start_map_exists" and not c.passed
+            for c in result.checks
+        )
 
     def test_missing_spawn_point_not_ready(self, tmp_path):
         no_spawn_tmx = MINIMAL_TMX_WITH_SPAWN.replace(
@@ -195,7 +204,8 @@ class TestCampaignSmokeTest:
         result = runner.run(campaign_dir)
         assert not result.ready
         assert any(
-            c.name == "spawn_point_present" and not c.passed for c in result.checks
+            c.name == "spawn_point_present" and not c.passed
+            for c in result.checks
         )
 
     def test_encounter_zone_present_passes(self, tmp_path):
@@ -203,7 +213,8 @@ class TestCampaignSmokeTest:
         runner = CampaignSmokeTest()
         result = runner.run(campaign_dir)
         enc_check = next(
-            (c for c in result.checks if c.name == "encounter_zones_present"), None
+            (c for c in result.checks if c.name == "encounter_zones_present"),
+            None,
         )
         assert enc_check is not None
         assert enc_check.passed
@@ -241,7 +252,8 @@ class TestCampaignSmokeTest:
         result = runner.run(campaign_dir)
         assert not result.ready
         assert any(
-            c.name == "entry_script_exists" and not c.passed for c in result.checks
+            c.name == "entry_script_exists" and not c.passed
+            for c in result.checks
         )
 
     def test_validation_report_attached(self, tmp_path):

@@ -8,11 +8,9 @@ from pathlib import Path
 from typing import Any
 
 from tuxemon.constants.asset_loader import fetch_asset
-from tuxemon.database.runtime import db
 from tuxemon.map.manager import MAP_TYPES
 from tuxemon.platform.const.sizes import REGION_KEYS
 from tuxemon.script.parser import parse_action_string
-from tuxemon.user_config import CONFIG
 
 # Constants
 FOLDER = "maps"
@@ -76,7 +74,8 @@ def _is_valid_property_name(name) -> bool:
 
 def _is_valid_operand_name(name) -> bool:
     for prefix in ("act", "cond", "behav"):
-        if name.startswith(prefix) and name[len(prefix) :].isdigit():
+        suffix_start = len(prefix)
+        if name.startswith(prefix) and name[suffix_start:].isdigit():
             return True
     return False
 

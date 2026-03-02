@@ -11,13 +11,17 @@ from tuxemon.network.tournament.models import (
 )
 
 
-def _make_tournament(*, min_players: int = 8, max_players: int = 8) -> Tournament:
+def _make_tournament(
+    *, min_players: int = 8, max_players: int = 8
+) -> Tournament:
     return Tournament(
         id="t-1",
         name="Online Cup",
         state=TournamentState.CHECKIN,
         seed=77,
-        policy=TournamentPolicy(min_players=min_players, max_players=max_players),
+        policy=TournamentPolicy(
+            min_players=min_players, max_players=max_players
+        ),
     )
 
 
@@ -32,7 +36,9 @@ def _add_checked_in_players(tournament: Tournament, count: int) -> None:
         )
 
 
-def test_generate_bracket_transitions_to_in_progress_and_schedules_matches() -> None:
+def test_generate_bracket_transitions_to_in_progress_and_schedules_matches() -> (
+    None
+):
     tournament = _make_tournament(min_players=8, max_players=8)
     _add_checked_in_players(tournament, 8)
 

@@ -61,7 +61,7 @@ class RandomHordeAction(EventAction):
             return
 
         if check_repellent(player):
-            logger.info(f"Repellent active, skipping encounter.")
+            logger.info("Repellent active, skipping encounter.")
             return
 
         if self.total_prob is not None:
@@ -159,5 +159,4 @@ class RandomHordeAction(EventAction):
                 self.stop()
 
     def cleanup(self, session: Session) -> None:
-        npc = None
         session.client.npc_manager.remove_npc("wild_encounter")

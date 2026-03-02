@@ -6,8 +6,6 @@ import logging
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from tuxemon.map.tuxemon import AbstractMap
-
 if TYPE_CHECKING:
     from tuxemon.boundary import BoundaryChecker
     from tuxemon.event.eventengine import EventEngine
@@ -41,7 +39,9 @@ class MapTransition:
         self.event_engine = event_engine
         self._post_change_listeners: list[MapChangeListener] = []
 
-    def register_post_change_listener(self, listener: MapChangeListener) -> None:
+    def register_post_change_listener(
+        self, listener: MapChangeListener
+    ) -> None:
         """
         Register a callback that fires after every successful map change.
 

@@ -3,11 +3,10 @@
 """
 Tests for MapTransition post-change listener callbacks (Hook 4.3 support).
 """
+
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from tuxemon.map.transition import MapTransition
 

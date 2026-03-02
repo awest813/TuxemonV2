@@ -6,6 +6,7 @@ Tests for the trainer state model and manager.
 Covers the persistent trainer state described in
 docs/gold_silver_blueprint.md §3.1 and §3.2.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta
@@ -14,7 +15,6 @@ import pytest
 
 from tuxemon.entity.trainer_state import TrainerStateManager
 from tuxemon.save_state import TIME_FORMAT, TrainerState
-
 
 # ---------------------------------------------------------------------------
 # TrainerState model
@@ -110,8 +110,10 @@ def test_record_rematch_stamps_time(mgr: TrainerStateManager):
     ts_str = mgr.get("trainer_1").last_rematch_at
     assert ts_str is not None
     recorded = datetime.strptime(ts_str, TIME_FORMAT)
-    assert before.replace(second=0, microsecond=0) <= recorded <= after.replace(
-        second=59, microsecond=999999
+    assert (
+        before.replace(second=0, microsecond=0)
+        <= recorded
+        <= after.replace(second=59, microsecond=999999)
     )
 
 
