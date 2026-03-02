@@ -98,19 +98,30 @@ Make all key gameplay and online behaviors explicit, configurable, and testable:
 - [x] Add seasonal metadata model and reward distribution hooks.
 
 ### 2.2 Battle Center MVP
-- [ ] Implement lobby structure (public queue desk, direct challenge rooms, rematch channels).
-- [ ] Add match browser filters (ruleset, format, skill band, latency region).
-- [ ] Support spectators/read-only streams for completed and active matches.
+- [x] Implement lobby structure (public queue desk, direct challenge rooms, rematch channels).
+  - `tuxemon/battle_center/lobby.py` — `LobbyManager` public queue and status tracking.
+  - `tuxemon/battle_center/matchmaking.py` — `MatchmakingEngine` with filter-compatible pairing (ruleset, format, skill_band, region).
+  - `tuxemon/battle_center/private_room.py` — `PrivateRoomManager` for direct-challenge rooms with host/guest lifecycle (pending → confirmed/declined/cancelled).
+- [x] Add match browser filters (ruleset, format, skill band, latency region).
+  - Filter compatibility is enforced by `entries_compatible()` in `matchmaking.py`; region "any" and skill_band "open" act as wildcards.
+- [x] Support spectators/read-only streams for completed and active matches.
+  - `tuxemon/battle_center/spectator.py` — `SpectatorManager` with append-only event feeds, per-match spectator lists, and match browser listing.
 
 ### 2.3 Online Casino MVP
 **All casino systems use in-game currency only. No real money, payments, or external currency is involved at any layer.**
 
-- [ ] Design game catalog with fairness audits and expected-value guardrails.
-- [ ] Implement in-game coin/token wallet with earn-only model: coins are earned through gameplay, never purchased.
-- [ ] Enforce daily earn caps and sink/source balancing to prevent exploit farming.
-- [ ] Add integrity telemetry and moderation controls.
-- [ ] Add explicit UI messaging on every casino screen confirming in-game-only currency use.
-- [ ] Ensure no code path, API, or data schema references real-world payment amounts, currencies, or processors.
+- [x] Design game catalog with fairness audits and expected-value guardrails.
+  - `tuxemon/casino/catalog.py` — `GameDefinition`, `FairnessAudit`, `GameCatalog`; enforces player EV ≤ 1.0 and house edge ≤ configurable max before any game can be registered.
+- [x] Implement in-game coin/token wallet with earn-only model: coins are earned through gameplay, never purchased.
+  - `tuxemon/economy/coin_wallet.py` — `CoinWallet` with earn/spend/reset_daily/encode/decode; no real-money pathway at any layer.
+- [x] Enforce daily earn caps and sink/source balancing to prevent exploit farming.
+  - `CoinWallet.daily_earn_cap` and `CoinWallet.daily_earn_remaining` enforce per-day earning limits; `reset_daily()` integrates with Hook 4.2 (`on_day_change`).
+- [x] Add integrity telemetry and moderation controls.
+  - `tuxemon/casino/integrity.py` — `IntegrityLedger` (append-only round log with statistical analysis) and `ModerationController` (loss-streak, win-rate anomaly, rapid-play detection).
+- [x] Add explicit UI messaging on every casino screen confirming in-game-only currency use.
+  - `tuxemon/casino/session.py` — every `RoundResult` and `session_summary()` carries `currency_notice` text confirming in-game-only currency use.
+- [x] Ensure no code path, API, or data schema references real-world payment amounts, currencies, or processors.
+  - Verified: `CoinWallet`, `CasinoSession`, `IntegrityLedger`, `GameCatalog` contain no payment, purchase, or external-currency references.
 
 ---
 

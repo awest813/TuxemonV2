@@ -77,8 +77,11 @@ This roadmap covers the evolution of the menu system (`tuxemon/menu/`) and UI sy
 - [ ] Optimize `font_size_cache` with LRU eviction instead of full clear.
 
 ### 1.4 Combat HUD Polish
-- [ ] Add HP bar drain animation (smooth decrease instead of instant).
-- [ ] Add EXP bar fill animation (smooth increase on level-up).
+- [x] Add HP bar drain animation (smooth decrease instead of instant).
+  - `tuxemon/ui/bar_animator.py` — `HpBarAnimator` with frame-rate-independent drain and ghost-bar overlay (amber residual shows old HP level immediately on damage while bar drains).
+  - `tuxemon/ui/combat_bars.py` — `CombatBars` now owns `HpBarAnimator` per monster; `update(dt)` advances animators each frame; `draw_bars()` renders ghost layer then active bar.
+- [x] Add EXP bar fill animation (smooth increase on level-up).
+  - `ExpBarAnimator` in `bar_animator.py` supports normal fill and level-up wrap-around (fill-to-max → reset-to-zero → fill-to-new-progress) with configurable delay and fill speed.
 - [ ] Support dynamic HUD resizing for different screen resolutions.
 - [ ] Add weather/terrain indicator to combat HUD.
 - [ ] Add turn counter display.
