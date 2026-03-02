@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from tuxemon.map.manager import MapManager, MapType
-from tuxemon.map.tuxemon import AbstractMap
+from tuxemon.map.tuxemon import AbstractMap, NullMap
 
 
 @pytest.fixture
@@ -235,3 +235,121 @@ def test_inits_sorted(map_manager, mock_map):
 def test_map_type_slug(map_manager, slug, expected):
     map_manager._map_type_slug = slug
     assert map_manager.map_type.name == expected
+
+
+# Regression tests using NullMap to verify events are replaced, not appended
+
+
+@pytest.fixture
+def null_map_manager():
+    manager = MapManager()
+    manager.current_map = NullMap()
+    return manager
+
+
+def test_set_events_replaces_not_appends(null_map_manager):
+    """set_events must replace existing events, not extend them."""
+    e1 = MagicMock(priority=1)
+    e2 = MagicMock(priority=2)
+    null_map_manager.current_map.add_events([e1])
+
+    null_map_manager.set_events([e2])
+
+    assert list(null_map_manager.events) == [e2]
+
+
+def test_set_events_called_twice_does_not_duplicate(null_map_manager):
+    """Calling set_events twice must not accumulate events."""
+    e1 = MagicMock(priority=1)
+    null_map_manager.set_events([e1])
+    null_map_manager.set_events([e1])
+
+    assert len(null_map_manager.events) == 1
+
+
+def test_set_events_sorts_by_priority_descending(null_map_manager):
+    """set_events must sort events by priority descending."""
+    e_low = MagicMock(priority=1)
+    e_high = MagicMock(priority=10)
+    e_mid = MagicMock(priority=5)
+
+    null_map_manager.set_events([e_low, e_high, e_mid])
+
+    assert list(null_map_manager.events) == [e_high, e_mid, e_low]
+
+
+def test_set_inits_replaces_not_appends(null_map_manager):
+    """set_inits must replace existing inits, not extend them."""
+    i1 = MagicMock(priority=1)
+    i2 = MagicMock(priority=2)
+    null_map_manager.current_map.add_inits([i1])
+
+    null_map_manager.set_inits([i2])
+
+    assert list(null_map_manager.inits) == [i2]
+
+
+def test_set_inits_called_twice_does_not_duplicate(null_map_manager):
+    """Calling set_inits twice must not accumulate inits."""
+    i1 = MagicMock(priority=1)
+    null_map_manager.set_inits([i1])
+    null_map_manager.set_inits([i1])
+
+    assert len(null_map_manager.inits) == 1
+
+
+def test_set_inits_sorts_by_priority_descending(null_map_manager):
+    """set_inits must sort inits by priority descending."""
+    i_low = MagicMock(priority=1)
+    i_high = MagicMock(priority=10)
+    i_mid = MagicMock(priority=5)
+
+    null_map_manager.set_inits([i_low, i_high, i_mid])
+
+    assert list(null_map_manager.inits) == [i_high, i_mid, i_low]
+
+
+def test_remove_event_removes_only_the_target(null_map_manager):
+    """remove_event must remove exactly one event, leaving others intact."""
+    e1 = MagicMock(priority=1)
+    e2 = MagicMock(priority=2)
+    null_map_manager.current_map.add_events([e1, e2])
+
+    null_map_manager.remove_event(e1)
+
+    assert list(null_map_manager.events) == [e2]
+
+
+def test_remove_event_does_not_duplicate_remaining(null_map_manager):
+    """remove_event must not cause the remaining events to be duplicated."""
+    e1 = MagicMock(priority=1)
+    e2 = MagicMock(priority=2)
+    e3 = MagicMock(priority=3)
+    null_map_manager.current_map.add_events([e1, e2, e3])
+
+    null_map_manager.remove_event(e2)
+
+    assert len(null_map_manager.events) == 2
+
+
+def test_remove_init_removes_only_the_target(null_map_manager):
+    """remove_init must remove exactly one init event, leaving others intact."""
+    i1 = MagicMock(priority=1)
+    i2 = MagicMock(priority=2)
+    null_map_manager.current_map.add_inits([i1, i2])
+
+    null_map_manager.remove_init(i1)
+
+    assert list(null_map_manager.inits) == [i2]
+
+
+def test_remove_init_does_not_duplicate_remaining(null_map_manager):
+    """remove_init must not cause the remaining inits to be duplicated."""
+    i1 = MagicMock(priority=1)
+    i2 = MagicMock(priority=2)
+    i3 = MagicMock(priority=3)
+    null_map_manager.current_map.add_inits([i1, i2, i3])
+
+    null_map_manager.remove_init(i2)
+
+    assert len(null_map_manager.inits) == 2
