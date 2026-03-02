@@ -68,16 +68,21 @@ These systems are the base for tournament brackets, match orchestration, and pos
 
 ## Phase 3 — UX & Player Communication
 
-- [ ] Tournament lobby UI:
+- [x] Tournament lobby UI:
   - Upcoming tournaments, registration status, check-in countdown.
-- [ ] In-tournament UI:
+  - `TournamentLobbyState` — browse, register, check-in, champion display.
+- [x] In-tournament UI:
   - Bracket view, current round, next opponent, report status.
-- [ ] Localization keys for tournament events:
+  - `TournamentBracketState` — all rounds, match outcomes, player highlighting.
+- [x] Localization keys for tournament events:
   - Registration accepted/closed, round start, disqualification, champion.
-- [ ] Failure-state messaging:
+  - All tournament lifecycle strings added to `en_US` base.po.
+- [x] Failure-state messaging:
   - Server reconnect guidance, stale client state, admin adjudication results.
+  - In-lobby notification drain for no-show and admin-resolved messages.
 
 **Exit criteria:** players can complete a full tournament flow without using debug tools.
+✅ Complete — Sprint 4 delivered.
 
 ## Phase 4 — Reliability, Integrity, and Operations
 
@@ -136,6 +141,19 @@ Sprint board and scope are tracked in `docs/online_tournaments_sprint2.md`.
 - [x] Token-guarded idempotent result ingestion implemented.
 - [x] Test coverage added for scheduling + ingestion guards.
 - [ ] Integrate challenge dispatch transport hooks.
+
+## Sprint 4 Kickoff (Complete)
+
+Sprint board and scope are tracked in `docs/online_tournaments_sprint4.md`.
+
+- [x] `TournamentLobbyState` and `TournamentBracketState` implemented.
+- [x] 117 locale keys for all tournament lifecycle events added to `en_US`.
+- [x] `TournamentSeason` / `SeasonStandingEntry` / `PlayerNotification` models with save/load.
+- [x] Season management methods: `set_season`, `record_placement`, `get_season_standings`.
+- [x] Player notification queue with `drain_notifications` (drain semantics).
+- [x] Lobby helpers: `get_visible_tournaments`, `get_registration_status`.
+- [x] `tournament_manager` wired into `BaseClient`.
+- [x] 33 new tests — all passing; 105 existing tests — all passing.
 
 ## Sprint 3 Kickoff (Complete)
 

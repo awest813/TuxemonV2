@@ -55,6 +55,7 @@ BG_MONSTERS: str = "gfx/ui/monster/monster_menu_bg.png"
 # Background paths per state (using gradients)
 BG_MINIGAME: str = GRAD_BLUE
 BG_MISSIONS: str = GRAD_BLUE
+BG_TOURNAMENT: str = GRAD_VIOLET
 BG_PC_KENNEL: str = GRAD_BLUE
 BG_PC_LOCKER: str = GRAD_BLUE
 BG_PHONE: str = GRAD_BLUE

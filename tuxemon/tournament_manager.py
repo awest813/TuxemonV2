@@ -16,6 +16,10 @@ from tuxemon.event import get_event_bus
 SUPPORTED_BRACKET_SIZES = (8, 16)
 MIN_BRACKET_SIZE = 8
 
+# Points awarded per tournament finishing placement (1-indexed; 1 = champion).
+_SEASON_PLACEMENT_POINTS: dict[int, int] = {1: 100, 2: 60, 3: 30, 4: 30}
+_SEASON_PARTICIPATION_POINTS: int = 10
+
 
 def _coerce_utc_timestamp(value: str) -> datetime:
     """Parse timestamp strings and normalize to timezone-aware UTC."""
@@ -369,6 +373,94 @@ class Tournament:
 
 
 # ---------------------------------------------------------------------------
+# Seasonal models
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class TournamentSeason:
+    """Metadata for an active or historical competitive season."""
+
+    season_id: str
+    name: str
+    reward_pool_coins: int = 1000
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "season_id": self.season_id,
+            "name": self.name,
+            "reward_pool_coins": self.reward_pool_coins,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> TournamentSeason:
+        return cls(
+            season_id=str(data["season_id"]),
+            name=str(data["name"]),
+            reward_pool_coins=int(data.get("reward_pool_coins", 1000)),
+        )
+
+
+@dataclass
+class SeasonStandingEntry:
+    """Per-player aggregated standing within a season."""
+
+    player_id: UUID
+    display_name: str
+    points: int = 0
+    tournaments_entered: int = 0
+    best_placement: int = 0  # 0 = no placement yet, 1 = champion
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "player_id": str(self.player_id),
+            "display_name": self.display_name,
+            "points": self.points,
+            "tournaments_entered": self.tournaments_entered,
+            "best_placement": self.best_placement,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> SeasonStandingEntry:
+        return cls(
+            player_id=UUID(str(data["player_id"])),
+            display_name=str(data["display_name"]),
+            points=int(data.get("points", 0)),
+            tournaments_entered=int(data.get("tournaments_entered", 0)),
+            best_placement=int(data.get("best_placement", 0)),
+        )
+
+
+@dataclass
+class PlayerNotification:
+    """A pending notification routed to a specific player."""
+
+    player_id: UUID
+    message_key: str
+    params: dict[str, str] = field(default_factory=dict)
+    created_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "player_id": str(self.player_id),
+            "message_key": self.message_key,
+            "params": dict(self.params),
+            "created_at": self.created_at.isoformat(),
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> PlayerNotification:
+        return cls(
+            player_id=UUID(str(data["player_id"])),
+            message_key=str(data["message_key"]),
+            params=dict(data.get("params", {})),
+            created_at=_coerce_utc_timestamp(str(data["created_at"])),
+        )
+
+
+# ---------------------------------------------------------------------------
 # Bracket generation helpers
 # ---------------------------------------------------------------------------
 
@@ -546,6 +638,9 @@ class TournamentManager:
     def __init__(self) -> None:
         self.tournaments: list[Tournament] = []
         self.event_bus = get_event_bus()
+        self.active_season: TournamentSeason | None = None
+        self.season_standings: list[SeasonStandingEntry] = []
+        self._notifications: list[PlayerNotification] = []
 
     # ------------------------------------------------------------------
     # Internal lookups
@@ -783,6 +878,25 @@ class TournamentManager:
             tournament.champion_id = match.winner_id
             tournament.status = TournamentStatus.COMPLETED
             self.event_bus.publish("tournament_completed", tournament)
+            if match.winner_id is not None:
+                self._push_notification(
+                    match.winner_id,
+                    "tournament_notification_champion",
+                    {"tournament": tournament.name},
+                    now=current_time,
+                )
+            loser_id = (
+                match.player_b_id
+                if match.winner_id == match.player_a_id
+                else match.player_a_id
+            )
+            if loser_id is not None:
+                self._push_notification(
+                    loser_id,
+                    "tournament_notification_eliminated",
+                    {"tournament": tournament.name},
+                    now=current_time,
+                )
             return
 
         next_node = self._find_node_at_position(tournament, node.feeds_into)
@@ -814,6 +928,14 @@ class TournamentManager:
                     "match_index": next_match.match_index,
                 },
             )
+            for pid in (next_match.player_a_id, next_match.player_b_id):
+                if pid is not None:
+                    self._push_notification(
+                        pid,
+                        "tournament_notification_match_scheduled",
+                        {"tournament": tournament.name},
+                        now=current_time,
+                    )
 
     # ------------------------------------------------------------------
     # Lifecycle transitions
@@ -1138,6 +1260,19 @@ class TournamentManager:
             },
         )
 
+        self._push_notification(
+            winner_id,
+            "tournament_notification_no_show",
+            {"tournament": tournament.name},
+            now=current_time,
+        )
+        self._push_notification(
+            absent_player_id,
+            "tournament_notification_eliminated",
+            {"tournament": tournament.name},
+            now=current_time,
+        )
+
         self._advance_winner(tournament, match, now=current_time)
         return TournamentResult.SUCCESS
 
@@ -1187,6 +1322,14 @@ class TournamentManager:
                 "winner_id": str(winner_id),
             },
         )
+        for pid in (match.player_a_id, match.player_b_id):
+            if pid is not None:
+                self._push_notification(
+                    pid,
+                    "tournament_notification_admin_resolved",
+                    {"tournament": tournament.name},
+                    now=current_time,
+                )
         self._advance_winner(tournament, match, now=current_time)
         return TournamentResult.SUCCESS
 
@@ -1299,6 +1442,11 @@ class TournamentManager:
     def save_log(self) -> dict[str, Any]:
         return {
             "tournaments": [t.to_dict() for t in self.tournaments],
+            "active_season": (
+                self.active_season.to_dict() if self.active_season else None
+            ),
+            "season_standings": [e.to_dict() for e in self.season_standings],
+            "notifications": [n.to_dict() for n in self._notifications],
         }
 
     def load_log(self, data: dict[str, Any]) -> None:
@@ -1311,3 +1459,185 @@ class TournamentManager:
             except (KeyError, TypeError, ValueError):
                 continue
         self.tournaments = tournaments
+
+        season_data = data.get("active_season")
+        if isinstance(season_data, Mapping):
+            try:
+                self.active_season = TournamentSeason.from_dict(season_data)
+            except (KeyError, TypeError, ValueError):
+                self.active_season = None
+
+        standings: list[SeasonStandingEntry] = []
+        for e_data in data.get("season_standings", []):
+            if not isinstance(e_data, Mapping):
+                continue
+            try:
+                standings.append(SeasonStandingEntry.from_dict(e_data))
+            except (KeyError, TypeError, ValueError):
+                continue
+        self.season_standings = standings
+
+        notifications: list[PlayerNotification] = []
+        for n_data in data.get("notifications", []):
+            if not isinstance(n_data, Mapping):
+                continue
+            try:
+                notifications.append(PlayerNotification.from_dict(n_data))
+            except (KeyError, TypeError, ValueError):
+                continue
+        self._notifications = notifications
+
+    # ------------------------------------------------------------------
+    # Season management
+    # ------------------------------------------------------------------
+
+    def set_season(self, season: TournamentSeason) -> None:
+        """Activate a new competitive season, resetting standings."""
+        self.active_season = season
+        self.season_standings = []
+        self.event_bus.publish(
+            "tournament_season_started",
+            {"season_id": season.season_id, "name": season.name},
+        )
+
+    def record_placement(
+        self,
+        tournament_id: UUID,
+        player_id: UUID,
+        display_name: str,
+        placement: int,
+        *,
+        now: datetime | None = None,
+    ) -> TournamentResult:
+        """Record a player's finishing placement in the current season.
+
+        ``placement`` is 1-indexed (1 = champion).  Participation points are
+        awarded regardless of placement; additional points are awarded per the
+        ``_SEASON_PLACEMENT_POINTS`` table.
+
+        Emits ``tournament_season_reward_distributed`` on success.
+        """
+        tournament = self._find_tournament(tournament_id)
+        if tournament is None:
+            return TournamentResult.NOT_FOUND
+
+        points = _SEASON_PARTICIPATION_POINTS + _SEASON_PLACEMENT_POINTS.get(
+            placement, 0
+        )
+
+        entry = next(
+            (e for e in self.season_standings if e.player_id == player_id),
+            None,
+        )
+        if entry is None:
+            entry = SeasonStandingEntry(
+                player_id=player_id, display_name=display_name
+            )
+            self.season_standings.append(entry)
+
+        entry.display_name = display_name
+        entry.points += points
+        entry.tournaments_entered += 1
+        if entry.best_placement == 0 or placement < entry.best_placement:
+            entry.best_placement = placement
+
+        current_time = now or datetime.now(timezone.utc)
+        self.event_bus.publish(
+            "tournament_season_reward_distributed",
+            {
+                "tournament_id": str(tournament_id),
+                "player_id": str(player_id),
+                "placement": placement,
+                "points_awarded": points,
+                "season_id": (
+                    self.active_season.season_id if self.active_season else None
+                ),
+                "timestamp": current_time.isoformat(),
+            },
+        )
+
+        if placement == 1:
+            self._push_notification(
+                player_id,
+                "tournament_notification_champion",
+                {"tournament": tournament.name},
+            )
+        else:
+            self._push_notification(
+                player_id,
+                "tournament_notification_eliminated",
+                {"tournament": tournament.name},
+            )
+
+        return TournamentResult.SUCCESS
+
+    def get_season_standings(self) -> list[SeasonStandingEntry]:
+        """Return a copy of season standings sorted by points descending."""
+        return sorted(self.season_standings, key=lambda e: e.points, reverse=True)
+
+    # ------------------------------------------------------------------
+    # Player notifications
+    # ------------------------------------------------------------------
+
+    def _push_notification(
+        self,
+        player_id: UUID,
+        message_key: str,
+        params: dict[str, str] | None = None,
+        *,
+        now: datetime | None = None,
+    ) -> None:
+        """Append a notification for a specific player."""
+        self._notifications.append(
+            PlayerNotification(
+                player_id=player_id,
+                message_key=message_key,
+                params=params or {},
+                created_at=now or datetime.now(timezone.utc),
+            )
+        )
+
+    def drain_notifications(self, player_id: UUID) -> list[PlayerNotification]:
+        """Remove and return all pending notifications for *player_id*.
+
+        Calling this method twice for the same player returns an empty list
+        on the second call (drain semantics — not replay).
+        """
+        pending = [n for n in self._notifications if n.player_id == player_id]
+        self._notifications = [
+            n for n in self._notifications if n.player_id != player_id
+        ]
+        return pending
+
+    # ------------------------------------------------------------------
+    # Lobby helpers
+    # ------------------------------------------------------------------
+
+    def get_visible_tournaments(self) -> list[Tournament]:
+        """Return tournaments visible to players (excludes DRAFT and CANCELLED)."""
+        hidden = {TournamentStatus.DRAFT, TournamentStatus.CANCELLED}
+        return [t for t in self.tournaments if t.status not in hidden]
+
+    def get_registration_status(
+        self, tournament_id: UUID, player_id: UUID
+    ) -> str:
+        """Return the registration/check-in status of *player_id* in the tournament.
+
+        Possible return values:
+        - ``"not_registered"`` — player is not in the participant list.
+        - ``"registered"`` — registered but not yet checked in.
+        - ``"checked_in"`` — registered and checked in.
+        - ``"disqualified"`` — participant has been disqualified.
+        - ``"not_found"`` — tournament does not exist.
+        """
+        tournament = self._find_tournament(tournament_id)
+        if tournament is None:
+            return "not_found"
+        participant = self._find_participant(tournament, player_id)
+        if participant is None:
+            return "not_registered"
+        if participant.disqualified:
+            return "disqualified"
+        if participant.checked_in:
+            return "checked_in"
+        return "registered"

@@ -52,6 +52,7 @@ from tuxemon.state.manager import StateManager
 from tuxemon.state.repository import StateRepository
 from tuxemon.state.state import State
 from tuxemon.teleporter import Teleporter
+from tuxemon.tournament_manager import TournamentManager
 from tuxemon.trade_manager import TradeManager
 from tuxemon.world.weather import WorldWeatherManager
 
@@ -181,6 +182,7 @@ class BaseClient(ABC):
 
         # Various Sessions
         self.trade_manager = TradeManager(self.npc_manager)
+        self.tournament_manager = TournamentManager()
         self.multiplayer_battle_manager = MultiplayerBattleManager()
         self.environment_manager = EnvironmentManager(self.context)
         self.encounter_manager = EncounterManager()

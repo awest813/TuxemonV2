@@ -18678,3 +18678,146 @@ msgstr "Town Hall"
 
 msgid "flower_lady"
 msgstr "Flower Lady"
+
+# TOURNAMENT TRANSLATIONS ##
+
+msgid "menu_tournament"
+msgstr "Tournament"
+
+msgid "tournament_lobby_title"
+msgstr "Tournament Lobby"
+
+msgid "tournament_none_available"
+msgstr "No tournaments available."
+
+msgid "tournament_status_draft"
+msgstr "Draft"
+
+msgid "tournament_status_registration"
+msgstr "Open for Registration"
+
+msgid "tournament_status_checkin"
+msgstr "Check-In Open"
+
+msgid "tournament_status_in_progress"
+msgstr "In Progress"
+
+msgid "tournament_status_paused"
+msgstr "Paused"
+
+msgid "tournament_status_completed"
+msgstr "Completed"
+
+msgid "tournament_status_cancelled"
+msgstr "Cancelled"
+
+msgid "tournament_register"
+msgstr "Register"
+
+msgid "tournament_checkin"
+msgstr "Check In"
+
+msgid "tournament_view_bracket"
+msgstr "View Bracket"
+
+msgid "tournament_bracket_title"
+msgstr "Bracket"
+
+msgid "tournament_round_label"
+msgstr "Round"
+
+msgid "tournament_round_final"
+msgstr "Final"
+
+msgid "tournament_match_pending"
+msgstr "Pending"
+
+msgid "tournament_match_scheduled"
+msgstr "Scheduled"
+
+msgid "tournament_match_vs"
+msgstr "vs."
+
+msgid "tournament_match_winner"
+msgstr "Winner"
+
+msgid "tournament_match_walkover"
+msgstr "Walkover"
+
+msgid "tournament_registration_closed"
+msgstr "Registration is closed."
+
+msgid "tournament_checkin_closed"
+msgstr "Check-in is closed."
+
+msgid "tournament_already_registered"
+msgstr "You are already registered."
+
+msgid "tournament_already_checked_in"
+msgstr "You are already checked in."
+
+msgid "tournament_registration_full"
+msgstr "Registration is full."
+
+msgid "tournament_registration_success"
+msgstr "Registration confirmed! Check in when the countdown begins."
+
+msgid "tournament_checkin_success"
+msgstr "Check-in confirmed! Stand by for the bracket."
+
+msgid "tournament_disqualified"
+msgstr "You have been disqualified from this tournament."
+
+msgid "tournament_champion"
+msgstr "Champion"
+
+msgid "tournament_reconnect_hint"
+msgstr "Lost connection? Return to this menu to resume your match."
+
+msgid "tournament_admin_adjudication"
+msgstr "A match has been resolved by an administrator."
+
+msgid "tournament_no_show_resolved"
+msgstr "A no-show has been recorded. The opponent advances."
+
+msgid "tournament_cancelled"
+msgstr "This tournament has been cancelled."
+
+msgid "tournament_policy_team_size"
+msgstr "Team size"
+
+msgid "tournament_policy_level_cap"
+msgstr "Level cap"
+
+msgid "tournament_policy_turn_timer"
+msgstr "Turn timer"
+
+msgid "tournament_season_label"
+msgstr "Season"
+
+msgid "tournament_season_standings"
+msgstr "Season Standings"
+
+msgid "tournament_season_points"
+msgstr "pts"
+
+msgid "tournament_reward_coins"
+msgstr "Season reward"
+
+msgid "tournament_notification_match_scheduled"
+msgstr "Your match has been scheduled. Please accept the challenge."
+
+msgid "tournament_notification_champion"
+msgstr "Congratulations! You are the tournament champion!"
+
+msgid "tournament_notification_eliminated"
+msgstr "You have been eliminated. Better luck next season!"
+
+msgid "tournament_notification_no_show"
+msgstr "Your opponent was recorded as a no-show. You advance!"
+
+msgid "tournament_notification_admin_resolved"
+msgstr "An administrator has resolved your match."
+
+msgid "tournament_close"
+msgstr "Close"

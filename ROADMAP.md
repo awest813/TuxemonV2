@@ -93,9 +93,9 @@ Make all key gameplay and online behaviors explicit, configurable, and testable:
 ## Phase 2 — Competitive and Social Online Expansion
 
 ### 2.1 Online Tournament Playable Path
-- [ ] Complete tournament UX for registration, check-in, bracket visibility, and result disputes.
-- [ ] Integrate reconnect/no-show enforcement with explicit player notifications.
-- [ ] Add seasonal metadata model and reward distribution hooks.
+- [x] Complete tournament UX for registration, check-in, bracket visibility, and result disputes.
+- [x] Integrate reconnect/no-show enforcement with explicit player notifications.
+- [x] Add seasonal metadata model and reward distribution hooks.
 
 ### 2.2 Battle Center MVP
 - [ ] Implement lobby structure (public queue desk, direct challenge rooms, rematch channels).
