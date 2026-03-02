@@ -3,6 +3,7 @@
 """
 Tests for CasinoSession — Phase 2.3 orchestrator.
 """
+
 from __future__ import annotations
 
 import random
@@ -17,7 +18,6 @@ from tuxemon.casino.session import (
     WagerOutOfRangeError,
 )
 from tuxemon.economy.coin_wallet import CoinWallet
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -86,7 +86,10 @@ class TestCasinoSessionPlay:
     def test_play_result_has_currency_notice(self, session):
         result = session.play("coin_flip", wager=50)
         assert len(result.currency_notice) > 0
-        assert "real money" in result.currency_notice.lower() or "in-game" in result.currency_notice.lower()
+        assert (
+            "real money" in result.currency_notice.lower()
+            or "in-game" in result.currency_notice.lower()
+        )
 
     def test_play_result_wallet_balance_matches(self, wallet, session):
         result = session.play("coin_flip", wager=50)

@@ -17,12 +17,15 @@ class TestDetermineTastes(unittest.TestCase):
         mother = SimpleNamespace(taste_warm="sweet", taste_cold="mint")
         father = SimpleNamespace(taste_warm="spicy", taste_cold="bitter")
 
-        with patch(
-            "tuxemon.event.actions.spawn_monster.random.choice",
-            side_effect=["sweet", "mint"],
-        ), patch(
-            "tuxemon.event.actions.spawn_monster._mutate_taste",
-            side_effect=["umami", "icy"],
+        with (
+            patch(
+                "tuxemon.event.actions.spawn_monster.random.choice",
+                side_effect=["sweet", "mint"],
+            ),
+            patch(
+                "tuxemon.event.actions.spawn_monster._mutate_taste",
+                side_effect=["umami", "icy"],
+            ),
         ):
             warm_slug, cold_slug = _determine_tastes(mother, father)
 
@@ -32,12 +35,15 @@ class TestDetermineTastes(unittest.TestCase):
         mother = SimpleNamespace(taste_warm="sweet", taste_cold="mint")
         father = SimpleNamespace(taste_warm="spicy", taste_cold="bitter")
 
-        with patch(
-            "tuxemon.event.actions.spawn_monster.random.choice",
-            side_effect=["spicy", "bitter"],
-        ), patch(
-            "tuxemon.event.actions.spawn_monster._mutate_taste",
-            side_effect=["spicy", "bitter"],
+        with (
+            patch(
+                "tuxemon.event.actions.spawn_monster.random.choice",
+                side_effect=["spicy", "bitter"],
+            ),
+            patch(
+                "tuxemon.event.actions.spawn_monster._mutate_taste",
+                side_effect=["spicy", "bitter"],
+            ),
         ):
             warm_slug, cold_slug = _determine_tastes(mother, father)
 
@@ -73,12 +79,15 @@ class TestInheritParentalMoves(unittest.TestCase):
             )
         )
 
-        with patch(
-            "tuxemon.event.actions.spawn_monster.random.choice",
-            side_effect=[mother_move, father_move],
-        ), patch(
-            "tuxemon.event.actions.spawn_monster.random.sample",
-            return_value=[1, 0],
+        with (
+            patch(
+                "tuxemon.event.actions.spawn_monster.random.choice",
+                side_effect=[mother_move, father_move],
+            ),
+            patch(
+                "tuxemon.event.actions.spawn_monster.random.sample",
+                return_value=[1, 0],
+            ),
         ):
             _inherit_parental_moves(child, mother, father)
 
@@ -111,12 +120,15 @@ class TestInheritParentalMoves(unittest.TestCase):
             )
         )
 
-        with patch(
-            "tuxemon.event.actions.spawn_monster.random.choice",
-            side_effect=[shared_move, shared_move],
-        ), patch(
-            "tuxemon.event.actions.spawn_monster.random.sample",
-            return_value=[0],
+        with (
+            patch(
+                "tuxemon.event.actions.spawn_monster.random.choice",
+                side_effect=[shared_move, shared_move],
+            ),
+            patch(
+                "tuxemon.event.actions.spawn_monster.random.sample",
+                return_value=[0],
+            ),
         ):
             _inherit_parental_moves(child, mother, father)
 
@@ -177,19 +189,22 @@ class TestDetermineInheritedIvs(unittest.TestCase):
         mother = SimpleNamespace(individual_values=mother_ivs)
         father = SimpleNamespace(individual_values=father_ivs)
 
-        with patch(
-            "tuxemon.event.actions.spawn_monster.random.choice",
-            side_effect=[
-                mother_ivs.armour,
-                father_ivs.dodge,
-                mother_ivs.hp,
-                father_ivs.melee,
-                mother_ivs.ranged,
-                father_ivs.speed,
-            ],
-        ), patch(
-            "tuxemon.event.actions.spawn_monster.random.random",
-            return_value=0.99,
+        with (
+            patch(
+                "tuxemon.event.actions.spawn_monster.random.choice",
+                side_effect=[
+                    mother_ivs.armour,
+                    father_ivs.dodge,
+                    mother_ivs.hp,
+                    father_ivs.melee,
+                    mother_ivs.ranged,
+                    father_ivs.speed,
+                ],
+            ),
+            patch(
+                "tuxemon.event.actions.spawn_monster.random.random",
+                return_value=0.99,
+            ),
         ):
             child_ivs = _determine_inherited_ivs(mother, father)
 
@@ -221,25 +236,28 @@ class TestDetermineInheritedIvs(unittest.TestCase):
         mother = SimpleNamespace(individual_values=mother_ivs)
         father = SimpleNamespace(individual_values=father_ivs)
 
-        with patch(
-            "tuxemon.event.actions.spawn_monster.random.choice",
-            side_effect=[
-                min_iv,
-                -1,
-                min_iv,
-                -1,
-                min_iv,
-                -1,
-                max_iv,
-                1,
-                max_iv,
-                1,
-                max_iv,
-                1,
-            ],
-        ), patch(
-            "tuxemon.event.actions.spawn_monster.random.random",
-            return_value=0.0,
+        with (
+            patch(
+                "tuxemon.event.actions.spawn_monster.random.choice",
+                side_effect=[
+                    min_iv,
+                    -1,
+                    min_iv,
+                    -1,
+                    min_iv,
+                    -1,
+                    max_iv,
+                    1,
+                    max_iv,
+                    1,
+                    max_iv,
+                    1,
+                ],
+            ),
+            patch(
+                "tuxemon.event.actions.spawn_monster.random.random",
+                return_value=0.0,
+            ),
         ):
             child_ivs = _determine_inherited_ivs(mother, father)
 

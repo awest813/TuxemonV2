@@ -5,10 +5,8 @@ Tests for the WeeklyEventCalendar schema and WeeklyEventScheduler runtime.
 
 Covers the design described in docs/gold_silver_blueprint.md §2.4.
 """
-from __future__ import annotations
 
-from datetime import datetime
-from unittest.mock import MagicMock
+from __future__ import annotations
 
 import pytest
 
@@ -175,7 +173,9 @@ def _make_scheduler(calendar: WeeklyEventCalendar) -> WeeklyEventScheduler:
     return WeeklyEventScheduler(calendar)
 
 
-def _patch_time(scheduler: WeeklyEventScheduler, snapshot: TimeSnapshot) -> None:
+def _patch_time(
+    scheduler: WeeklyEventScheduler, snapshot: TimeSnapshot
+) -> None:
     scheduler._time_handler.get_time_variables = lambda: snapshot
 
 

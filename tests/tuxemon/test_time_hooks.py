@@ -5,6 +5,7 @@ Tests for the time-aware hook registry (tuxemon/time_hooks.py).
 
 Covers all 9 hooks defined in docs/gold_silver_blueprint.md §4.
 """
+
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -137,7 +138,9 @@ def _make_encounter_payload(table: list[dict]) -> EncounterTableQueryPayload:
 
 def test_encounter_table_query_no_handlers_returns_raw(registry: HookRegistry):
     table = [{"monster": "agnite"}, {"monster": "pairagrin"}]
-    result = registry.fire_encounter_table_query(_make_encounter_payload(table))
+    result = registry.fire_encounter_table_query(
+        _make_encounter_payload(table)
+    )
     assert result == table
 
 
@@ -145,12 +148,16 @@ def test_encounter_table_query_filter_reduces_table(registry: HookRegistry):
     def filter_to_agnite(
         payload: EncounterTableQueryPayload,
     ) -> list[dict]:
-        return [e for e in payload.raw_encounter_table if e["monster"] == "agnite"]
+        return [
+            e for e in payload.raw_encounter_table if e["monster"] == "agnite"
+        ]
 
     registry.on_encounter_table_query(filter_to_agnite)
 
     table = [{"monster": "agnite"}, {"monster": "pairagrin"}]
-    result = registry.fire_encounter_table_query(_make_encounter_payload(table))
+    result = registry.fire_encounter_table_query(
+        _make_encounter_payload(table)
+    )
     assert result == [{"monster": "agnite"}]
 
 
@@ -170,7 +177,9 @@ def test_encounter_table_query_handlers_chain(registry: HookRegistry):
     registry.on_encounter_table_query(second)
 
     table = [{"monster": "a"}, {"monster": "b"}, {"monster": "c"}]
-    result = registry.fire_encounter_table_query(_make_encounter_payload(table))
+    result = registry.fire_encounter_table_query(
+        _make_encounter_payload(table)
+    )
     assert calls == [3, 2]
     assert len(result) == 1
 

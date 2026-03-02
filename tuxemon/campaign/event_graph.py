@@ -14,9 +14,9 @@ Script files are stored as JSON in the campaign's scripts/ directory.
 Each file represents one event graph (script). The CampaignValidator
 (validator.py) reads these files during the campaign validation pass.
 """
+
 from __future__ import annotations
 
-import json
 import re
 from enum import Enum
 from pathlib import Path
@@ -25,7 +25,6 @@ from typing import Any, Optional
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from tuxemon.campaign.validator import KNOWN_ACTION_TYPES, KNOWN_TRIGGER_TYPES
-
 
 # ---------------------------------------------------------------------------
 # Trigger types

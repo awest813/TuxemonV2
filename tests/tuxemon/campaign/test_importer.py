@@ -3,18 +3,21 @@
 """
 Tests for tuxemon.campaign.importer — CampaignImporter.
 """
+
 from __future__ import annotations
 
 import io
 import json
-import textwrap
 import zipfile
 from pathlib import Path
 
-import pytest
 import yaml
 
-from tuxemon.campaign.importer import CampaignImporter, CompatibilityResult, ImportResult
+from tuxemon.campaign.importer import (
+    CampaignImporter,
+    CompatibilityResult,
+    ImportResult,
+)
 from tuxemon.campaign.models import CampaignManifest
 
 # ---------------------------------------------------------------------------
@@ -33,7 +36,9 @@ VALID_MANIFEST_DICT = {
 }
 
 
-def _make_capsule(tmp_path: Path, manifest_override: dict | None = None) -> Path:
+def _make_capsule(
+    tmp_path: Path, manifest_override: dict | None = None
+) -> Path:
     """Create a minimal .capsule archive in tmp_path."""
     manifest = {**VALID_MANIFEST_DICT, **(manifest_override or {})}
     manifest_yaml = yaml.dump(manifest)

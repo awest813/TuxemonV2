@@ -238,7 +238,7 @@ def open_save_file(save_path: Path) -> dict[str, Any] | None:
                 compress_save=config.compress_save,
             )
             return package
-        except ValueError as e:
+        except ValueError:
             logger.error(f"Cannot decode save: {save_path}", exc_info=True)
             return None
     except OSError as e:

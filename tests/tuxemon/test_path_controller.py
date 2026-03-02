@@ -8,7 +8,7 @@ from tuxemon.db import Direction, FacingMode
 from tuxemon.entity.path import PathController, tile_distance
 from tuxemon.map.map import dirs2
 from tuxemon.math import Vector2
-from tuxemon.tools import vector2_to_tile_pos
+from tuxemon.tools.math import vector2_to_tile_pos
 
 
 class SimpleNPC:

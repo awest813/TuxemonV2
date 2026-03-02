@@ -21,6 +21,7 @@ Content generated:
   locale/
     en_US.ini             — English locale strings
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -121,7 +122,9 @@ class ClassicTwoRegionTemplate(CampaignTemplate):
 
         # Region 1 — Gym
         spawn_gym1 = self._spawn_event(oid=1, x=80, y=150)
-        gym1_leader = self._npc_event(oid=2, script_id="gym1_leader", x=80, y=50)
+        gym1_leader = self._npc_event(
+            oid=2, script_id="gym1_leader", x=80, y=50
+        )
         trans_back_r1 = self._transition_event(
             oid=3, target_map="maps/region1_route1.tmx", x=80, y=170
         )
@@ -131,7 +134,9 @@ class ClassicTwoRegionTemplate(CampaignTemplate):
                 "region1_gym",
                 width=12,
                 height=14,
-                events_xml="\n  ".join([spawn_gym1, gym1_leader, trans_back_r1]),
+                events_xml="\n  ".join(
+                    [spawn_gym1, gym1_leader, trans_back_r1]
+                ),
             )
         )
 
@@ -173,7 +178,9 @@ class ClassicTwoRegionTemplate(CampaignTemplate):
 
         # Region 2 — Gym
         spawn_gym2 = self._spawn_event(oid=1, x=80, y=150)
-        gym2_leader = self._npc_event(oid=2, script_id="gym2_leader", x=80, y=50)
+        gym2_leader = self._npc_event(
+            oid=2, script_id="gym2_leader", x=80, y=50
+        )
         trans_back_r2 = self._transition_event(
             oid=3, target_map="maps/region2_route1.tmx", x=80, y=170
         )
@@ -183,7 +190,9 @@ class ClassicTwoRegionTemplate(CampaignTemplate):
                 "region2_gym",
                 width=12,
                 height=14,
-                events_xml="\n  ".join([spawn_gym2, gym2_leader, trans_back_r2]),
+                events_xml="\n  ".join(
+                    [spawn_gym2, gym2_leader, trans_back_r2]
+                ),
             )
         )
 

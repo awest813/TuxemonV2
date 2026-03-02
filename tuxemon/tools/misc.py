@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable, Mapping
 from enum import Enum
-from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
+from typing import TYPE_CHECKING, NoReturn, TypeVar
 from uuid import UUID
 
 from tuxemon.constants.asset_loader import fetch_asset

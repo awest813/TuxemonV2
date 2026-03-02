@@ -24,7 +24,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def _coerce_direction(value: Any, default: Direction = Direction.DOWN) -> Direction:
+def _coerce_direction(
+    value: Any, default: Direction = Direction.DOWN
+) -> Direction:
     """Parse network-facing direction values into a Direction enum."""
     if isinstance(value, Direction):
         return value
@@ -108,14 +110,18 @@ class CharData:
             try:
                 monsters = decode_monsters(raw_monsters)
             except Exception:
-                logger.debug("Ignoring malformed monsters payload in CharData.")
+                logger.debug(
+                    "Ignoring malformed monsters payload in CharData."
+                )
 
         inventory = []
         if isinstance(raw_inventory, list):
             try:
                 inventory = decode_items(raw_inventory)
             except Exception:
-                logger.debug("Ignoring malformed inventory payload in CharData.")
+                logger.debug(
+                    "Ignoring malformed inventory payload in CharData."
+                )
 
         return CharData(
             tile_pos=_coerce_tile_pos(data.get("tile_pos")),

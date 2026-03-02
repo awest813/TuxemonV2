@@ -10,6 +10,7 @@ The linter wraps CampaignValidator and provides:
 
 Implements the §3.3 Quality Gate requirement from ROADMAP.md.
 """
+
 from __future__ import annotations
 
 import json
@@ -71,7 +72,9 @@ class LintReport:
 
     @property
     def blocking(self) -> list[LintIssue]:
-        return [i for i in self.issues if i.severity == Severity.BLOCKING.value]
+        return [
+            i for i in self.issues if i.severity == Severity.BLOCKING.value
+        ]
 
     @property
     def warnings(self) -> list[LintIssue]:
@@ -84,7 +87,9 @@ class LintReport:
     def to_json(self, *, indent: int = 2) -> str:
         """Serialize to JSON for machine consumption."""
         data = {
-            "campaign_dir": str(self.campaign_dir) if self.campaign_dir else None,
+            "campaign_dir": (
+                str(self.campaign_dir) if self.campaign_dir else None
+            ),
             "passed": self.passed,
             "stats": self.stats,
             "issues": [asdict(i) for i in self.issues],
@@ -105,7 +110,9 @@ class LintReport:
         GREEN = "\033[92m" if color else ""
 
         lines: list[str] = []
-        dir_label = str(self.campaign_dir) if self.campaign_dir else "(unknown)"
+        dir_label = (
+            str(self.campaign_dir) if self.campaign_dir else "(unknown)"
+        )
         lines.append(f"{BOLD}Campaign Lint Report: {dir_label}{RESET}")
         lines.append("-" * 60)
 
@@ -139,10 +146,7 @@ class LintReport:
 
 def _categorize(check_id: str) -> str:
     """Map a check_id to a lint category label."""
-    if any(
-        check_id.startswith(p)
-        for p in ("manifest", "engine_version")
-    ):
+    if any(check_id.startswith(p) for p in ("manifest", "engine_version")):
         return "manifest"
     if any(
         check_id.startswith(p)
@@ -161,7 +165,13 @@ def _categorize(check_id: str) -> str:
         return "script"
     if any(
         check_id.startswith(p)
-        for p in ("start_map", "no_unreachable", "ruleset", "weekly_event", "trainer")
+        for p in (
+            "start_map",
+            "no_unreachable",
+            "ruleset",
+            "weekly_event",
+            "trainer",
+        )
     ):
         return "campaign"
     return "general"
@@ -193,7 +203,9 @@ class CampaignLinter:
         """
         Lint the campaign at *campaign_dir* and return a LintReport.
         """
-        validation_report: ValidationReport = self._validator.validate(campaign_dir)
+        validation_report: ValidationReport = self._validator.validate(
+            campaign_dir
+        )
         issues: list[LintIssue] = []
 
         for vi in validation_report.issues:

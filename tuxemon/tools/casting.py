@@ -14,7 +14,6 @@ from types import UnionType
 from typing import (
     Any,
     Literal,
-    Sequence,
     TypeVar,
     get_args,
     get_origin,

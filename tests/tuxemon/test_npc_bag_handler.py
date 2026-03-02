@@ -80,8 +80,8 @@ def test_add_item_to_locker(handler, item):
     ],
 )
 def test_add_item_existing(handler, item, qty1, qty2, expected):
-    result1 = handler.add_item(item, quantity=qty1)
-    result2 = handler.add_item(item, quantity=qty2)
+    handler.add_item(item, quantity=qty1)
+    handler.add_item(item, quantity=qty2)
 
     found = handler.find_item("test_item")
 

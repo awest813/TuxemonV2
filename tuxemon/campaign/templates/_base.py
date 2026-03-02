@@ -8,6 +8,7 @@ pre-authored content files (TMX maps, event scripts, encounter tables,
 locale strings). The base implementation writes nothing; subclasses
 override apply() to add their content.
 """
+
 from __future__ import annotations
 
 import logging

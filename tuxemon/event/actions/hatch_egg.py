@@ -56,7 +56,11 @@ class HatchEggAction(EventAction):
 
         # Using a generic message if key missing is tricky without checking T logic,
         # but let's assume we want a simple dialog.
-        open_dialog(session.client, [msg or f"Your egg hatched into a {egg_to_hatch.name}!"], dialog_speed="max")
+        open_dialog(
+            session.client,
+            [msg or f"Your egg hatched into a {egg_to_hatch.name}!"],
+            dialog_speed="max",
+        )
 
     def update(self, session: Session, dt: float) -> None:
         try:

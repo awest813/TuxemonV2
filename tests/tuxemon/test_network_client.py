@@ -7,8 +7,8 @@ import pygame as pg
 import pytest
 
 from tuxemon.multiplayer_battle_manager import MultiplayerBattleManager
-from tuxemon.network.networking import EventData
 from tuxemon.network.client import ConnState, TuxemonClient
+from tuxemon.network.networking import EventData
 from tuxemon.network.websocket_client import ConnectionState
 
 
@@ -231,7 +231,9 @@ def test_interaction_manager_finds_cuuid(client, monkeypatch):
 
 
 def test_queue_and_consume_feedback(client):
-    client.queue_feedback("multiplayer_connect_failed", "multiplayer_retry_hint")
+    client.queue_feedback(
+        "multiplayer_connect_failed", "multiplayer_retry_hint"
+    )
 
     assert client.consume_feedback() == [
         [("multiplayer_connect_failed", {}), ("multiplayer_retry_hint", {})]
@@ -351,7 +353,9 @@ def test_route_combat_submit_turn_payload_returns_feedback(client):
     manager = MultiplayerBattleManager()
     challenger = uuid4()
     challenged = uuid4()
-    battle_session = manager.start_battle_session(uuid4(), challenger, challenged)
+    battle_session = manager.start_battle_session(
+        uuid4(), challenger, challenged
+    )
     client.game.multiplayer_battle_manager = manager
 
     client.route_combat(

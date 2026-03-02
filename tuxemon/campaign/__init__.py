@@ -35,6 +35,7 @@ Starter templates (Phase 3 §3.1):
 Smoke test harness (Phase 3 §3.3):
     CampaignSmokeTest, SmokeTestResult, SmokeCheck
 """
+
 from tuxemon.campaign.builder import BuildResult, CampaignBuilder
 from tuxemon.campaign.encounter_editor import (
     EncounterTable,
@@ -64,7 +65,11 @@ from tuxemon.campaign.models import (
     WizardStep2,
     WizardStep3,
 )
-from tuxemon.campaign.smoke_test import CampaignSmokeTest, SmokeCheck, SmokeTestResult
+from tuxemon.campaign.smoke_test import (
+    CampaignSmokeTest,
+    SmokeCheck,
+    SmokeTestResult,
+)
 from tuxemon.campaign.templates import (
     BattleChallengeTemplate,
     CampaignTemplate,

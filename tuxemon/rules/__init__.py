@@ -5,6 +5,7 @@ Rules and settings resolution system.
 
 Exposes the settings resolver and ruleset models for use throughout the engine.
 """
+
 from tuxemon.rules.models import (
     BattleRules,
     CampaignRules,

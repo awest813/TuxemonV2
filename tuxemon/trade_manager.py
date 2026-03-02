@@ -171,7 +171,9 @@ class TradeManager:
         self.pending_offers = active_offers
         return removed
 
-    def get_pending_offers_for_player(self, player_id: UUID) -> list[TradeOffer]:
+    def get_pending_offers_for_player(
+        self, player_id: UUID
+    ) -> list[TradeOffer]:
         """Return active pending offers where player is proposer or receiver."""
         self.purge_expired_offers()
         return [
@@ -181,7 +183,9 @@ class TradeManager:
             or offer.receiving_player_id == player_id
         ]
 
-    def get_received_offers_for_player(self, player_id: UUID) -> list[TradeOffer]:
+    def get_received_offers_for_player(
+        self, player_id: UUID
+    ) -> list[TradeOffer]:
         """Return active pending offers that target the specified player."""
         self.purge_expired_offers()
         return [
@@ -257,7 +261,10 @@ class TradeManager:
                 retryable=True,
             )
 
-        if player_id not in {offer.proposing_player_id, offer.receiving_player_id}:
+        if player_id not in {
+            offer.proposing_player_id,
+            offer.receiving_player_id,
+        }:
             return TradeActionFeedback(
                 state=TradeActionState.FAILED,
                 message="trade_offer_view_unauthorized",

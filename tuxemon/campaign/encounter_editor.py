@@ -17,10 +17,10 @@ co-located with the .tmx files they reference.
 
 File convention: ``<campaign_root>/maps/<map_stem>.encounters.yaml``
 """
+
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 

@@ -36,9 +36,12 @@ def test_update_opens_dialog_for_queued_feedback() -> None:
     ]
     manager.client = client
 
-    with patch("tuxemon.network.manager.open_dialog") as mock_dialog, patch(
-        "tuxemon.network.manager.T.translate",
-        side_effect=lambda key: key,
+    with (
+        patch("tuxemon.network.manager.open_dialog") as mock_dialog,
+        patch(
+            "tuxemon.network.manager.T.translate",
+            side_effect=lambda key: key,
+        ),
     ):
         manager.update(0.016)
 
@@ -57,9 +60,12 @@ def test_update_formats_parameterized_feedback() -> None:
     ]
     manager.client = client
 
-    with patch("tuxemon.network.manager.open_dialog") as mock_dialog, patch(
-        "tuxemon.network.manager.T.format",
-        side_effect=lambda key, params: f"{key}:{params}",
+    with (
+        patch("tuxemon.network.manager.open_dialog") as mock_dialog,
+        patch(
+            "tuxemon.network.manager.T.format",
+            side_effect=lambda key, params: f"{key}:{params}",
+        ),
     ):
         manager.update(0.016)
 

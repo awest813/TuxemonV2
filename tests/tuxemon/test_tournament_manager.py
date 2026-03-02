@@ -4,6 +4,7 @@
 Tests for tournament_manager — lifecycle invariants, seeding determinism,
 bracket progression, admin actions, and save/load round-trips.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -21,17 +22,9 @@ from tuxemon.tournament_manager import (
     TournamentPolicy,
     TournamentResult,
     TournamentStatus,
-    _generate_bracket,
-    _seeding_slot_order,
     _round_start_position,
+    _seeding_slot_order,
 )
-
-import random
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 
 def _make_manager() -> TournamentManager:
@@ -144,7 +137,9 @@ class TestBracketHelpers:
 class TestLifecycleStateMachine:
     def test_create_tournament_starts_in_draft(self):
         manager = _make_manager()
-        result = manager.create_tournament("Championship", 8, tournament_seed=1)
+        result = manager.create_tournament(
+            "Championship", 8, tournament_seed=1
+        )
         assert isinstance(result, Tournament)
         assert result.status == TournamentStatus.DRAFT
         assert len(manager.tournaments) == 1
@@ -210,7 +205,9 @@ class TestLifecycleStateMachine:
         assert manager.register_participant(fake_id, uuid4(), "X") == (
             TournamentResult.NOT_FOUND
         )
-        assert manager.close_registration(fake_id) == TournamentResult.NOT_FOUND
+        assert (
+            manager.close_registration(fake_id) == TournamentResult.NOT_FOUND
+        )
         assert manager.check_in_participant(fake_id, uuid4()) == (
             TournamentResult.NOT_FOUND
         )
@@ -458,9 +455,9 @@ class TestBracketStructure:
             for m in r1_matches
             if m.player_a_id is not None or m.player_b_id is not None
         ]
-        assert len(pre_filled) > 0, (
-            "Bye winners should be propagated into round-1 match slots"
-        )
+        assert (
+            len(pre_filled) > 0
+        ), "Bye winners should be propagated into round-1 match slots"
 
     def test_both_bye_feeders_schedule_round_1_match(self):
         """When both feeders for a round-1 match are byes, it is SCHEDULED."""
@@ -513,9 +510,7 @@ class TestMatchReporting:
         assert first_match.status == MatchStatus.COMPLETED
         assert first_match.winner_id == winner
 
-        node = next(
-            n for n in t.bracket if n.match_id == first_match.match_id
-        )
+        node = next(n for n in t.bracket if n.match_id == first_match.match_id)
         if node.feeds_into is not None:
             next_node = next(
                 n for n in t.bracket if n.position == node.feeds_into
@@ -619,7 +614,9 @@ class TestMatchReporting:
         assert result == TournamentResult.SUCCESS
         assert m.challenge_correlation_id == "corr-accepted"
 
-    def test_challenge_callback_rejected_clears_dispatch_metadata_for_retry(self):
+    def test_challenge_callback_rejected_clears_dispatch_metadata_for_retry(
+        self,
+    ):
         manager = _make_manager()
         t, _ = _setup_ready_tournament(manager)
         m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
@@ -643,7 +640,9 @@ class TestMatchReporting:
         assert redispatch == TournamentResult.SUCCESS
         assert m.challenge_correlation_id == "corr-retry"
 
-    def test_challenge_callback_expired_clears_dispatch_metadata_for_retry(self):
+    def test_challenge_callback_expired_clears_dispatch_metadata_for_retry(
+        self,
+    ):
         manager = _make_manager()
         t, _ = _setup_ready_tournament(manager)
         m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
@@ -674,7 +673,9 @@ class TestMatchReporting:
         for index, match in enumerate(first_round):
             initial_correlation = f"round1-{index}"
             dispatch = manager.mark_match_dispatched(
-                t.tournament_id, match.match_id, correlation_id=initial_correlation
+                t.tournament_id,
+                match.match_id,
+                correlation_id=initial_correlation,
             )
             assert dispatch == TournamentResult.SUCCESS
 
@@ -773,7 +774,8 @@ class TestMatchReporting:
 
         events: list = []
         manager.event_bus.subscribe(
-            "tournament_match_auto_adjudicated", lambda payload: events.append(payload)
+            "tournament_match_auto_adjudicated",
+            lambda payload: events.append(payload),
         )
 
         at_timeout = m.scheduled_at + timedelta(
@@ -809,7 +811,10 @@ class TestMatchReporting:
         r = manager.report_match_result(
             t.tournament_id, pending.match_id, uuid4()
         )
-        assert r in (TournamentResult.INVALID_STATE, TournamentResult.INVALID_WINNER)
+        assert r in (
+            TournamentResult.INVALID_STATE,
+            TournamentResult.INVALID_WINNER,
+        )
 
     def test_build_challenge_proposal_returns_correct_payload(self):
         """build_challenge_proposal maps a scheduled match to a challenge payload."""
@@ -851,10 +856,14 @@ class TestMatchReporting:
         t, _ = _setup_ready_tournament(manager)
         m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
 
-        payload1 = manager.build_challenge_proposal(t.tournament_id, m.match_id)
+        payload1 = manager.build_challenge_proposal(
+            t.tournament_id, m.match_id
+        )
         first_dispatched_at = m.challenge_dispatched_at
 
-        payload2 = manager.build_challenge_proposal(t.tournament_id, m.match_id)
+        payload2 = manager.build_challenge_proposal(
+            t.tournament_id, m.match_id
+        )
 
         assert isinstance(payload1, dict)
         assert isinstance(payload2, dict)
@@ -883,7 +892,9 @@ class TestMatchReporting:
         )
         if pending is None:
             pytest.skip("No pending matches in this bracket configuration")
-        result = manager.build_challenge_proposal(t.tournament_id, pending.match_id)
+        result = manager.build_challenge_proposal(
+            t.tournament_id, pending.match_id
+        )
         assert result == TournamentResult.INVALID_STATE
 
     def test_build_challenge_proposal_full_round_dispatch(self):
@@ -891,18 +902,28 @@ class TestMatchReporting:
         manager = _make_manager()
         t, _ = _setup_ready_tournament(manager, seed=9999)
 
-        first_round = [m for m in t.matches if m.round_index == 0 and m.status == MatchStatus.SCHEDULED]
+        first_round = [
+            m
+            for m in t.matches
+            if m.round_index == 0 and m.status == MatchStatus.SCHEDULED
+        ]
         assert len(first_round) > 0
 
         seen_correlation_ids: set[str] = set()
         for match in first_round:
-            payload = manager.build_challenge_proposal(t.tournament_id, match.match_id)
+            payload = manager.build_challenge_proposal(
+                t.tournament_id, match.match_id
+            )
             assert isinstance(payload, dict)
             corr = payload["correlation_id"]
-            assert corr not in seen_correlation_ids, "correlation IDs must be unique per match"
+            assert (
+                corr not in seen_correlation_ids
+            ), "correlation IDs must be unique per match"
             seen_correlation_ids.add(corr)
             # Correlation ID is stable — second call returns same ID.
-            payload2 = manager.build_challenge_proposal(t.tournament_id, match.match_id)
+            payload2 = manager.build_challenge_proposal(
+                t.tournament_id, match.match_id
+            )
             assert isinstance(payload2, dict)
             assert payload2["correlation_id"] == corr
 
@@ -946,7 +967,9 @@ class TestFullBracketSimulation:
             for m in scheduled:
                 winner = m.player_a_id or m.player_b_id
                 assert winner is not None
-                r = manager.report_match_result(t.tournament_id, m.match_id, winner)
+                r = manager.report_match_result(
+                    t.tournament_id, m.match_id, winner
+                )
                 assert r == TournamentResult.SUCCESS
                 resolved_count += 1
 
@@ -976,7 +999,9 @@ class TestFullBracketSimulation:
             for m in scheduled:
                 winner = m.player_a_id or m.player_b_id
                 assert winner is not None
-                manager.report_match_result(t.tournament_id, m.match_id, winner)
+                manager.report_match_result(
+                    t.tournament_id, m.match_id, winner
+                )
 
         assert t.status == TournamentStatus.COMPLETED
         assert t.champion_id is not None
@@ -1009,7 +1034,9 @@ class TestFullBracketSimulation:
             for m in scheduled:
                 winner = m.player_a_id or m.player_b_id
                 assert winner is not None
-                manager.report_match_result(t.tournament_id, m.match_id, winner)
+                manager.report_match_result(
+                    t.tournament_id, m.match_id, winner
+                )
 
         assert t.status == TournamentStatus.COMPLETED
         assert t.champion_id is not None
@@ -1025,10 +1052,16 @@ class TestAdminActions:
         manager = _make_manager()
         t, _ = _setup_ready_tournament(manager)
 
-        assert manager.pause_tournament(t.tournament_id) == TournamentResult.SUCCESS
+        assert (
+            manager.pause_tournament(t.tournament_id)
+            == TournamentResult.SUCCESS
+        )
         assert t.status == TournamentStatus.PAUSED
 
-        assert manager.resume_tournament(t.tournament_id) == TournamentResult.SUCCESS
+        assert (
+            manager.resume_tournament(t.tournament_id)
+            == TournamentResult.SUCCESS
+        )
         assert t.status == TournamentStatus.IN_PROGRESS
 
     def test_pause_requires_in_progress(self):
@@ -1055,7 +1088,9 @@ class TestAdminActions:
         manager = _make_manager()
         t, _ = _setup_ready_tournament(manager)
         for _ in range(10):
-            for m in [x for x in t.matches if x.status == MatchStatus.SCHEDULED]:
+            for m in [
+                x for x in t.matches if x.status == MatchStatus.SCHEDULED
+            ]:
                 manager.report_match_result(
                     t.tournament_id, m.match_id, m.player_a_id or m.player_b_id
                 )
@@ -1250,7 +1285,9 @@ class TestSaveLoadRoundtrip:
             no_show_timeout_seconds=120,
             min_viable_players=4,
         )
-        manager.create_tournament("Policy Test", 8, policy=policy, tournament_seed=1)
+        manager.create_tournament(
+            "Policy Test", 8, policy=policy, tournament_seed=1
+        )
         saved = manager.save_log()
 
         restored = _make_manager()
@@ -1292,7 +1329,9 @@ class TestSaveLoadRoundtrip:
         t, _ = _setup_ready_tournament(manager, seed=42)
 
         for _ in range(10):
-            for m in [x for x in t.matches if x.status == MatchStatus.SCHEDULED]:
+            for m in [
+                x for x in t.matches if x.status == MatchStatus.SCHEDULED
+            ]:
                 manager.report_match_result(
                     t.tournament_id, m.match_id, m.player_a_id or m.player_b_id
                 )

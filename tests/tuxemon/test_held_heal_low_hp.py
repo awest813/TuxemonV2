@@ -46,9 +46,7 @@ def test_held_heal_low_hp_trigger():
     # if it's a dataclass field
     # But wait, CoreEffect defines name: ClassVar[str],
     # so it shouldn't be in __init__.
-    effect = HeldHealLowHpEffect(
-        threshold=0.5, amount=20, heal_type="fixed"
-    )
+    effect = HeldHealLowHpEffect(threshold=0.5, amount=20, heal_type="fixed")
 
     result = effect.apply_item_target(session, item, target)
 
@@ -87,9 +85,7 @@ def test_held_heal_low_hp_no_trigger():
     target.missing_hp = 40
     target.is_fainted = False
 
-    effect = HeldHealLowHpEffect(
-        threshold=0.5, amount=20, heal_type="fixed"
-    )
+    effect = HeldHealLowHpEffect(threshold=0.5, amount=20, heal_type="fixed")
 
     result = effect.apply_item_target(session, item, target)
 
@@ -144,9 +140,7 @@ def test_held_heal_low_hp_equal_threshold():
     target.missing_hp = 50
     target.is_fainted = False
 
-    effect = HeldHealLowHpEffect(
-        threshold=0.5, amount=10, heal_type="fixed"
-    )
+    effect = HeldHealLowHpEffect(threshold=0.5, amount=10, heal_type="fixed")
 
     result = effect.apply_item_target(session, item, target)
 
@@ -172,9 +166,7 @@ def test_held_heal_low_hp_no_overheal_check():
     target.missing_hp = 0
     target.is_fainted = False
 
-    effect = HeldHealLowHpEffect(
-        threshold=1.0, amount=10, heal_type="fixed"
-    )
+    effect = HeldHealLowHpEffect(threshold=1.0, amount=10, heal_type="fixed")
 
     result = effect.apply_item_target(session, item, target)
 

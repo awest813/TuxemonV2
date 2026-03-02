@@ -10,15 +10,15 @@ from pygame_menu.menu import Menu
 
 from tuxemon.locale.locale import T
 from tuxemon.menu.menu import PygameMenuState
-from tuxemon.platform.const.graphics import BG_TOURNAMENT
 from tuxemon.platform.const import buttons
+from tuxemon.platform.const.graphics import BG_TOURNAMENT
 from tuxemon.platform.events import PlayerInput
 from tuxemon.prepare import SCREEN_SIZE
+from tuxemon.tools.dialog import open_dialog
 from tuxemon.tournament_manager import (
     TournamentResult,
     TournamentStatus,
 )
-from tuxemon.tools.dialog import open_dialog
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient
@@ -270,10 +270,7 @@ class TournamentLobbyState(PygameMenuState):
         self.client.pop_state()
 
     def process_event(self, event: PlayerInput) -> PlayerInput | None:
-        if (
-            event.button in (buttons.B, buttons.BACK)
-            and event.pressed
-        ):
+        if event.button in (buttons.B, buttons.BACK) and event.pressed:
             self._close()
             return None
         return super().process_event(event)

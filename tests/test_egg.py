@@ -8,13 +8,16 @@ from unittest.mock import MagicMock, patch
 import tuxemon.database.runtime
 from tuxemon.db import MonsterModel
 
+
 class TestEggHatching(unittest.TestCase):
     def setUp(self):
         self.session = MagicMock()
         self.session.player = MagicMock()
         self.session.player.monsters = []
         self.session.player.party = MagicMock()
-        self.session.player.party.add_monster = MagicMock(side_effect=lambda m, s: self.session.player.monsters.append(m))
+        self.session.player.party.add_monster = MagicMock(
+            side_effect=lambda m, s: self.session.player.monsters.append(m)
+        )
         self.session.client = MagicMock()
         self.session.client.get_state_by_name = MagicMock()
 
@@ -22,13 +25,11 @@ class TestEggHatching(unittest.TestCase):
         # We replace the _database dict within the existing ModData instance
         self.original_database = tuxemon.database.runtime.db._database
         tuxemon.database.runtime.db._database = {
-            "monster": {
-                "hatchling": MagicMock()  # Presence check
-            }
+            "monster": {"hatchling": MagicMock()}  # Presence check
         }
 
         # Patch lookup to return a proper mock object
-        self.lookup_patcher = patch.object(MonsterModel, 'lookup')
+        self.lookup_patcher = patch.object(MonsterModel, "lookup")
         self.mock_lookup = self.lookup_patcher.start()
 
         mock_monster_model = MagicMock(spec=MonsterModel)
@@ -63,6 +64,7 @@ class TestEggHatching(unittest.TestCase):
         # Since Monster.__init__ is complex and depends on many things, let's just mock spawn_base completely
         # as we did before, but ensure it mimics the signature correctly.
         from tuxemon.monster.monster import Monster
+
         self.original_spawn_base = Monster.spawn_base
 
         def mock_spawn_base(slug, level, as_egg=False):
@@ -81,10 +83,12 @@ class TestEggHatching(unittest.TestCase):
         tuxemon.database.runtime.db._database = self.original_database
         self.lookup_patcher.stop()
         from tuxemon.monster.monster import Monster
+
         Monster.spawn_base = self.original_spawn_base
 
     def test_give_egg(self):
         from tuxemon.event.actions.give_egg import GiveEggAction
+
         action = GiveEggAction("hatchling", 100)
         action.start(self.session)
 
@@ -94,8 +98,10 @@ class TestEggHatching(unittest.TestCase):
         self.assertEqual(egg.hatch_steps, 100)
 
     def test_egg_hatch_ready_condition(self):
+        from tuxemon.event.conditions.egg_hatch_ready import (
+            EggHatchReadyCondition,
+        )
         from tuxemon.monster.monster import Monster
-        from tuxemon.event.conditions.egg_hatch_ready import EggHatchReadyCondition
 
         monster = Monster.spawn_base("hatchling", 1, as_egg=True)
         monster.hatch_steps = 100
@@ -108,8 +114,8 @@ class TestEggHatching(unittest.TestCase):
         self.assertTrue(condition.test(self.session, MagicMock()))
 
     def test_walking_decrements_steps(self):
-        from tuxemon.monster.monster import Monster
         from tuxemon.monster.listener import monster_update_listener
+        from tuxemon.monster.monster import Monster
 
         monster = Monster.spawn_base("hatchling", 1, as_egg=True)
         monster.hatch_steps = 100
@@ -121,8 +127,8 @@ class TestEggHatching(unittest.TestCase):
         self.assertEqual(monster.steps, 10)
 
     def test_hatch_egg_action(self):
-        from tuxemon.monster.monster import Monster
         from tuxemon.event.actions.hatch_egg import HatchEggAction
+        from tuxemon.monster.monster import Monster
 
         monster = Monster.spawn_base("hatchling", 1, as_egg=True)
         monster.hatch_steps = 0
@@ -134,6 +140,7 @@ class TestEggHatching(unittest.TestCase):
         self.assertFalse(monster.is_egg)
         self.assertEqual(monster.hatch_steps, 0)
         self.session.client.active_dialog.assert_not_called()  # Simplified check
+
 
 if __name__ == "__main__":
     unittest.main()

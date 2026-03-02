@@ -5,6 +5,7 @@ Pydantic schema models for campaign manifests and wizard steps.
 
 Schema constraints are defined in docs/campaign_maker_mvp.md §4.
 """
+
 from __future__ import annotations
 
 import re
@@ -29,7 +30,15 @@ VALID_SEASON_TOKENS: frozenset[str] = frozenset(
     {"spring", "summer", "autumn", "winter"}
 )
 VALID_WEEKDAY_TOKENS: frozenset[str] = frozenset(
-    {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}
+    {
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+    }
 )
 
 STARTER_TEMPLATES: frozenset[str] = frozenset(
@@ -168,9 +177,7 @@ class CampaignManifest(BaseModel):
     @classmethod
     def _validate_map_extension(cls, v: str) -> str:
         if not v.endswith(".tmx"):
-            raise ValueError(
-                f"start_map '{v}' must be a .tmx file path."
-            )
+            raise ValueError(f"start_map '{v}' must be a .tmx file path.")
         return v
 
 

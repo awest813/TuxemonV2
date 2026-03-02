@@ -3,14 +3,10 @@
 """
 Tests for HpBarAnimator and ExpBarAnimator — P0 combat bar animations.
 """
+
 from __future__ import annotations
 
-import math
-
-import pytest
-
 from tuxemon.ui.bar_animator import ExpBarAnimator, HpBarAnimator
-
 
 # ---------------------------------------------------------------------------
 # HpBarAnimator
@@ -101,7 +97,9 @@ class TestHpBarAnimatorUpdate:
     def test_update_reaches_target_over_time(self):
         a = HpBarAnimator(initial_value=1.0, drain_speed=2.0)
         a.set_target(0.0)
-        a.update(1.0)  # drain_speed=2.0 * 1.0s > 1.0 difference → should reach 0
+        a.update(
+            1.0
+        )  # drain_speed=2.0 * 1.0s > 1.0 difference → should reach 0
         assert abs(a.display_value - 0.0) < 1e-9
 
     def test_ghost_decays_behind_display(self):

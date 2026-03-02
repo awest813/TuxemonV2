@@ -6,7 +6,6 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from tuxemon.db import SeenStatus
 from tuxemon.trade_manager import (
     TradeActionState,
     TradeManager,
@@ -201,9 +200,10 @@ def test_load_log_purges_expired_pending_offers(manager, npc_manager):
     )
 
     assert len(new_manager.pending_offers) == 1
-    assert new_manager.pending_offers[0].offer_id.hex == UUID(
-        valid_offer["offer_id"]
-    ).hex
+    assert (
+        new_manager.pending_offers[0].offer_id.hex
+        == UUID(valid_offer["offer_id"]).hex
+    )
 
 
 def test_load_log_skips_malformed_trade_history_and_pending_offers(
@@ -319,9 +319,7 @@ def test_get_received_offers_for_player(manager, players_and_monsters):
 
     assert len(received) == 1
     assert received[0].receiving_player_id == player_b.instance_id
-    assert (
-        manager.get_received_offers_for_player(player_a.instance_id) == []
-    )
+    assert manager.get_received_offers_for_player(player_a.instance_id) == []
 
 
 def test_cancel_trade_offer_success(manager, players_and_monsters):
@@ -405,8 +403,6 @@ def test_reject_trade_offer_unauthorized(manager, players_and_monsters):
     assert offer in manager.pending_offers
 
 
-
-
 def test_get_trade_action_feedback_messages(manager):
     success = manager.get_trade_action_feedback(TradeResult.SUCCESS, "accept")
     assert success.state == TradeActionState.ACCEPTED
@@ -426,7 +422,9 @@ def test_get_trade_action_feedback_messages(manager):
     assert expired.retryable is True
     assert expired.message == "trade_expired"
 
-    missing = manager.get_trade_action_feedback(TradeResult.NOT_FOUND, "accept")
+    missing = manager.get_trade_action_feedback(
+        TradeResult.NOT_FOUND, "accept"
+    )
     assert missing.state == TradeActionState.NOT_FOUND
     assert missing.retryable is True
     assert missing.message == "trade_not_found"
@@ -475,6 +473,7 @@ def test_get_trade_offer_feedback_states(manager, players_and_monsters):
     assert missing.state == TradeActionState.NOT_FOUND
     assert missing.retryable is True
     assert missing.message == "trade_offer_not_found"
+
 
 def test_get_trade_history_filtered(manager, sample_record):
     manager.global_trade_log.append(sample_record)

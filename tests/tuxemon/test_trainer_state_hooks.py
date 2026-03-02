@@ -6,6 +6,7 @@ Tests for Hook 4.6 (on_rematch_eligible) integration in TrainerStateManager.
 Verifies that set_rematch_eligible() correctly fires the hook only when
 eligibility transitions from False → True, and only once.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -68,7 +69,9 @@ def test_hook_fires_again_after_reset(mgr: TrainerStateManager):
     assert len(fired) == 2
 
 
-def test_hook_without_player_id_fires_with_empty_string(mgr: TrainerStateManager):
+def test_hook_without_player_id_fires_with_empty_string(
+    mgr: TrainerStateManager,
+):
     fired: list[RematchEligiblePayload] = []
     hooks.on_rematch_eligible(fired.append)
 

@@ -49,10 +49,10 @@ Usage::
     catalog.register(slots)
     game = catalog.get("slot_basic")
 """
+
 from __future__ import annotations
 
 import logging
-import math
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -142,8 +142,8 @@ def _compute_audit(
     player_ev = sum(o.player_ev_contribution for o in outcomes)
 
     # Variance: E[X²] - (E[X])²
-    e_x2 = sum(o.probability * (o.multiplier ** 2) for o in outcomes)
-    variance = e_x2 - player_ev ** 2
+    e_x2 = sum(o.probability * (o.multiplier**2) for o in outcomes)
+    variance = e_x2 - player_ev**2
 
     house_edge = 1.0 - player_ev
 
@@ -200,9 +200,7 @@ class GameDefinition:
         if not self.slug:
             raise ValueError("slug must not be empty.")
         if self.min_wager < 1:
-            raise ValueError(
-                f"min_wager must be ≥ 1, got {self.min_wager}."
-            )
+            raise ValueError(f"min_wager must be ≥ 1, got {self.min_wager}.")
         if self.max_wager < self.min_wager:
             raise ValueError(
                 f"max_wager ({self.max_wager}) must be ≥ min_wager ({self.min_wager})."
@@ -255,9 +253,7 @@ class FairnessGuardrailError(CatalogError):
 
     def __init__(self, slug: str, audit: FairnessAudit) -> None:
         reasons = "; ".join(audit.failure_reasons)
-        super().__init__(
-            f"Game {slug!r} failed fairness audit: {reasons}"
-        )
+        super().__init__(f"Game {slug!r} failed fairness audit: {reasons}")
         self.slug = slug
         self.audit = audit
 

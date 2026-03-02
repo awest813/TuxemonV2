@@ -44,7 +44,6 @@ class TestWorldMenuManager(unittest.TestCase):
         self.assertNotIn("menu_load", keys)
         self.assertNotIn("exit", keys)
 
-
     @patch("tuxemon.world.manager.T.translate")
     def test_merge_persistent_items_avoids_duplicate_key(self, mock_translate):
         translations = {

@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
-
-logger = logging.getLogger(__name__)
 from dataclasses import dataclass
+from typing import Any
 
 from tuxemon.db import Comparison
 from tuxemon.tools.math import compare
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass

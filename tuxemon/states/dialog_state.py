@@ -16,8 +16,6 @@ from tuxemon.ui.text_alignment import HorizontalAlignment, VerticalAlignment
 
 if TYPE_CHECKING:
     from tuxemon.base_client import BaseClient
-    from tuxemon.platform.events import PlayerInput
-    from tuxemon.sprite import Sprite
 
 logger = logging.getLogger(__name__)
 

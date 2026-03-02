@@ -7,6 +7,7 @@ Implements all validation rules from docs/campaign_maker_mvp.md §4.
 Validates a campaign directory and returns a ValidationReport containing
 blocking errors, warnings, and informational messages.
 """
+
 from __future__ import annotations
 
 import json
@@ -22,9 +23,6 @@ import yaml
 from pydantic import ValidationError
 
 from tuxemon.campaign.models import (
-    VALID_SEASON_TOKENS,
-    VALID_TIME_RESTRICTION_TOKENS,
-    VALID_WEEKDAY_TOKENS,
     CampaignManifest,
 )
 
@@ -193,7 +191,9 @@ class MapDescriptor:
     path: Path
     map_id: str
     layer_names: list[str]
-    object_types: dict[str, list[dict]]  # type -> list of object attribute dicts
+    object_types: dict[
+        str, list[dict]
+    ]  # type -> list of object attribute dicts
     spawn_count: int
     encounter_zone_count: int
     transition_targets: list[str]
@@ -262,7 +262,12 @@ class CampaignValidator:
         script_ids = self._validate_scripts(campaign_dir, report)
 
         self._check_campaign_level(
-            manifest, campaign_dir, map_descs, all_map_stems, script_ids, report
+            manifest,
+            campaign_dir,
+            map_descs,
+            all_map_stems,
+            script_ids,
+            report,
         )
 
         return report
@@ -314,7 +319,9 @@ class CampaignValidator:
             return None
 
         # Engine version compatibility check
-        if not self._semver_lte(manifest.engine_min_version, self._engine_version):
+        if not self._semver_lte(
+            manifest.engine_min_version, self._engine_version
+        ):
             report.add_blocking(
                 "engine_version_incompatible",
                 (
@@ -377,7 +384,10 @@ class CampaignValidator:
 
             # §4.2 layer_naming_convention
             for layer_name in desc.layer_names:
-                if "day" in layer_name.lower() or "night" in layer_name.lower():
+                if (
+                    "day" in layer_name.lower()
+                    or "night" in layer_name.lower()
+                ):
                     if not (
                         layer_name.startswith("day_")
                         or layer_name.startswith("night_")
@@ -428,7 +438,7 @@ class CampaignValidator:
     def _parse_map_file(
         self, tmx_path: Path, report: ValidationReport
     ) -> Optional[MapDescriptor]:
-        rel = tmx_path.name
+        tmx_path.name
         try:
             tree = ET.parse(tmx_path)
         except ET.ParseError as exc:
@@ -566,7 +576,9 @@ class CampaignValidator:
                     target = (node.get("args") or {}).get("script_id")
                     if target:
                         calls.append(target)
-                elif action_type and action_type not in self._known_action_types:
+                elif (
+                    action_type and action_type not in self._known_action_types
+                ):
                     # §4.4 script_action_valid
                     report.add_blocking(
                         "script_action_valid",
@@ -677,9 +689,7 @@ class CampaignValidator:
             )
 
         # §4.2 spawn_point_exists for all maps listed as transition targets
-        transition_target_map = {
-            d.path.name: d for d in map_descs
-        }
+        transition_target_map = {d.path.name: d for d in map_descs}
         for desc in map_descs:
             rel = str(desc.path.relative_to(campaign_dir))
             for target in desc.transition_targets:
@@ -696,7 +706,10 @@ class CampaignValidator:
                 else:
                     # Target exists — check it has a spawn point
                     target_desc = transition_target_map.get(target_name)
-                    if target_desc is not None and target_desc.spawn_count == 0:
+                    if (
+                        target_desc is not None
+                        and target_desc.spawn_count == 0
+                    ):
                         report.add_blocking(
                             "spawn_point_exists",
                             f"Transition target '{target}' has no spawn_point object.",
@@ -727,12 +740,16 @@ class CampaignValidator:
                     team_size=manifest.ruleset.team_size or 6,
                     level_cap=manifest.ruleset.level_cap,
                     active_clauses=manifest.ruleset.active_clauses or [],
-                    allow_items_in_battle=manifest.ruleset.allow_items_in_battle
-                    if manifest.ruleset.allow_items_in_battle is not None
-                    else True,
-                    allow_held_items=manifest.ruleset.allow_held_items
-                    if manifest.ruleset.allow_held_items is not None
-                    else True,
+                    allow_items_in_battle=(
+                        manifest.ruleset.allow_items_in_battle
+                        if manifest.ruleset.allow_items_in_battle is not None
+                        else True
+                    ),
+                    allow_held_items=(
+                        manifest.ruleset.allow_held_items
+                        if manifest.ruleset.allow_held_items is not None
+                        else True
+                    ),
                 )
             except Exception as exc:
                 report.add_blocking(

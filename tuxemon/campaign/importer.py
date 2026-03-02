@@ -9,9 +9,9 @@ docs/campaign_maker_mvp.md §3.2.
 The importer reads a .capsule archive, checks engine version compatibility,
 and optionally installs the campaign to a target directory.
 """
+
 from __future__ import annotations
 
-import hashlib
 import logging
 import zipfile
 from dataclasses import dataclass, field
@@ -150,7 +150,9 @@ class CampaignImporter:
         if manifest is None:
             return CompatibilityResult(
                 is_compatible=False,
-                incompatibilities=[error or "Could not read campaign manifest."],
+                incompatibilities=[
+                    error or "Could not read campaign manifest."
+                ],
                 current_engine_version=self._engine_version,
             )
 
@@ -246,7 +248,10 @@ class CampaignImporter:
             return None, f"Archive not found: {capsule_path}"
 
         if not zipfile.is_zipfile(capsule_path):
-            return None, f"File is not a valid .capsule archive: {capsule_path}"
+            return (
+                None,
+                f"File is not a valid .capsule archive: {capsule_path}",
+            )
 
         try:
             with zipfile.ZipFile(capsule_path, "r") as zf:

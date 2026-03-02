@@ -34,7 +34,6 @@ if TYPE_CHECKING:
     from tuxemon.animation import Animation
     from tuxemon.base_client import BaseClient
     from tuxemon.entity.npc import NPC
-    from tuxemon.item.item import Item
 
 
 MenuGameObj = Callable[[], object]

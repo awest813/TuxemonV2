@@ -6,6 +6,7 @@ Trainer state management for the rematch loop system.
 Implements the trainer state model described in
 docs/gold_silver_blueprint.md §3.1 and §3.2.
 """
+
 from __future__ import annotations
 
 import logging

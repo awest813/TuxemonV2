@@ -34,7 +34,9 @@ def test_open_amount_picker_keeps_large_amount_step() -> None:
     state = _build_state()
     callback = Mock()
 
-    state._open_amount_picker(max_value=500, callback=callback, title="Withdraw")
+    state._open_amount_picker(
+        max_value=500, callback=callback, title="Withdraw"
+    )
 
     state.client.push_state.assert_called_once_with(
         "NumberPickerState",
@@ -61,7 +63,7 @@ def test_select_bill_amount_builds_pay_callback() -> None:
     state._open_amount_picker.assert_called_once()
     callback = state._open_amount_picker.call_args.kwargs["callback"]
     callback(20)
-    state._pay.assert_called_once_with(20, "internet_bill")
+    state._pay.assert_called_once_with(20, bill_name="internet_bill")
 
 
 def test_select_bill_amount_rejects_unknown_operation() -> None:

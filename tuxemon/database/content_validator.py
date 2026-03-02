@@ -8,6 +8,7 @@ technique slugs, evolution targets, and localization entries.
 Designed to run independently of the game runtime so it can be
 invoked from CI without pygame or display dependencies.
 """
+
 from __future__ import annotations
 
 import json
@@ -239,7 +240,10 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO)
     errors = validate_content(args.mod_root, strict=args.strict)
     if errors:
-        print(f"Content validation found {len(errors)} issue(s):", file=sys.stderr)
+        print(
+            f"Content validation found {len(errors)} issue(s):",
+            file=sys.stderr,
+        )
         for error in errors:
             print(f"  - {error}", file=sys.stderr)
         sys.exit(1)

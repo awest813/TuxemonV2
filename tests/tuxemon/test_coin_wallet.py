@@ -5,13 +5,14 @@ Tests for CoinWallet — Phase 2 in-game casino economy.
 
 Verifies the earn-only, daily-cap, and no-real-money design constraints.
 """
+
 from __future__ import annotations
 
 import pytest
 
 from tuxemon.economy.coin_wallet import (
-    CoinWallet,
     DEFAULT_DAILY_EARN_CAP,
+    CoinWallet,
     InsufficientCoinsError,
 )
 

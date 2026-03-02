@@ -94,7 +94,7 @@ class TestTechniqueJSON(unittest.TestCase):
             print("The following techniques:")
             for technique in techniques:
                 print(technique)
-            self.fail(f"The 'power' attribute must be > 0.")
+            self.fail("The 'power' attribute must be > 0.")
 
     def test_effects_simple_heal_healing_power(self) -> None:
         techniques = []
@@ -113,7 +113,7 @@ class TestTechniqueJSON(unittest.TestCase):
             print("The following techniques:")
             for technique in techniques:
                 print(technique)
-            self.fail(f"The 'healing_power' attribute must be > 0.")
+            self.fail("The 'healing_power' attribute must be > 0.")
 
     def test_effects_combinations(self) -> None:
         techniques = {}
@@ -153,4 +153,4 @@ class TestTechniqueJSON(unittest.TestCase):
             print("The following techniques:")
             for technique in techniques:
                 print(technique)
-            self.fail(f"The 'potency' attribute must be > 0.")
+            self.fail("The 'potency' attribute must be > 0.")

@@ -31,6 +31,7 @@ Usage::
     feed = mgr.get_feed(match_id)       # list of all MatchEvent so far
     mgr.close_match(match_id)
 """
+
 from __future__ import annotations
 
 import logging
@@ -100,7 +101,9 @@ class WatchedMatch:
             "spectator_count": len(self.spectators),
             "event_count": len(self.feed),
             "opened_at": self.opened_at.isoformat(),
-            "closed_at": self.closed_at.isoformat() if self.closed_at else None,
+            "closed_at": (
+                self.closed_at.isoformat() if self.closed_at else None
+            ),
         }
 
 
@@ -262,9 +265,7 @@ class SpectatorManager:
         )
         return match
 
-    def unregister_spectator(
-        self, match_id: str, spectator_id: str
-    ) -> bool:
+    def unregister_spectator(self, match_id: str, spectator_id: str) -> bool:
         """
         Remove *spectator_id* from the watcher list.
 

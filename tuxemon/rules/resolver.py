@@ -12,6 +12,7 @@ Precedence (highest to lowest):
 Each layer is only consulted for keys it is authorized to provide.
 A layer that does not provide a value for a key falls through to the next layer.
 """
+
 from __future__ import annotations
 
 from typing import Any, Optional

@@ -29,6 +29,7 @@ Compatibility rules
 * **skill_band** — must be identical *or* either player set ``"open"``.
 * **region** — must be identical *or* either player set ``"any"``.
 """
+
 from __future__ import annotations
 
 import logging
@@ -126,7 +127,8 @@ class MatchmakingEngine:
         for i, entry_a in enumerate(entries):
             if entry_a.player_id in paired:
                 continue
-            for entry_b in entries[i + 1 :]:
+            next_index = i + 1
+            for entry_b in entries[next_index:]:
                 if entry_b.player_id in paired:
                     continue
                 if entries_compatible(entry_a, entry_b):
@@ -136,9 +138,7 @@ class MatchmakingEngine:
                     if success:
                         paired.add(entry_a.player_id)
                         paired.add(entry_b.player_id)
-                        matched.append(
-                            (entry_a.player_id, entry_b.player_id)
-                        )
+                        matched.append((entry_a.player_id, entry_b.player_id))
                         logger.info(
                             "Matchmaking: paired %s vs %s",
                             entry_a.player_id,

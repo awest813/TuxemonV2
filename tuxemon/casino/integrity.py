@@ -35,10 +35,11 @@ Usage::
         # send warning to player or pause session
         ...
 """
+
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any
@@ -214,7 +215,9 @@ class IntegrityLedger:
         if not self._rounds:
             return 0
         cutoff = self._rounds[-1].played_at.timestamp() - seconds
-        return sum(1 for r in self._rounds if r.played_at.timestamp() >= cutoff)
+        return sum(
+            1 for r in self._rounds if r.played_at.timestamp() >= cutoff
+        )
 
     def round_count(self) -> int:
         """Return the total number of rounds recorded."""
@@ -301,9 +304,7 @@ class ModerationController:
             self._expected_win_rate is not None
             and report.round_count >= self._min_rounds_for_stats
         ):
-            deviation = abs(
-                report.observed_win_rate - self._expected_win_rate
-            )
+            deviation = abs(report.observed_win_rate - self._expected_win_rate)
             if deviation > self._win_rate_deviation:
                 flags.append(
                     ModerationFlag_Result(

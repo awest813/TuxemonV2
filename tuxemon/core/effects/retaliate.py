@@ -14,7 +14,6 @@ from tuxemon.technique.technique import Technique
 
 if TYPE_CHECKING:
     from tuxemon.session import Session
-    from tuxemon.status.status import Status
 
 
 @dataclass

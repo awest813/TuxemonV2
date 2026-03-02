@@ -3,13 +3,13 @@
 """
 Tests for PrivateRoomManager — Phase 2.2 direct-challenge rooms.
 """
+
 from __future__ import annotations
 
 import pytest
 
 from tuxemon.battle_center.private_room import (
     PrivateRoom,
-    PrivateRoomError,
     PrivateRoomManager,
     RoomAlreadyFinalizedError,
     RoomNotFoundError,
@@ -75,7 +75,9 @@ class TestPrivateRoomConstruction:
         assert room.format == "single"
 
     def test_custom_options(self, mgr):
-        room = mgr.create_room("alice", "bob", ruleset="no_items", format="double")
+        room = mgr.create_room(
+            "alice", "bob", ruleset="no_items", format="double"
+        )
         assert room.ruleset == "no_items"
         assert room.format == "double"
 

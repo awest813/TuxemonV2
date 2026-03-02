@@ -16,8 +16,12 @@ def test_collect_progress_counts(tmp_path: Path) -> None:
     (root / "mods/tuxemon/maps").mkdir(parents=True)
     (root / "mods/tuxemon/l18n/en_US").mkdir(parents=True)
 
-    (root / "mods/tuxemon/db/monster/a.json").write_text("{}", encoding="utf-8")
-    (root / "mods/tuxemon/db/technique/b.json").write_text("{}", encoding="utf-8")
+    (root / "mods/tuxemon/db/monster/a.json").write_text(
+        "{}", encoding="utf-8"
+    )
+    (root / "mods/tuxemon/db/technique/b.json").write_text(
+        "{}", encoding="utf-8"
+    )
     (root / "mods/tuxemon/db/item/c.json").write_text("{}", encoding="utf-8")
     (root / "mods/tuxemon/db/npc/d.json").write_text("{}", encoding="utf-8")
     (root / "mods/tuxemon/maps/e.tmx").write_text("", encoding="utf-8")

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from uuid import uuid4
 
 from tuxemon.db import (
@@ -20,9 +20,6 @@ from tuxemon.script.parser import (
     parse_condition_string,
 )
 from tuxemon.tools.misc import safe_enum_value
-
-if TYPE_CHECKING:
-    from tuxemon.db import BoundingBox
 
 logger = logging.getLogger(__name__)
 

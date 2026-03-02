@@ -6,6 +6,7 @@ Tests for the Battle Center LobbyManager — Phase 2.2 scaffold.
 Verifies the queue lifecycle, status tracking, and match pairing
 as specified in docs/gold_silver_blueprint.md and the Phase 2.2 scaffold.
 """
+
 from __future__ import annotations
 
 import pytest

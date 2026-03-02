@@ -111,7 +111,9 @@ class CombatBars:
                       progress.
         """
         animator = self.get_exp_animator(monster)
-        animator.set_target(monster.experience_progress_percent, level_up=level_up)
+        animator.set_target(
+            monster.experience_progress_percent, level_up=level_up
+        )
 
     # ------------------------------------------------------------------
     # Drawing

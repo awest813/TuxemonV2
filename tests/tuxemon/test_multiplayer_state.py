@@ -101,9 +101,12 @@ def make_menu_state(is_host: bool = False) -> MultiplayerMenu:
 def test_join_warns_when_hosting():
     state = make_menu_state(is_host=True)
 
-    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
-        "tuxemon.states.multiplayer.T.translate",
-        side_effect=lambda key: key,
+    with (
+        patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog,
+        patch(
+            "tuxemon.states.multiplayer.T.translate",
+            side_effect=lambda key: key,
+        ),
     ):
         state.join()
 
@@ -116,9 +119,12 @@ def test_join_warns_when_hosting():
 def test_join_warns_when_no_server_selected():
     state = make_menu_state()
 
-    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
-        "tuxemon.states.multiplayer.T.translate",
-        side_effect=lambda key: key,
+    with (
+        patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog,
+        patch(
+            "tuxemon.states.multiplayer.T.translate",
+            side_effect=lambda key: key,
+        ),
     ):
         state.join()
 
@@ -133,9 +139,12 @@ def test_join_connects_and_shows_connecting_status():
     state = make_menu_state()
     state.network.client.selected_game = ("127.0.0.1", 40081)
 
-    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
-        "tuxemon.states.multiplayer.T.translate",
-        side_effect=lambda key: key,
+    with (
+        patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog,
+        patch(
+            "tuxemon.states.multiplayer.T.translate",
+            side_effect=lambda key: key,
+        ),
     ):
         state.join()
 
@@ -149,9 +158,12 @@ def test_join_last_server_uses_previous_selection():
     state = make_menu_state()
     state.network.client.selected_game = ("127.0.0.1", 40081)
 
-    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
-        "tuxemon.states.multiplayer.T.translate",
-        side_effect=lambda key: key,
+    with (
+        patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog,
+        patch(
+            "tuxemon.states.multiplayer.T.translate",
+            side_effect=lambda key: key,
+        ),
     ):
         state.join_last_server()
 
@@ -164,9 +176,12 @@ def test_join_last_server_uses_previous_selection():
 def test_join_last_server_warns_when_no_previous_selection():
     state = make_menu_state()
 
-    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
-        "tuxemon.states.multiplayer.T.translate",
-        side_effect=lambda key: key,
+    with (
+        patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog,
+        patch(
+            "tuxemon.states.multiplayer.T.translate",
+            side_effect=lambda key: key,
+        ),
     ):
         state.join_last_server()
 
@@ -194,9 +209,12 @@ def test_join_by_ip_pushes_input_menu_with_callback():
 def test_join_by_ip_callback_parses_host_and_connects():
     state = make_menu_state()
 
-    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
-        "tuxemon.states.multiplayer.T.translate",
-        side_effect=lambda key: key,
+    with (
+        patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog,
+        patch(
+            "tuxemon.states.multiplayer.T.translate",
+            side_effect=lambda key: key,
+        ),
     ):
         state._join_by_ip_input(" 127.0.0.1:40123 ")
 
@@ -210,9 +228,12 @@ def test_join_by_ip_callback_parses_host_and_connects():
 def test_join_by_ip_callback_uses_default_port_when_omitted():
     state = make_menu_state()
 
-    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
-        "tuxemon.states.multiplayer.T.translate",
-        side_effect=lambda key: key,
+    with (
+        patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog,
+        patch(
+            "tuxemon.states.multiplayer.T.translate",
+            side_effect=lambda key: key,
+        ),
     ):
         state._join_by_ip_input("example.local")
 
@@ -226,9 +247,12 @@ def test_join_by_ip_callback_uses_default_port_when_omitted():
 def test_join_by_ip_callback_shows_retry_on_invalid_target():
     state = make_menu_state()
 
-    with patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog, patch(
-        "tuxemon.states.multiplayer.T.translate",
-        side_effect=lambda key: key,
+    with (
+        patch("tuxemon.states.multiplayer.open_dialog") as mock_dialog,
+        patch(
+            "tuxemon.states.multiplayer.T.translate",
+            side_effect=lambda key: key,
+        ),
     ):
         state._join_by_ip_input("127.0.0.1:notaport")
 

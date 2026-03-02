@@ -4,8 +4,8 @@ from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 from tuxemon.multiplayer_battle_manager import (
-    BattleResolution,
     BattleChallengeResult,
+    BattleResolution,
     MultiplayerBattleManager,
     OnlineActionState,
     TurnSubmissionResult,
@@ -129,9 +129,7 @@ def test_accept_creates_active_battle_session() -> None:
     assert battle_session.challenger_player_id == challenger
     assert battle_session.challenged_player_id == challenged
     assert (
-        manager.get_active_battle_session_for_challenge(
-            challenge.challenge_id
-        )
+        manager.get_active_battle_session_for_challenge(challenge.challenge_id)
         == battle_session
     )
 
@@ -171,15 +169,21 @@ def test_cancel_adds_history_and_limit_is_enforced() -> None:
 
     manager.propose_challenge(challenger, challenged)
     first = manager.pending_challenges[0]
-    manager.cancel_challenge(first.challenge_id, requesting_player_id=challenger)
+    manager.cancel_challenge(
+        first.challenge_id, requesting_player_id=challenger
+    )
 
     manager.propose_challenge(challenger, challenged)
     second = manager.pending_challenges[0]
-    manager.reject_challenge(second.challenge_id, rejecting_player_id=challenged)
+    manager.reject_challenge(
+        second.challenge_id, rejecting_player_id=challenged
+    )
 
     manager.propose_challenge(challenger, challenged)
     third = manager.pending_challenges[0]
-    manager.accept_challenge(third.challenge_id, accepting_player_id=challenged)
+    manager.accept_challenge(
+        third.challenge_id, accepting_player_id=challenged
+    )
 
     assert [record.challenge_id for record in manager.battle_history] == [
         second.challenge_id,
@@ -195,7 +199,9 @@ def test_save_and_load_log_purges_expired() -> None:
 
     manager.propose_challenge(challenger, challenged)
     active = manager.pending_challenges[0]
-    manager.reject_challenge(active.challenge_id, rejecting_player_id=challenged)
+    manager.reject_challenge(
+        active.challenge_id, rejecting_player_id=challenged
+    )
     manager.propose_challenge(challenger, challenged)
     active = manager.pending_challenges[0]
     expired = active.to_dict() | {
@@ -273,7 +279,9 @@ def test_load_log_skips_malformed_pending_challenges() -> None:
     )
 
     assert len(manager.pending_challenges) == 1
-    assert manager.pending_challenges[0].challenge_id.hex == valid_pending["challenge_id"].replace("-", "")
+    assert manager.pending_challenges[0].challenge_id.hex == valid_pending[
+        "challenge_id"
+    ].replace("-", "")
 
 
 def test_turn_submission_synchronizes_and_increments_turn() -> None:
@@ -312,7 +320,9 @@ def test_turn_resolution_is_authoritative_and_deterministic() -> None:
     manager = MultiplayerBattleManager()
     challenger = uuid4()
     challenged = uuid4()
-    battle_session = manager.start_battle_session(uuid4(), challenger, challenged)
+    battle_session = manager.start_battle_session(
+        uuid4(), challenger, challenged
+    )
 
     manager.submit_turn_action(
         battle_session.session_id,
@@ -322,7 +332,8 @@ def test_turn_resolution_is_authoritative_and_deterministic() -> None:
     )
     events: list[dict[str, object]] = []
     manager.event_bus.subscribe(
-        "multiplayer_battle_turn_resolved", lambda payload: events.append(payload)
+        "multiplayer_battle_turn_resolved",
+        lambda payload: events.append(payload),
     )
 
     manager.submit_turn_action(
@@ -343,7 +354,9 @@ def test_turn_submission_rejects_wrong_player_turn_and_duplicates() -> None:
     manager = MultiplayerBattleManager()
     challenger = uuid4()
     challenged = uuid4()
-    battle_session = manager.start_battle_session(uuid4(), challenger, challenged)
+    battle_session = manager.start_battle_session(
+        uuid4(), challenger, challenged
+    )
 
     assert (
         manager.submit_turn_action(
@@ -397,7 +410,9 @@ def test_save_load_and_purge_stale_battle_sessions() -> None:
         connected=False,
         now=datetime.now(timezone.utc) - timedelta(seconds=30),
     )
-    removed = manager.purge_stale_battle_sessions(now=datetime.now(timezone.utc))
+    removed = manager.purge_stale_battle_sessions(
+        now=datetime.now(timezone.utc)
+    )
     assert removed == 1
     assert manager.active_battle_sessions == []
 
@@ -420,7 +435,9 @@ def test_get_challenge_feedback_for_pending_and_unauthorized() -> None:
     manager.propose_challenge(challenger, challenged)
     challenge = manager.pending_challenges[0]
 
-    feedback = manager.get_challenge_feedback(challenge.challenge_id, challenger)
+    feedback = manager.get_challenge_feedback(
+        challenge.challenge_id, challenger
+    )
     assert feedback.state == OnlineActionState.PENDING
     assert feedback.retryable is False
     assert feedback.message == "battle_challenge_pending_timed"
@@ -474,12 +491,16 @@ def test_get_challenge_feedback_for_history_and_missing() -> None:
 def test_get_turn_submission_feedback_messages() -> None:
     manager = MultiplayerBattleManager()
 
-    success = manager.get_turn_submission_feedback(TurnSubmissionResult.SUCCESS)
+    success = manager.get_turn_submission_feedback(
+        TurnSubmissionResult.SUCCESS
+    )
     assert success.state == OnlineActionState.ACCEPTED
     assert success.retryable is False
     assert success.message == "battle_turn_resolved"
 
-    waiting = manager.get_turn_submission_feedback(TurnSubmissionResult.WAITING)
+    waiting = manager.get_turn_submission_feedback(
+        TurnSubmissionResult.WAITING
+    )
     assert waiting.state == OnlineActionState.PENDING
     assert waiting.retryable is False
     assert waiting.message == "battle_turn_waiting"
@@ -491,7 +512,9 @@ def test_get_turn_submission_feedback_messages() -> None:
     assert not_found.retryable is True
     assert not_found.message == "battle_session_not_found"
 
-    expired = manager.get_turn_submission_feedback(TurnSubmissionResult.EXPIRED)
+    expired = manager.get_turn_submission_feedback(
+        TurnSubmissionResult.EXPIRED
+    )
     assert expired.state == OnlineActionState.EXPIRED
     assert expired.retryable is True
     assert expired.message == "battle_session_expired"
@@ -575,7 +598,9 @@ def test_get_battle_session_feedback_states() -> None:
     challenger = uuid4()
     challenged = uuid4()
     stranger = uuid4()
-    battle_session = manager.start_battle_session(uuid4(), challenger, challenged)
+    battle_session = manager.start_battle_session(
+        uuid4(), challenger, challenged
+    )
 
     active_feedback = manager.get_battle_session_feedback(
         battle_session.session_id, challenger
@@ -615,7 +640,9 @@ def test_get_battle_session_feedback_connection_and_timeout() -> None:
     manager = MultiplayerBattleManager()
     challenger = uuid4()
     challenged = uuid4()
-    battle_session = manager.start_battle_session(uuid4(), challenger, challenged)
+    battle_session = manager.start_battle_session(
+        uuid4(), challenger, challenged
+    )
 
     disconnect_now = datetime.now(timezone.utc)
     manager.set_player_connection_state(
@@ -645,7 +672,9 @@ def test_get_battle_session_feedback_connection_and_timeout() -> None:
     assert expired_reconnect.retryable is True
     assert expired_reconnect.message == "battle_session_timed_out"
 
-    timeout_session = manager.start_battle_session(uuid4(), challenger, challenged)
+    timeout_session = manager.start_battle_session(
+        uuid4(), challenger, challenged
+    )
     timeout_session.last_activity_at = datetime.now(timezone.utc) - timedelta(
         seconds=timeout_session.turn_timeout_seconds + 1
     )
@@ -662,7 +691,9 @@ def test_turn_submission_rejects_expired_battle_session() -> None:
     manager = MultiplayerBattleManager()
     challenger = uuid4()
     challenged = uuid4()
-    battle_session = manager.start_battle_session(uuid4(), challenger, challenged)
+    battle_session = manager.start_battle_session(
+        uuid4(), challenger, challenged
+    )
     battle_session.last_activity_at = datetime.now(timezone.utc) - timedelta(
         seconds=battle_session.turn_timeout_seconds + 1
     )

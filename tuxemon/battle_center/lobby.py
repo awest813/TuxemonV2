@@ -21,6 +21,7 @@ Match filter dimensions (Phase 2.2):
     * ``skill_band`` — open / beginner / intermediate / expert.
     * ``region``  — latency region tag or ``"any"``.
 """
+
 from __future__ import annotations
 
 import logging
@@ -190,7 +191,9 @@ class LobbyManager:
         self._matches[player_b] = player_a
         del self._queue[player_a]
         del self._queue[player_b]
-        logger.info("Battle-center match confirmed: %s vs %s", player_a, player_b)
+        logger.info(
+            "Battle-center match confirmed: %s vs %s", player_a, player_b
+        )
         return True
 
     def get_match_opponent(self, player_id: str) -> str | None:

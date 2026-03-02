@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from functools import partial
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from pygame_menu.locals import ALIGN_CENTER, POSITION_EAST
@@ -101,10 +102,10 @@ class NuPhoneBanking(PygameMenuState):
 
         if op == "pay":
             max_value = mm.get_money()
-            callback = lambda amount, bill=bill_name: self._pay(amount, bill)
+            callback = partial(self._pay, bill_name=bill_name)
         elif op == "e_pay":
             max_value = mm.get_bank_balance()
-            callback = lambda amount, bill=bill_name: self._e_pay(amount, bill)
+            callback = partial(self._e_pay, bill_name=bill_name)
         else:
             raise ValueError(f"Unsupported bill operation: {op}")
 

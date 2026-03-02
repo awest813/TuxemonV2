@@ -6,9 +6,10 @@ import logging
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from pygame import SRCALPHA
+from pygame import draw as pg_draw
 from pygame.rect import Rect
 from pygame.surface import Surface
-from pygame import SRCALPHA, draw as pg_draw
 
 from tuxemon.sprite import Sprite
 
@@ -48,9 +49,16 @@ class CombatTextDisplay:
         # Add a small translucent strip to improve readability on bright backgrounds.
         strip_top = min(line1_rect.top, line2_rect.top)
         strip_bottom = max(line1_rect.bottom, line2_rect.bottom)
-        text_strip = Rect(0, strip_top - 2, hud.image.get_width(), (strip_bottom - strip_top) + 4)
+        text_strip = Rect(
+            0,
+            strip_top - 2,
+            hud.image.get_width(),
+            (strip_bottom - strip_top) + 4,
+        )
         overlay = Surface(text_strip.size, SRCALPHA)
-        pg_draw.rect(overlay, (10, 20, 32, 110), overlay.get_rect(), border_radius=4)
+        pg_draw.rect(
+            overlay, (10, 20, 32, 110), overlay.get_rect(), border_radius=4
+        )
         hud.image.blit(overlay, text_strip.topleft)
 
         line1 = label_data.get("line1", "")

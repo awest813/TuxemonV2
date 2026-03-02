@@ -3,6 +3,7 @@
 """
 Tests for tuxemon.campaign.builder — CampaignBuilder.
 """
+
 from __future__ import annotations
 
 import json
@@ -10,11 +11,13 @@ import textwrap
 import zipfile
 from pathlib import Path
 
-import pytest
 import yaml
 
-from tuxemon.campaign.builder import CAPSULE_EXTENSION, BuildResult, CampaignBuilder
-from tuxemon.campaign.validator import CampaignValidator
+from tuxemon.campaign.builder import (
+    CAPSULE_EXTENSION,
+    BuildResult,
+    CampaignBuilder,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers (shared with test_validator)
@@ -70,7 +73,9 @@ def _make_valid_campaign(tmp_path: Path) -> Path:
     (campaign_dir / "campaign.yaml").write_text(
         yaml.dump(VALID_MANIFEST), encoding="utf-8"
     )
-    (campaign_dir / "maps" / "start.tmx").write_text(MINIMAL_TMX, encoding="utf-8")
+    (campaign_dir / "maps" / "start.tmx").write_text(
+        MINIMAL_TMX, encoding="utf-8"
+    )
     (campaign_dir / "scripts" / "main_intro.json").write_text(
         json.dumps(MINIMAL_SCRIPT), encoding="utf-8"
     )
@@ -99,7 +104,9 @@ class TestBuildResult:
 
         report = ValidationReport()
         report.add_blocking("test_check", "Something is wrong.")
-        result = BuildResult(success=False, report=report, error="Validation failed.")
+        result = BuildResult(
+            success=False, report=report, error="Validation failed."
+        )
         summary = result.human_summary()
         assert "failed" in summary.lower()
         assert "test_check" in summary

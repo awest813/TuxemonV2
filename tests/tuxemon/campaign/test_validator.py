@@ -3,13 +3,13 @@
 """
 Tests for tuxemon.campaign.validator — CampaignValidator and ValidationReport.
 """
+
 from __future__ import annotations
 
 import json
 import textwrap
 from pathlib import Path
 
-import pytest
 import yaml
 
 from tuxemon.campaign.validator import (
@@ -60,7 +60,9 @@ MINIMAL_TMX_WITH_SPAWN = textwrap.dedent("""\
     </map>
     """)
 
-SPAWN_POINT_XML = '<object id="1" type="spawn_point" x="32" y="32" width="16" height="16"/>'
+SPAWN_POINT_XML = (
+    '<object id="1" type="spawn_point" x="32" y="32" width="16" height="16"/>'
+)
 
 ENCOUNTER_ZONE_XML = """\
 <object id="2" type="encounter_zone" x="0" y="0" width="100" height="100">
@@ -199,7 +201,9 @@ class TestManifestValidation:
         v = CampaignValidator()
         report = v.validate(tmp_path / "nonexistent")
         assert not report.is_valid
-        assert any(i.check_id == "campaign_dir_missing" for i in report.blocking)
+        assert any(
+            i.check_id == "campaign_dir_missing" for i in report.blocking
+        )
 
     def test_missing_manifest_blocking(self, tmp_path):
         campaign_dir = tmp_path / "c"
@@ -218,7 +222,9 @@ class TestManifestValidation:
         v = CampaignValidator()
         report = v.validate(campaign_dir)
         assert not report.is_valid
-        assert any(i.check_id == "manifest_parse_error" for i in report.blocking)
+        assert any(
+            i.check_id == "manifest_parse_error" for i in report.blocking
+        )
 
     def test_invalid_manifest_field_blocking(self, tmp_path):
         campaign_dir = _make_campaign(
@@ -227,7 +233,9 @@ class TestManifestValidation:
         v = CampaignValidator()
         report = v.validate(campaign_dir)
         assert not report.is_valid
-        assert any(i.check_id == "manifest_field_invalid" for i in report.blocking)
+        assert any(
+            i.check_id == "manifest_field_invalid" for i in report.blocking
+        )
 
     def test_engine_version_too_new_blocking(self, tmp_path):
         campaign_dir = _make_campaign(
@@ -237,7 +245,8 @@ class TestManifestValidation:
         report = v.validate(campaign_dir)
         assert not report.is_valid
         assert any(
-            i.check_id == "engine_version_incompatible" for i in report.blocking
+            i.check_id == "engine_version_incompatible"
+            for i in report.blocking
         )
 
     def test_engine_version_equal_passes(self, tmp_path):
@@ -274,7 +283,9 @@ class TestMapValidation:
         campaign_dir = _make_campaign(tmp_path)
         maps_dir = campaign_dir / "maps"
         # Create second map with same slug
-        tmx = MINIMAL_TMX_WITH_SPAWN.format(slug="start", events=SPAWN_POINT_XML)
+        tmx = MINIMAL_TMX_WITH_SPAWN.format(
+            slug="start", events=SPAWN_POINT_XML
+        )
         (maps_dir / "start_copy.tmx").write_text(tmx, encoding="utf-8")
         v = CampaignValidator()
         report = v.validate(campaign_dir)
@@ -292,7 +303,9 @@ class TestMapValidation:
         (maps_dir / "extra.tmx").write_text(tmx, encoding="utf-8")
         v = CampaignValidator()
         report = v.validate(campaign_dir)
-        assert any(i.check_id == "encounter_zone_valid" for i in report.blocking)
+        assert any(
+            i.check_id == "encounter_zone_valid" for i in report.blocking
+        )
 
     def test_encounter_zone_valid_monsters(self, tmp_path):
         campaign_dir = _make_campaign(tmp_path)
@@ -348,7 +361,9 @@ class TestMapValidation:
         (maps_dir / "extra.tmx").write_text(tmx, encoding="utf-8")
         v = CampaignValidator()
         report = v.validate(campaign_dir)
-        assert any(i.check_id == "transition_target_valid" for i in report.blocking)
+        assert any(
+            i.check_id == "transition_target_valid" for i in report.blocking
+        )
 
     def test_orphan_layer_info(self, tmp_path):
         campaign_dir = _make_campaign(tmp_path)
@@ -369,7 +384,9 @@ class TestMapValidation:
              </objectgroup>
             </map>
             """)
-        (maps_dir / "empty_layer.tmx").write_text(tmx_with_empty, encoding="utf-8")
+        (maps_dir / "empty_layer.tmx").write_text(
+            tmx_with_empty, encoding="utf-8"
+        )
         v = CampaignValidator()
         report = v.validate(campaign_dir)
         assert any(i.check_id == "orphan_layer" for i in report.infos)
@@ -429,7 +446,9 @@ class TestScriptValidation:
         )
         v = CampaignValidator()
         report = v.validate(campaign_dir)
-        assert any(i.check_id == "script_action_valid" for i in report.blocking)
+        assert any(
+            i.check_id == "script_action_valid" for i in report.blocking
+        )
 
     def test_circular_script_reference_blocking(self, tmp_path):
         campaign_dir = _make_campaign(tmp_path)
@@ -467,7 +486,9 @@ class TestScriptValidation:
 
         v = CampaignValidator()
         report = v.validate(campaign_dir)
-        assert any(i.check_id == "script_loop_detected" for i in report.blocking)
+        assert any(
+            i.check_id == "script_loop_detected" for i in report.blocking
+        )
 
     def test_non_circular_call_chain_passes(self, tmp_path):
         campaign_dir = _make_campaign(tmp_path)
@@ -479,7 +500,9 @@ class TestScriptValidation:
                 {
                     "id": "n",
                     "action": "call_script" if target else "dialog",
-                    "args": {"script_id": target} if target else {"text_key": "k"},
+                    "args": (
+                        {"script_id": target} if target else {"text_key": "k"}
+                    ),
                     "next": None,
                     "branches": {},
                 }
@@ -519,7 +542,9 @@ class TestCampaignLevelChecks:
         )
         v = CampaignValidator()
         report = v.validate(campaign_dir)
-        assert any(i.check_id == "start_map_reachable" for i in report.blocking)
+        assert any(
+            i.check_id == "start_map_reachable" for i in report.blocking
+        )
 
     def test_start_map_no_spawn_blocking(self, tmp_path):
         campaign_dir = _make_campaign(tmp_path)
@@ -538,14 +563,20 @@ class TestCampaignLevelChecks:
         )
         v = CampaignValidator()
         report = v.validate(campaign_dir)
-        assert any(i.check_id == "entry_script_missing" for i in report.blocking)
+        assert any(
+            i.check_id == "entry_script_missing" for i in report.blocking
+        )
 
     def test_unreachable_map_warning(self, tmp_path):
         campaign_dir = _make_campaign(tmp_path)
         maps_dir = campaign_dir / "maps"
         # Add an isolated map not reachable from start.tmx
-        tmx = MINIMAL_TMX_WITH_SPAWN.format(slug="orphan_island", events=SPAWN_POINT_XML)
+        tmx = MINIMAL_TMX_WITH_SPAWN.format(
+            slug="orphan_island", events=SPAWN_POINT_XML
+        )
         (maps_dir / "orphan_island.tmx").write_text(tmx, encoding="utf-8")
         v = CampaignValidator()
         report = v.validate(campaign_dir)
-        assert any(i.check_id == "no_unreachable_maps" for i in report.warnings)
+        assert any(
+            i.check_id == "no_unreachable_maps" for i in report.warnings
+        )

@@ -5,9 +5,9 @@ import unittest
 import pygame
 
 from tuxemon.scaling import DefaultScaling
+from tuxemon.ui import text as text_module
 from tuxemon.ui.draw import (
     TextOverflow,
-    iter_render_text,
 )
 from tuxemon.ui.text import TextArea
 
@@ -78,7 +78,6 @@ class TestTextArea(unittest.TestCase):
             self.text_area.image.get_at((0, 0)), pygame.Color(255, 0, 0, 255)
         )
 
-
     def test_set_background_color_with_int_color(self):
         self.text_area.rect = pygame.Rect(0, 0, 10, 10)
         self.text_area.set_background(background_color=0)
@@ -99,15 +98,14 @@ class TestTextArea(unittest.TestCase):
 
     def test_start_text_animation_resets_surface(self):
         self.text_area.rect = pygame.Rect(0, 0, 10, 10)
-        global iter_render_text
-        old_iter = iter_render_text
-        iter_render_text = dummy_iter_render_text
+        old_iter = text_module.iter_render_text
+        text_module.iter_render_text = dummy_iter_render_text
         try:
             self.text_area.text = "abc"
             self.assertTrue(self.text_area.drawing_text)
             self.assertIsNotNone(self.text_area._iter)
         finally:
-            iter_render_text = old_iter
+            text_module.iter_render_text = old_iter
 
     def test_next_raises_stopiteration_when_not_animated(self):
         self.text_area.animated = False

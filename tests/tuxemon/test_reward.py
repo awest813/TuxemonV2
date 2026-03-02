@@ -141,17 +141,20 @@ def test_calculate_money_with_item_multiplier(setup_combat, multiplier):
     [
         (
             None,
-            lambda l, w, d: int(
-                (l.total_experience // l.level) * l.experience_modifier
+            lambda loser_monster, _winner, _damage_tracker: int(
+                (loser_monster.total_experience // loser_monster.level)
+                * loser_monster.experience_modifier
             ),
         ),
         (
             DummyItem(ExperienceMethod.XP_TRANSMITTER, 2.0),
-            lambda l, w, d: calculate_experience_base(
-                l.total_experience, l.level, l.experience_modifier
+            lambda loser_monster, _winner, damage_tracker: calculate_experience_base(
+                loser_monster.total_experience,
+                loser_monster.level,
+                loser_monster.experience_modifier,
             )
             // 2
-            // len(d.get_attackers(l)),
+            // len(damage_tracker.get_attackers(loser_monster)),
         ),
     ],
 )

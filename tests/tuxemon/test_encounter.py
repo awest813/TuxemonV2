@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
 import random
-from unittest.mock import patch
 
 import pytest
 
@@ -193,6 +192,7 @@ def test_horde_encounter(monkeypatch):
 # Time / season / weekday restriction tests
 # ---------------------------------------------------------------------------
 
+
 def _make_snapshot(
     stage_of_day="morning", season="spring", weekday="monday"
 ) -> TimeSnapshot:
@@ -213,6 +213,7 @@ def _make_snapshot(
 def _patch_time(monkeypatch, snapshot: TimeSnapshot):
     """Patch _time_handler.get_time_variables() inside encounter module."""
     import tuxemon.encounter as enc_module
+
     monkeypatch.setattr(
         enc_module._time_handler, "get_time_variables", lambda: snapshot
     )

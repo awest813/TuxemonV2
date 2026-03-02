@@ -3,21 +3,22 @@
 """
 Tests for tuxemon.rules.models — Pydantic model validation and constraints.
 """
+
 import pytest
 from pydantic import ValidationError
 
 from tuxemon.rules.models import (
     BattleRules,
+    CampaignRules,
     ClauseID,
     DifficultyPreset,
+    EncounterRules,
     HostConfig,
     ModOverride,
-    PlayerConfig,
     PlayContext,
+    PlayerConfig,
     ResolvedRuleset,
     TournamentRules,
-    EncounterRules,
-    CampaignRules,
 )
 
 
@@ -53,7 +54,9 @@ class TestBattleRules:
             BattleRules(turn_timer_seconds=301)
 
     def test_clause_enum_values(self):
-        r = BattleRules(active_clauses=[ClauseID.DUPLICATE_SPECIES, ClauseID.SLEEP_LIMIT])
+        r = BattleRules(
+            active_clauses=[ClauseID.DUPLICATE_SPECIES, ClauseID.SLEEP_LIMIT]
+        )
         assert ClauseID.DUPLICATE_SPECIES in r.active_clauses
         assert ClauseID.SLEEP_LIMIT in r.active_clauses
 
@@ -134,8 +137,14 @@ class TestPlayerConfig:
         assert p.large_gui is False
 
     def test_encounter_rate_bounds(self):
-        assert PlayerConfig(encounter_rate_modifier=0.0).encounter_rate_modifier == 0.0
-        assert PlayerConfig(encounter_rate_modifier=2.0).encounter_rate_modifier == 2.0
+        assert (
+            PlayerConfig(encounter_rate_modifier=0.0).encounter_rate_modifier
+            == 0.0
+        )
+        assert (
+            PlayerConfig(encounter_rate_modifier=2.0).encounter_rate_modifier
+            == 2.0
+        )
         with pytest.raises(ValidationError):
             PlayerConfig(encounter_rate_modifier=2.1)
         with pytest.raises(ValidationError):

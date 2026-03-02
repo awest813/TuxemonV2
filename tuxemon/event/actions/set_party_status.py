@@ -39,9 +39,6 @@ class SetPartyStatusAction(EventAction):
             logger.error(f"{char.name} has no monsters!")
             return
 
-        _healthy = sum(
-            1 for monster in char.monsters if monster.hp_ratio == 1.0
-        )
         _lost_hp = sum(monster.missing_hp for monster in char.monsters)
 
         variable_updates = {

@@ -9,13 +9,18 @@ and fires the corresponding hooks via the module-level registry.
 Designed to be ticked once per world-state update frame. Because real-world
 time advances slowly the per-tick cost is trivial (two datetime comparisons).
 """
+
 from __future__ import annotations
 
 import logging
 from datetime import date, datetime
 
 from tuxemon.time_handler import TimeHandler
-from tuxemon.time_hooks import DayChangePayload, TimeSegmentChangePayload, hooks
+from tuxemon.time_hooks import (
+    DayChangePayload,
+    TimeSegmentChangePayload,
+    hooks,
+)
 
 logger = logging.getLogger(__name__)
 

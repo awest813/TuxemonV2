@@ -3,17 +3,16 @@
 """
 Tests for MatchmakingEngine — Phase 2.2.
 """
+
 from __future__ import annotations
 
 import pytest
 
-from tuxemon.battle_center.lobby import LobbyManager, LobbyStatus
+from tuxemon.battle_center.lobby import LobbyEntry, LobbyManager, LobbyStatus
 from tuxemon.battle_center.matchmaking import (
     MatchmakingEngine,
     entries_compatible,
 )
-from tuxemon.battle_center.lobby import LobbyEntry
-
 
 # ---------------------------------------------------------------------------
 # entries_compatible
@@ -34,8 +33,20 @@ def _entry(**kwargs) -> LobbyEntry:
 
 class TestEntriesCompatible:
     def test_identical_entries_compatible(self):
-        a = _entry(player_id="a", ruleset="default", format="single", skill_band="open", region="any")
-        b = _entry(player_id="b", ruleset="default", format="single", skill_band="open", region="any")
+        a = _entry(
+            player_id="a",
+            ruleset="default",
+            format="single",
+            skill_band="open",
+            region="any",
+        )
+        b = _entry(
+            player_id="b",
+            ruleset="default",
+            format="single",
+            skill_band="open",
+            region="any",
+        )
         assert entries_compatible(a, b) is True
 
     def test_different_ruleset_incompatible(self):
@@ -89,8 +100,20 @@ class TestEntriesCompatible:
         assert entries_compatible(a, b) is True
 
     def test_all_filters_must_pass(self):
-        a = _entry(player_id="a", ruleset="default", format="single", skill_band="open", region="any")
-        b = _entry(player_id="b", ruleset="no_items", format="single", skill_band="open", region="any")
+        a = _entry(
+            player_id="a",
+            ruleset="default",
+            format="single",
+            skill_band="open",
+            region="any",
+        )
+        b = _entry(
+            player_id="b",
+            ruleset="no_items",
+            format="single",
+            skill_band="open",
+            region="any",
+        )
         assert entries_compatible(a, b) is False
 
 

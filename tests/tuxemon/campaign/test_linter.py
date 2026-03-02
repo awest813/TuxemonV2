@@ -3,12 +3,12 @@
 """
 Tests for tuxemon.campaign.linter — CampaignLinter.
 """
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
-import pytest
 import yaml
 
 from tuxemon.campaign.linter import CampaignLinter, LintReport
@@ -44,7 +44,13 @@ MINIMAL_SCRIPT = {
     "id": "main_intro",
     "triggers": [{"type": "game_start", "args": {}}],
     "nodes": [
-        {"id": "n", "action": "dialog", "args": {"text_key": "k"}, "next": None, "branches": {}}
+        {
+            "id": "n",
+            "action": "dialog",
+            "args": {"text_key": "k"},
+            "next": None,
+            "branches": {},
+        }
     ],
 }
 
@@ -55,7 +61,9 @@ def _make_valid_campaign(tmp_path: Path) -> Path:
     (campaign_dir / "scripts").mkdir(parents=True)
     (campaign_dir / "campaign.yaml").write_text(yaml.dump(VALID_MANIFEST))
     (campaign_dir / "maps" / "start.tmx").write_text(MINIMAL_TMX)
-    (campaign_dir / "scripts" / "main_intro.json").write_text(json.dumps(MINIMAL_SCRIPT))
+    (campaign_dir / "scripts" / "main_intro.json").write_text(
+        json.dumps(MINIMAL_SCRIPT)
+    )
     return campaign_dir
 
 
@@ -67,7 +75,9 @@ class TestLintReport:
         assert report.infos == []
 
     def test_format_human_pass(self):
-        report = LintReport(passed=True, stats={"blocking": 0, "warnings": 0, "info": 0})
+        report = LintReport(
+            passed=True, stats={"blocking": 0, "warnings": 0, "info": 0}
+        )
         output = report.format_human()
         assert "PASSED" in output
 
@@ -104,7 +114,9 @@ class TestLintReport:
         assert "stats" in parsed
 
     def test_color_output_flag(self):
-        report = LintReport(passed=True, stats={"blocking": 0, "warnings": 0, "info": 0})
+        report = LintReport(
+            passed=True, stats={"blocking": 0, "warnings": 0, "info": 0}
+        )
         plain = report.format_human(color=False)
         colored = report.format_human(color=True)
         assert "\033[" in colored
@@ -146,8 +158,12 @@ class TestCampaignLinter:
         if report.issues:
             # Blocking should come before warnings
             severities = [i.severity for i in report.issues]
-            blocking_idx = [i for i, s in enumerate(severities) if s == "blocking"]
-            warning_idx = [i for i, s in enumerate(severities) if s == "warning"]
+            blocking_idx = [
+                i for i, s in enumerate(severities) if s == "blocking"
+            ]
+            warning_idx = [
+                i for i, s in enumerate(severities) if s == "warning"
+            ]
             if blocking_idx and warning_idx:
                 assert max(blocking_idx) < min(warning_idx)
 

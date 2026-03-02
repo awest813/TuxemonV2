@@ -139,7 +139,7 @@ class Manager:
 
         # Based on answer from https://stackoverflow.com/a/16696317/14590202
         with requests.get(url, stream=True) as r:
-            file_size = r.headers["content-length"]
+            r.headers["content-length"]
             downloaded_size = 0
             r.raise_for_status()
             with filename.open("wb") as file:
@@ -225,7 +225,7 @@ class Manager:
         """Get specified package info. Always downloads the info from the server."""
         for char in '/\\?%*:|"<>.,;= ':
             name = name.replace(char, "_")
-        r = requests.get(repo + "/api/packages/{author}/{name}/")
+        requests.get(repo + "/api/packages/{author}/{name}/")
 
     def get_package_repo(self, name: str) -> Any:
         """Reads the origin of an package.
