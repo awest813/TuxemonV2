@@ -168,6 +168,7 @@ class MapManager:
             sorted_events = sorted(
                 new_events, key=lambda e: e.priority, reverse=True
             )
+            self.current_map.clear_events()
             self.current_map.add_events(sorted_events)
 
     def set_inits(self, new_inits: Sequence[EventObject]) -> None:
@@ -175,6 +176,7 @@ class MapManager:
             sorted_inits = sorted(
                 new_inits, key=lambda e: e.priority, reverse=True
             )
+            self.current_map.clear_inits()
             self.current_map.add_inits(sorted_inits)
 
     def clear_events(self) -> None:
@@ -194,12 +196,14 @@ class MapManager:
         if self.current_map:
             updated = list(self.current_map.events)
             updated.remove(event)
+            self.current_map.clear_events()
             self.current_map.add_events(updated)
 
     def remove_init(self, event: EventObject) -> None:
         if self.current_map:
             updated = list(self.current_map.inits)
             updated.remove(event)
+            self.current_map.clear_inits()
             self.current_map.add_inits(updated)
 
     def get_map_filepath(self) -> str | None:
