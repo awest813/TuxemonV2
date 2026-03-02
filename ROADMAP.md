@@ -1,5 +1,7 @@
 # OpenCapsuleMon Roadmap (TuxemonV2 Transition)
 
+_Last updated: March 2026_
+
 This roadmap is now centered on five product pillars:
 
 1. **Gold/Silver-inspired adventure depth** (day/night rhythms, revisit loops, post-game challenge identity)
@@ -24,6 +26,12 @@ This is a foundational design rule, not a configuration option. Any contribution
 ---
 
 ## Strategic Focus (2026)
+
+### Current Status Summary
+
+- **Implemented foundations:** core systems for tournament flow, campaign tooling, economy policy auditing, and ruleset surfacing are present and tracked in Phases 1-4.
+- **Current execution focus:** alpha-exit hardening across UX clarity, moderation operations, exploit resistance, and creator onboarding quality.
+- **Gate to alpha declaration:** all five pillars must meet the Alpha Exit Criteria section below simultaneously; partial completion in one pillar is not sufficient.
 
 ### Pillar A — Gold/Silver-Inspired Core Experience
 Deliver a modern, open-source interpretation of the design strengths players associate with classic monster-RPG generations:

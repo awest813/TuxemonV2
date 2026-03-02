@@ -32,6 +32,16 @@ The online casino and all wager-based systems use **in-game currency only**. Coi
 
 If you want the execution details, read [`ROADMAP.md`](ROADMAP.md).
 
+## Roadmap Snapshot (March 2026)
+
+- **Adventure pillar:** time-based events, rematch progression, and post-credits milestone gating are implemented and now treated as baseline campaign systems.
+- **Competitive pillar:** tournament lobby/bracket/match-confirmation systems are in place, with current work focused on season operations UX and moderation tooling.
+- **Creator pillar:** template-based campaign creation, validation, linting, and deterministic packaging are implemented for creator workflows.
+- **Economy pillar:** progression/economy analysis and currency policy auditing are active, reinforcing the in-game-currency-only commitment.
+- **Rules pillar:** context-aware clause sets and pre-match rule difference surfacing are now available and covered by regression tests.
+
+See the roadmap for phase-by-phase detail and remaining alpha-exit gaps.
+
 ---
 
 ## Core Focus Areas
