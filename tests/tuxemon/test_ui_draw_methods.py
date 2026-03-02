@@ -12,7 +12,7 @@ from pygame.surface import Surface
 from tuxemon.constants.paths import mods_folder
 from tuxemon.platform.const.graphics import FONT_SIZE
 from tuxemon.scaling import DefaultScaling
-from tuxemon.tools import scale
+from tuxemon.tools.misc import scale
 from tuxemon.ui.draw import (
     GraphicBox,
     RenderMode,

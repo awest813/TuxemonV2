@@ -11,7 +11,7 @@ from tuxemon.cli.clicommand import CLICommand
 from tuxemon.cli.exceptions import ParseError
 from tuxemon.db import BoundingBox, Operator, SpatialCondition
 from tuxemon.script.parser import parse_condition_string
-from tuxemon.tools import safe_enum_value
+from tuxemon.tools.misc import safe_enum_value
 
 if TYPE_CHECKING:
     from tuxemon.cli.context import InvokeContext

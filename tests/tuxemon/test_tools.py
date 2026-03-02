@@ -12,15 +12,10 @@ from uuid import UUID
 
 from tuxemon.entity.player import Player
 from tuxemon.math import Vector2
-from tuxemon.tools import (
-    cast_value,
-    check_condition,
-    compare,
-    copy_dict_with_keys,
-    number_or_variable,
-    parse_flag,
-    round_to_divisible,
-)
+from tuxemon.tools.casting import cast_value
+from tuxemon.tools.conditions import check_condition, parse_flag
+from tuxemon.tools.math import compare, number_or_variable, round_to_divisible
+from tuxemon.tools.misc import copy_dict_with_keys
 
 
 class TestRoundToDivisible(unittest.TestCase):

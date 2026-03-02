@@ -10,7 +10,7 @@ from pygame.rect import Rect
 
 from tuxemon.constants.paths import mods_folder
 from tuxemon.platform.const.graphics import FONT_SIZE
-from tuxemon.tools import scale
+from tuxemon.tools.misc import scale
 from tuxemon.ui.draw import OverflowHandler, RenderedChar, TextOverflow
 from tuxemon.ui.text_renderer import TextRenderer
 from tuxemon.user_config import CONFIG
