@@ -61,6 +61,17 @@ class TextAnimationManager:
     def get_text_animation_time_left(self) -> float:
         return self._text_time_left
 
+    @property
+    def pending_xp_duration(self) -> float | None:
+        """Duration of the last queued XP animation, if any."""
+        return self._pending_xp_duration
+
+    def consume_pending_xp_duration(self) -> float | None:
+        """Return and clear the pending XP animation duration."""
+        duration = self._pending_xp_duration
+        self._pending_xp_duration = None
+        return duration
+
     def add_xp_message(self, message: str) -> None:
         self._xp_messages.append(message)
         logger.debug(
@@ -142,7 +153,7 @@ class CombatNotifier:
         """
 
         def after_xp_triggered() -> None:
-            duration = self.text_anim._pending_xp_duration
+            duration = self.text_anim.consume_pending_xp_duration()
 
             if duration and self._lock_update:
                 logger.debug(
@@ -152,7 +163,6 @@ class CombatNotifier:
                     partial(self.state.client.push_state, "WaitForInputState"),
                     interval=delay + duration,
                 )
-            self.text_anim._pending_xp_duration = None
 
         # First queue the XP animation trigger
         self.state.task(

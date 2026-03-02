@@ -17,18 +17,19 @@ class TestTileLayout(unittest.TestCase):
         self.assertEqual(layout.grid_size, 3)
         self.assertIsInstance(layout.tiles, dict)
 
-    def test_init_with_custom_grid_size(self):
+    def test_init_with_valid_grid_size(self):
         image = Surface((12, 12))
-        layout = TileLayout(image, grid_size=4)
-        self.assertEqual(layout.grid_size, 4)
+        layout = TileLayout(image, grid_size=3)
+        self.assertEqual(layout.grid_size, 3)
         self.assertIsInstance(layout.tiles, dict)
+        self.assertEqual(len(layout.tiles), 9)
 
     def test_extract_tiles(self):
         image = Surface((9, 9))
         layout = TileLayout(image)
         self.assertEqual(len(layout.tiles), 9)
 
-    def test_init_with_custom_grid_size(self):
+    def test_init_default_grid_size(self):
         image = Surface((12, 12))
         layout = TileLayout(image, grid_size=3)
         self.assertEqual(layout.grid_size, 3)

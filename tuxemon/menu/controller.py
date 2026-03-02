@@ -104,5 +104,11 @@ class MenuController:
     def is_disabled(self) -> bool:
         return self._state == MenuState.DISABLED
 
+    def is_opening(self) -> bool:
+        return self._state == MenuState.OPENING
+
+    def is_closing(self) -> bool:
+        return self._state == MenuState.CLOSING
+
     def is_interactive(self) -> bool:
         return self._state in {MenuState.NORMAL, MenuState.OPENING}

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Callable, Mapping, Sequence
 from functools import partial
 
@@ -257,14 +258,12 @@ class TextFormatter:
             The formatted string.
         """
         formatted_text = text.replace(r"\n", "\n")
-        temp_text = formatted_text
 
-        # Evaluate callables and perform replacements
         for placeholder, value_callable in self._replacements.items():
-            if placeholder in temp_text:
+            if placeholder in formatted_text:
                 try:
                     replacement_value = value_callable()
-                    temp_text = temp_text.replace(
+                    formatted_text = formatted_text.replace(
                         placeholder, replacement_value
                     )
                 except Exception as e:
@@ -272,15 +271,10 @@ class TextFormatter:
                         f"Error evaluating replacement for placeholder '{placeholder}': {e}",
                         exc_info=True,
                     )
-                    temp_text = temp_text.replace(
+                    formatted_text = formatted_text.replace(
                         placeholder, f"[ERROR:{placeholder}]"
                     )
-            formatted_text = temp_text
 
-        # Check for any remaining placeholder patterns that were not registered
-        import re
-
-        # Find all occurrences of ${{...}} pattern
         remaining_placeholder_patterns = re.findall(
             r"\$\{\{.*?\}\}", formatted_text
         )
