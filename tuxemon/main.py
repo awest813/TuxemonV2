@@ -55,6 +55,7 @@ def headless(config: TuxemonConfig, context: DisplayContext) -> None:
     log.configure()
 
     control = HeadlessClient(config, context)
+    local_session.set_client(control)
     control.push_state("HeadlessServerState")
     control.main()
 
