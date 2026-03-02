@@ -2,8 +2,9 @@
 
 ## Document Status
 
-- Status: Published (Phase 1)
+- Status: Complete (Phase 3)
 - Scope: MVP creator workflow scope, UX wireflow, and schema constraints for creator-facing forms
+- Phase 3 implementation: All workflows A–E are implemented. See ROADMAP.md §Phase 3 for module references.
 
 ---
 
