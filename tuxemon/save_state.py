@@ -3,11 +3,46 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
+
+
+class TrainerState(BaseModel):
+    """
+    Persistent state for a single trainer NPC, supporting the rematch loop
+    described in docs/gold_silver_blueprint.md §3.
+    """
+
+    trainer_id: str = Field(
+        ...,
+        description="Stable identifier matching the NPC definition.",
+    )
+    defeated: bool = Field(
+        default=False,
+        description="True after the player wins the first encounter.",
+    )
+    last_rematch_at: Optional[str] = Field(
+        default=None,
+        description=(
+            f"ISO-formatted timestamp ('{TIME_FORMAT}') of the most recent "
+            "rematch, or None if no rematch has occurred."
+        ),
+    )
+    rematch_count: int = Field(
+        default=0,
+        ge=0,
+        description="Number of rematches completed against this trainer.",
+    )
+    rematch_eligible: bool = Field(
+        default=False,
+        description=(
+            "True when the trainer's rematch policy is active and the player "
+            "meets the configured badge/milestone threshold."
+        ),
+    )
 
 
 class WorldSave(BaseModel):
@@ -70,6 +105,14 @@ class NPCState(BaseModel):
     unlocked_letters: Mapping[str, Any] = Field(default_factory=dict)
     evolution_registry: Mapping[str, Any] = Field(default_factory=dict)
     routing_policy: str | None = None
+    trainer_states: dict[str, Any] = Field(
+        default_factory=dict,
+        description=(
+            "Mapping of trainer_id → serialized TrainerState. "
+            "Tracks defeat, rematch eligibility, and cooldown for every "
+            "trainer the player has encountered."
+        ),
+    )
 
 
 class SaveData(BaseModel):

@@ -6,6 +6,7 @@ import logging
 import random
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from tuxemon.database.runtime import db
@@ -14,12 +15,16 @@ from tuxemon.db import (
     EncounterModel,
     EncounterType,
 )
+from tuxemon.time_handler import TimeHandler, TimeSnapshot as _TimeSnapshot
+from tuxemon.time_hooks import EncounterTableQueryPayload, hooks
 from tuxemon.user_config import CONFIG
 
 if TYPE_CHECKING:
     from tuxemon.entity.npc import NPC
 
 logger = logging.getLogger(__name__)
+
+_time_handler = TimeHandler()
 
 DEFAULT_SCALE_OFFSET = (-2, 2)
 ENCOUNTER_ROLL_MAX = 100
@@ -129,13 +134,60 @@ class Encounter:
 
         return True
 
+    def _is_time_valid(self, enc: EncounterItemModel, snapshot: _TimeSnapshot) -> bool:
+        """Return False if enc fails any active time/season/weekday restriction."""
+        if enc.time_restrictions and snapshot.stage_of_day not in enc.time_restrictions:
+            return False
+        if enc.season_restrictions and snapshot.season not in enc.season_restrictions:
+            return False
+        if enc.weekday_restrictions and snapshot.weekday not in enc.weekday_restrictions:
+            return False
+        return True
+
+    def _apply_time_filter(
+        self, candidates: list[EncounterItemModel], zone_id: str
+    ) -> list[EncounterItemModel]:
+        """
+        Apply time/season/weekday filters and fire Hook 4.4 (on_encounter_table_query).
+
+        First filters the raw list by each entry's own restrictions, then
+        passes the result through the hook registry so external handlers can
+        inject or remove entries (e.g. phone-call rare encounters).
+        """
+        snap = _time_handler.get_time_variables()
+        pre_filtered = [e for e in candidates if self._is_time_valid(e, snap)]
+
+        if not hooks._encounter_table_query:
+            return pre_filtered
+
+        table_dicts = [
+            e.model_dump() for e in pre_filtered
+            if hasattr(e, "model_dump")
+        ]
+        payload = EncounterTableQueryPayload(
+            zone_id=zone_id,
+            current_time=datetime.now(),
+            time_segment=snap.stage_of_day,
+            weekday=snap.weekday,
+            season=snap.season,
+            raw_encounter_table=table_dicts,
+        )
+        filtered_dicts = hooks.fire_encounter_table_query(payload)
+
+        if filtered_dicts == table_dicts:
+            return pre_filtered
+
+        slug_set = {d.get("monster") for d in filtered_dicts}
+        return [e for e in pre_filtered if e.monster in slug_set]
+
     def get_single_encounter(
         self, character: NPC, total_prob: float
     ) -> EncounterResult | None:
         if self.zone.encounter_type != EncounterType.SINGLE:
             return None
 
-        valid = [e for e in self._cache if self._is_valid(e, character)]
+        time_filtered = self._apply_time_filter(list(self._cache), self.zone.slug)
+        valid = [e for e in time_filtered if self._is_valid(e, character)]
         if not valid:
             logger.error(f"No valid monsters for zone: {self.zone.slug}")
             return None
@@ -173,8 +225,11 @@ class Encounter:
         if not horde_model or not horde_model.monsters:
             return None
 
+        time_filtered = self._apply_time_filter(
+            list(horde_model.monsters), self.zone.slug
+        )
         results = []
-        for monster_item in horde_model.monsters:
+        for monster_item in time_filtered:
             if not self._is_valid(monster_item, character):
                 continue
             level = self.determine_level(character, monster_item)
