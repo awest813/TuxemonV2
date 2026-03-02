@@ -178,8 +178,12 @@ Make all key gameplay and online behaviors explicit, configurable, and testable:
   - `tuxemon/economy/progression_balance.py` — `CurrencyPolicyAuditor` blocks real-money/payment terms (`usd`, `paypal`, `credit card`, etc.) to enforce in-game-currency-only policy in economy-facing text/config data.
 
 ### 4.3 Ruleset Polish
-- [ ] Finalize default and optional clauses for organized play.
-- [ ] Ensure all rule differences are surfaced in UI before match confirmation.
+- [x] Finalize default and optional clauses for organized play.
+  - `tuxemon/rules/clause_sets.py` — canonical per-context default and optional clause inventories, reused by resolver and UI-facing snapshots.
+  - `docs/rulebook_spec.md` — optional clause matrix is now explicitly documented per context.
+- [x] Ensure all rule differences are surfaced in UI before match confirmation.
+  - `tuxemon/rules/match_confirmation.py` — deterministic pre-match snapshot (baseline + resolved values + field-level differences) for match confirmation surfaces.
+  - `tests/tuxemon/rules/test_match_confirmation.py` — regression coverage for clause set stability and pre-match difference surfacing.
 
 ---
 
