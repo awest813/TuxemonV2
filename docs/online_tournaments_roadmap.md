@@ -88,8 +88,8 @@ These systems are the base for tournament brackets, match orchestration, and pos
 
 - [ ] Add tournament test matrix:
   - Bracket generation, byes, disqualifications, reconnects, duplicate event protection.
-- [ ] Add observability:
-  - Structured logs/metrics for queue times, completion rate, disconnect rate.
+- [x] Add observability:
+  - Structured metrics snapshot (`TournamentManager.collect_operational_metrics`) for queue-time average, completion rate, and disconnect-forfeit rate.
 - [ ] Add admin/ops runbook:
   - Incident triage and manual repair procedures.
 - [ ] Run staged playtests:
