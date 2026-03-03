@@ -453,7 +453,8 @@ class TMXMapLoader:
                         )
 
         for obj in data.objects:
-            if obj.type and obj.type.lower().startswith("collision"):
+            obj_kind = self.get_tiled_object_kind(obj)
+            if obj_kind.startswith("collision"):
                 for tile_position, props in self.extract_tile_collisions(
                     obj, tile_size
                 ):
@@ -493,9 +494,10 @@ class TMXMapLoader:
         inits: list[EventObject] = []
 
         for obj in data.objects:
-            if obj.type == "event":
+            obj_kind = self.get_tiled_object_kind(obj)
+            if obj_kind == "event":
                 events.append(self.load_event(obj, tile_size))
-            elif obj.type == "init":
+            elif obj_kind == "init":
                 inits.append(self.load_event(obj, tile_size))
 
         return events, inits
@@ -509,7 +511,7 @@ class TMXMapLoader:
         x: int,
         y: int,
     ) -> None:
-        if obj.type and obj.type.lower().startswith("collision"):
+        if self.get_tiled_object_kind(obj).startswith("collision"):
             if getattr(obj, "closed", True):
                 region_conditions = copy_dict_with_keys(
                     obj.properties, REGION_KEYS
@@ -549,6 +551,23 @@ class TMXMapLoader:
                     yield blocker0, Direction.UP
                 else:
                     raise ValueError(f"Invalid orientation: {orientation}")
+
+    @staticmethod
+    def get_tiled_object_kind(obj: pytmx.TiledObject) -> str:
+        """Return a normalized object kind across Tiled schema variants.
+
+        Tiled's editor-facing field was renamed from "Type" to "Class".
+        Depending on the TMX producer and pytmx version, one of several
+        attributes may be populated.
+        """
+        kind = (
+            getattr(obj, "type", None)
+            or getattr(obj, "class", None)
+            or getattr(obj, "class_", None)
+            or getattr(obj, "classname", None)
+            or ""
+        )
+        return str(kind).strip().lower()
 
     def process_line(
         self,

@@ -164,3 +164,36 @@ def test_load_event_coerces_property_values_to_strings(mocker):
         "actions": ["123"],
         "behav": ["4.5"],
     }
+
+
+@pytest.mark.parametrize("class_attr", ["class", "class_", "classname"])
+def test_load_events_and_inits_supports_tiled_class_aliases(class_attr):
+    loader = TMXMapLoader()
+    event_obj = SimpleNamespace(
+        **{class_attr: "event"},
+        type=None,
+        x=0,
+        y=0,
+        width=16,
+        height=16,
+        name="event_via_class",
+        properties={"act1": "message hi"},
+    )
+    init_obj = SimpleNamespace(
+        **{class_attr: "init"},
+        type=None,
+        x=16,
+        y=0,
+        width=16,
+        height=16,
+        name="init_via_class",
+        properties={"act1": "set_var ready,1"},
+    )
+
+    events, inits = loader.load_events_and_inits(
+        SimpleNamespace(objects=[event_obj, init_obj]),
+        tile_size=(16, 16),
+    )
+
+    assert len(events) == 1
+    assert len(inits) == 1
