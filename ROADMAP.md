@@ -214,14 +214,14 @@ The project moves to **Beta** effective March 2026. The version has been bumped 
 Beta focus areas identified from alpha-exit review:
 
 ### 5.1 Stability and Regression Coverage
-- [ ] Expand integration test coverage for cross-pillar flows (campaign → battle center → tournament progression).
+- [x] Expand integration test coverage for cross-pillar flows (campaign → battle center → tournament progression).
 - [ ] Harden reconnect/no-show enforcement under real network conditions.
-- [ ] Identify and resolve any remaining save/migration edge cases from the campaign importer.
+- [x] Identify and resolve any remaining save/migration edge cases from the campaign importer.
 
 ### 5.2 UX and Creator Ergonomics
 - [ ] Conduct first-party playtest of the classic_two_region template end-to-end.
 - [ ] Address creator feedback on campaign wizard friction points.
-- [ ] Improve inline error messaging for common validation failures in the campaign linter.
+- [x] Improve inline error messaging for common validation failures in the campaign linter.
 
 ### 5.3 Economy and Anti-Abuse Monitoring
 - [ ] Run the `EconomyBalanceAnalyzer` against live telemetry from beta playtests.
