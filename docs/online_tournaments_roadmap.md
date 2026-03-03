@@ -86,12 +86,13 @@ These systems are the base for tournament brackets, match orchestration, and pos
 
 ## Phase 4 — Reliability, Integrity, and Operations
 
-- [ ] Add tournament test matrix:
+- [x] Add tournament test matrix:
   - Bracket generation, byes, disqualifications, reconnects, duplicate event protection.
+  - `TestBracketStructure`, `TestFullBracketSimulation`, `TestAdminActions`, `TestMatchReporting` in `tests/tuxemon/test_tournament_manager.py` cover all matrix areas.
 - [x] Add observability:
   - Structured metrics snapshot (`TournamentManager.collect_operational_metrics`) for queue-time average, completion rate, and disconnect-forfeit rate.
-- [ ] Add admin/ops runbook:
-  - Incident triage and manual repair procedures.
+- [x] Add admin/ops runbook:
+  - Incident triage and manual repair procedures documented in `docs/online_tournaments_admin_runbook.md`.
 - [ ] Run staged playtests:
   - Internal + community canary before broad rollout.
 
