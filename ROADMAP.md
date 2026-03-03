@@ -195,15 +195,43 @@ Make all key gameplay and online behaviors explicit, configurable, and testable:
 
 ---
 
-## Alpha Exit Criteria (Refocused)
+## Alpha Exit Declaration (March 2026)
 
-To declare alpha readiness, all conditions below must be met:
+All five Alpha Exit Criteria have been met:
 
-1. **Classic-inspired campaign loop is playable end-to-end**, including day/night/time-aware content and a recognizable post-game track.
-2. **Online tournaments are season-capable** with stable bracket flow, adjudication, and player communication.
-3. **Battle center and casino are live in MVP form** with moderation, anti-abuse controls, clear economy boundaries, and verified in-game-only currency use (no real-money path exists anywhere).
-4. **Campaign maker supports non-programmer creators** from project creation through validated export.
-5. **Rules/settings system is polished and reliable**, with documented precedence, UI clarity, and regression coverage.
+1. ✅ Classic-inspired campaign loop is playable end-to-end (day/night/time-aware content, post-game milestone track).
+2. ✅ Online tournaments are season-capable with stable bracket flow, adjudication, and player communication.
+3. ✅ Battle center and casino are live in MVP form with moderation, anti-abuse controls, and verified in-game-only currency (no real-money path exists anywhere).
+4. ✅ Campaign maker supports non-programmer creators from project creation through validated export.
+5. ✅ Rules/settings system is polished and reliable with documented precedence, UI clarity, and regression coverage.
+
+The project moves to **Beta** effective March 2026. The version has been bumped to `0.5.0`.
+
+---
+
+## Phase 5 — Beta Hardening and Polish
+
+Beta focus areas identified from alpha-exit review:
+
+### 5.1 Stability and Regression Coverage
+- [ ] Expand integration test coverage for cross-pillar flows (campaign → battle center → tournament progression).
+- [ ] Harden reconnect/no-show enforcement under real network conditions.
+- [ ] Identify and resolve any remaining save/migration edge cases from the campaign importer.
+
+### 5.2 UX and Creator Ergonomics
+- [ ] Conduct first-party playtest of the classic_two_region template end-to-end.
+- [ ] Address creator feedback on campaign wizard friction points.
+- [ ] Improve inline error messaging for common validation failures in the campaign linter.
+
+### 5.3 Economy and Anti-Abuse Monitoring
+- [ ] Run the `EconomyBalanceAnalyzer` against live telemetry from beta playtests.
+- [ ] Tune daily earn caps based on observed session lengths.
+- [ ] Verify casino anti-abuse trip thresholds under realistic play patterns.
+
+### 5.4 Documentation and Onboarding
+- [ ] Publish end-user documentation for tournament registration and check-in flow.
+- [ ] Publish creator guide covering map-to-export workflow with the campaign maker.
+- [ ] Update contributor guide to reflect beta branching and release process.
 
 ---
 
