@@ -46,6 +46,105 @@ class LintIssue:
     message: str
     path: Optional[str] = None
     category: str = "general"
+    hint: Optional[str] = None
+
+
+# Actionable hints keyed by check_id for common validation failures.
+LINT_HINTS: dict[str, str] = {
+    "campaign_dir_missing": (
+        "Verify the path passed to the linter points to an existing directory."
+    ),
+    "manifest_missing": (
+        "Create a campaign.yaml file at the root of your campaign directory. "
+        "Run the campaign wizard (`campaign-wizard init`) to generate a starter manifest."
+    ),
+    "manifest_parse_error": (
+        "Ensure campaign.yaml is valid YAML. "
+        "Check for stray tabs, unquoted special characters, or mismatched indentation."
+    ),
+    "manifest_not_mapping": (
+        "campaign.yaml must start with key-value pairs, not a list or scalar. "
+        "Example: `id: my_campaign`."
+    ),
+    "manifest_field_invalid": (
+        "Check the campaign manifest schema. "
+        "Required fields include: id, name, version, author, engine_min_version, "
+        "description, start_map, entry_script."
+    ),
+    "engine_version_incompatible": (
+        "Update `engine_min_version` in campaign.yaml to match the installed engine "
+        "version, or upgrade the engine."
+    ),
+    "maps_dir_missing": (
+        "Create a maps/ subdirectory inside your campaign directory and add at least one .tmx map."
+    ),
+    "no_maps_found": (
+        "Add at least one Tiled map (.tmx) to the maps/ directory."
+    ),
+    "map_parse_error": (
+        "Ensure the .tmx file is valid XML. Re-export from Tiled or check for "
+        "encoding issues."
+    ),
+    "map_id_unique": (
+        "Each map must have a unique `slug` property in its Tiled properties panel."
+    ),
+    "spawn_point_exists": (
+        "Open the map in Tiled and add an object of type `spawn_point` to the Events objectgroup."
+    ),
+    "transition_target_valid": (
+        "Ensure the referenced map file exists in the maps/ directory. "
+        "Check the teleport trigger's `target` field for typos."
+    ),
+    "npc_script_valid": (
+        "Ensure the referenced script ID exists as a JSON file in scripts/ "
+        "and that its `id` field matches the reference."
+    ),
+    "start_map_reachable": (
+        "Set `start_map` in campaign.yaml to a path relative to the campaign root, "
+        "e.g. `maps/start.tmx`."
+    ),
+    "entry_script_missing": (
+        "Create a script file in scripts/ whose `id` field matches `entry_script` "
+        "in campaign.yaml."
+    ),
+    "script_parse_error": (
+        "Ensure the script file is valid JSON. Use a JSON validator or linter to locate syntax errors."
+    ),
+    "script_not_object": (
+        "Script files must be a JSON object (`{}`), not an array or primitive."
+    ),
+    "script_id_missing": (
+        "Add an `id` string field to the script JSON, e.g. `\"id\": \"my_script\"`."
+    ),
+    "script_id_unique": (
+        "Each script must have a unique `id`. Rename one of the conflicting scripts."
+    ),
+    "script_action_valid": (
+        "Check the action type against the list of supported action types in the campaign docs."
+    ),
+    "script_loop_detected": (
+        "A script calls itself (directly or indirectly). "
+        "Restructure the call graph to remove the cycle."
+    ),
+    "encounter_zone_valid": (
+        "Add at least one monster ID to the encounter zone's `monsters` property in Tiled."
+    ),
+    "monster_id_valid": (
+        "Verify the monster ID is spelled correctly and exists in the game database."
+    ),
+    "ruleset_valid": (
+        "Check the `ruleset` block in campaign.yaml against the BattleRules schema. "
+        "Valid fields: team_size, level_cap, active_clauses, allow_items_in_battle, allow_held_items."
+    ),
+    "no_unreachable_maps": (
+        "Add a map transition or teleport trigger that connects this map to the rest of the campaign."
+    ),
+    "layer_naming_convention": (
+        "Rename the layer to follow the time-aware naming convention "
+        "(`ground_day`, `ground_night`, `ground_morning`, etc.) or remove the "
+        "ambiguous prefix."
+    ),
+}
 
 
 @dataclass
@@ -131,6 +230,9 @@ class LintReport:
                 lines.append(
                     f"{prefix} {issue.check_id}{loc}: {issue.message}"
                 )
+                if issue.hint:
+                    hint_color = "\033[2m" if color else ""
+                    lines.append(f"  {hint_color}Hint: {issue.hint}{RESET}")
 
         lines.append("-" * 60)
         b = self.stats.get("blocking", 0)
@@ -216,6 +318,7 @@ class CampaignLinter:
                     message=vi.message,
                     path=vi.path,
                     category=_categorize(vi.check_id),
+                    hint=LINT_HINTS.get(vi.check_id),
                 )
             )
 

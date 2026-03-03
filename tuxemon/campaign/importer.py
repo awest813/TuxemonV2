@@ -13,6 +13,7 @@ and optionally installs the campaign to a target directory.
 from __future__ import annotations
 
 import logging
+import shutil
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -204,6 +205,8 @@ class CampaignImporter:
 
         try:
             install_dir.mkdir(parents=True, exist_ok=True)
+            if campaign_target.exists() and overwrite:
+                shutil.rmtree(campaign_target)
             with zipfile.ZipFile(capsule_path, "r") as zf:
                 # The archive stores files under the campaign directory name
                 # (e.g. "my_campaign/campaign.yaml"), so extract to install_dir
