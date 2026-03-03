@@ -14,6 +14,7 @@ This branch is focused on a clear product direction:
 
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
+![Status: Beta](https://img.shields.io/badge/status-beta-green.svg)
 
 ---
 
@@ -32,7 +33,9 @@ The online casino and all wager-based systems use **in-game currency only**. Coi
 
 If you want the execution details, read [`ROADMAP.md`](ROADMAP.md).
 
-## Roadmap Snapshot (March 2026)
+## Roadmap Snapshot (March 2026) — Beta
+
+**Alpha exit declared.** All five pillar exit criteria were met in March 2026. The project is now in beta (`v0.5.0`).
 
 - **Adventure pillar:** time-based events, rematch progression, and post-credits milestone gating are implemented and now treated as baseline campaign systems.
 - **Competitive pillar:** tournament lobby/bracket/match-confirmation systems are in place, with current work focused on season operations UX and moderation tooling.

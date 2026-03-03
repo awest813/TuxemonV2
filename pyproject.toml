@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tuxemon"
-version = "0.4.35"
+version = "0.5.0"
 description = "Open source monster-fighting RPG"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -16,7 +16,7 @@ maintainers = [
 ]
 classifiers = [
         "Intended Audience :: End Users/Desktop",
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
