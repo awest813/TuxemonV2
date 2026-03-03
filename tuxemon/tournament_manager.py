@@ -480,6 +480,34 @@ class PlayerNotification:
         )
 
 
+@dataclass
+class TournamentOperationalMetrics:
+    """Aggregated reliability metrics for tournament operations."""
+
+    sampled_at: datetime
+    queue_time_seconds_avg: float
+    completion_rate: float
+    disconnect_forfeit_rate: float
+    total_matches: int
+    completed_matches: int
+    disconnect_forfeits: int
+    completed_tournaments: int
+    cancelled_tournaments: int
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "sampled_at": self.sampled_at.isoformat(),
+            "queue_time_seconds_avg": self.queue_time_seconds_avg,
+            "completion_rate": self.completion_rate,
+            "disconnect_forfeit_rate": self.disconnect_forfeit_rate,
+            "total_matches": self.total_matches,
+            "completed_matches": self.completed_matches,
+            "disconnect_forfeits": self.disconnect_forfeits,
+            "completed_tournaments": self.completed_tournaments,
+            "cancelled_tournaments": self.cancelled_tournaments,
+        }
+
+
 # ---------------------------------------------------------------------------
 # Bracket generation helpers
 # ---------------------------------------------------------------------------
@@ -1672,3 +1700,69 @@ class TournamentManager:
         if participant.checked_in:
             return "checked_in"
         return "registered"
+
+    # ------------------------------------------------------------------
+    # Operational metrics
+    # ------------------------------------------------------------------
+
+    def collect_operational_metrics(
+        self, *, now: datetime | None = None
+    ) -> TournamentOperationalMetrics:
+        """Collect aggregate reliability metrics from active tournaments."""
+        sampled_at = now or datetime.now(timezone.utc)
+
+        queue_durations = [
+            (m.resolved_at - m.scheduled_at).total_seconds()
+            for t in self.tournaments
+            for m in t.matches
+            if m.scheduled_at is not None and m.resolved_at is not None
+        ]
+        all_matches = [m for t in self.tournaments for m in t.matches]
+        completed_matches = [
+            m
+            for m in all_matches
+            if m.status in (MatchStatus.COMPLETED, MatchStatus.WALKOVER)
+        ]
+        disconnect_forfeits = [
+            m
+            for m in completed_matches
+            if m.resolution_token is not None
+            and m.resolution_token.startswith("disconnect-forfeit-")
+        ]
+
+        finished_tournaments = [
+            t
+            for t in self.tournaments
+            if t.status in (TournamentStatus.COMPLETED, TournamentStatus.CANCELLED)
+        ]
+        completed_tournaments = [
+            t
+            for t in finished_tournaments
+            if t.status == TournamentStatus.COMPLETED
+        ]
+
+        return TournamentOperationalMetrics(
+            sampled_at=sampled_at,
+            queue_time_seconds_avg=(
+                (sum(queue_durations) / len(queue_durations))
+                if queue_durations
+                else 0.0
+            ),
+            completion_rate=(
+                (len(completed_tournaments) / len(finished_tournaments))
+                if finished_tournaments
+                else 0.0
+            ),
+            disconnect_forfeit_rate=(
+                (len(disconnect_forfeits) / len(completed_matches))
+                if completed_matches
+                else 0.0
+            ),
+            total_matches=len(all_matches),
+            completed_matches=len(completed_matches),
+            disconnect_forfeits=len(disconnect_forfeits),
+            completed_tournaments=len(completed_tournaments),
+            cancelled_tournaments=(
+                len(finished_tournaments) - len(completed_tournaments)
+            ),
+        )

@@ -1547,3 +1547,62 @@ class TestSaveDataIntegration:
         }
         save = SaveData(**data)
         assert save.tournament_data == {}
+
+
+# ---------------------------------------------------------------------------
+# Tests: Operational metrics
+# ---------------------------------------------------------------------------
+
+
+class TestOperationalMetrics:
+    def test_collect_operational_metrics_defaults_to_zero(self):
+        manager = _make_manager()
+
+        metrics = manager.collect_operational_metrics(
+            now=datetime(2026, 1, 1, tzinfo=timezone.utc)
+        )
+
+        assert metrics.total_matches == 0
+        assert metrics.completed_matches == 0
+        assert metrics.queue_time_seconds_avg == 0.0
+        assert metrics.completion_rate == 0.0
+        assert metrics.disconnect_forfeit_rate == 0.0
+
+    def test_collect_operational_metrics_summarizes_flow(self):
+        manager = _make_manager()
+        completed_tournament, _ = _setup_ready_tournament(manager, seed=5)
+
+        current_time = datetime.now(timezone.utc) + timedelta(seconds=1)
+        for match in sorted(
+            completed_tournament.matches,
+            key=lambda m: (m.round_index, m.match_index),
+        ):
+            if match.status == MatchStatus.WALKOVER:
+                continue
+            token = f"resolve-{match.match_id}"
+            if match.round_index == 0 and match.match_index == 0:
+                token = f"disconnect-forfeit-{match.match_id}"
+            winner = match.player_a_id or match.player_b_id
+            assert winner is not None
+            result = manager.report_match_result(
+                completed_tournament.tournament_id,
+                match.match_id,
+                winner,
+                resolution_token=token,
+                now=current_time,
+            )
+            assert result == TournamentResult.SUCCESS
+            current_time += timedelta(seconds=15)
+
+        cancelled_tournament = _make_8_player_tournament(manager, seed=8)
+        cancelled_tournament.status = TournamentStatus.CANCELLED
+
+        metrics = manager.collect_operational_metrics(now=current_time)
+
+        assert metrics.total_matches == len(completed_tournament.matches)
+        assert metrics.completed_tournaments == 1
+        assert metrics.cancelled_tournaments == 1
+        assert metrics.completion_rate == pytest.approx(0.5)
+        assert metrics.disconnect_forfeits == 1
+        assert metrics.disconnect_forfeit_rate > 0
+        assert metrics.queue_time_seconds_avg > 0
