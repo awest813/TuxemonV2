@@ -58,23 +58,34 @@ This roadmap covers the evolution of the menu system (`tuxemon/menu/`) and UI sy
 ## Phase 1 — Polish and Reliability (Short-term)
 
 ### 1.1 Input Handling Robustness
-- [ ] Add dead-zone handling for analog stick inputs in `MenuInputHandler`.
-- [ ] Support configurable repeat delay and interval per menu type.
-- [ ] Add accessibility option for single-press-only navigation (no hold repeat).
-- [ ] Test cursor wrapping behavior (first item → last item and vice versa).
+-- [x] Add dead-zone handling for analog stick inputs in `MenuInputHandler`.
+  - `tuxemon/menu/input_handler.py` — `MenuInputHandler.ANALOG_DEAD_ZONE = 0.25` constant; `_is_analog_deadzone()` filters float axis values below the threshold in `_valid_press()`.
+- [x] Support configurable repeat delay and interval per menu type.
+  - `MenuInputHandler(menu, repeat_delay=…, repeat_interval=…)` constructor parameters override the class-level defaults without changing existing call sites.
+  - `PygameMenuInputHandler(state, repeat_delay=…)` likewise accepts a per-instance override.
+- [x] Add accessibility option for single-press-only navigation (no hold repeat).
+  - `single_press_only=True` on both `MenuInputHandler` and `PygameMenuInputHandler` disables hold-repeat entirely; only initial key-down events trigger cursor movement or updates.
+- [x] Test cursor wrapping behavior (first item → last item and vice versa).
+  - `tests/tuxemon/test_menu_input_robustness.py` — `test_cursor_wraps_from_last_to_first`, `test_cursor_wraps_from_first_to_last`.
 
 ### 1.2 Dialog System Improvements
 - [ ] Add rich text support (bold, italic, color inline markers) in `TextArea`.
 - [ ] Support portrait/avatar display alongside dialog text.
-- [ ] Add dialog history/log accessible via a button press.
-- [ ] Implement auto-advance option for dialogs (timed progression).
+- [x] Add dialog history/log accessible via a button press.
+  - `tuxemon/ui/dialog_history.py` — `DialogHistory` (bounded `deque`-backed log of `DialogEntry` records; configurable `max_entries`, FIFO eviction).
+  - `tuxemon/states/dialog_state.py` — `DialogState` accepts optional `history: DialogHistory` and `speaker: str | None`; every call to `next_text()` records the shown text via `history.record(text, speaker=speaker)`.
+- [x] Implement auto-advance option for dialogs (timed progression).
+  - Already implemented in `DialogState` via `close_after` + `per_line_timeout` parameters.
 - [ ] Add sound effects per character during text animation.
 
 ### 1.3 Text Rendering Quality
-- [ ] Implement `TextOverflow.SHRINK` (dynamic font size reduction to fit bounds).
-- [ ] Add text outline rendering as an alternative to drop shadow.
+- [x] Implement `TextOverflow.SHRINK` (dynamic font size reduction to fit bounds).
+  - `tuxemon/ui/draw.py` — `_find_shrink_font()` steps the font size down from the original until the text fits within the target rect, or falls back to `min_font_size`. `iter_render_text()` applies it when `overflow_behavior=TextOverflow.SHRINK`.
+- [x] Add text outline rendering as an alternative to drop shadow.
+  - `tuxemon/ui/text_renderer.py` — `TextRenderer.outline_text()` renders 8-directional stroke outlines then composites the foreground on top; configurable `outline_color` and `outline_width`.
 - [ ] Support right-to-left (RTL) text layout for Arabic/Hebrew localization.
-- [ ] Optimize `font_size_cache` with LRU eviction instead of full clear.
+- [x] Optimize `font_size_cache` with LRU eviction instead of full clear.
+  - `tuxemon/ui/draw.py` — `font_size_cache` is now an `OrderedDict`; `get_text_size()` promotes accessed entries to most-recently-used and evicts only the single oldest entry when the cache is full (instead of clearing everything).
 
 ### 1.4 Combat HUD Polish
 - [x] Add HP bar drain animation (smooth decrease instead of instant).
@@ -83,12 +94,18 @@ This roadmap covers the evolution of the menu system (`tuxemon/menu/`) and UI sy
 - [x] Add EXP bar fill animation (smooth increase on level-up).
   - `ExpBarAnimator` in `bar_animator.py` supports normal fill and level-up wrap-around (fill-to-max → reset-to-zero → fill-to-new-progress) with configurable delay and fill speed.
 - [ ] Support dynamic HUD resizing for different screen resolutions.
-- [ ] Add weather/terrain indicator to combat HUD.
-- [ ] Add turn counter display.
+- [x] Add weather/terrain indicator to combat HUD.
+  - `tuxemon/ui/combat_overlay.py` — `WeatherTerrainIndicator` tracks active weather and terrain tokens, remaining turns, and exposes a `changed` flag for efficient HUD re-renders. `WeatherTerrainState` snapshot dataclass surfaces `has_effect` and `display_token` helpers.
+- [x] Add turn counter display.
+  - `tuxemon/ui/combat_overlay.py` — `TurnCounter` tracks current (1-based) turn and total completed turns; `next_turn()` advances and `reset()` restores initial state.
 
 ### 1.5 Error Handling and Logging
-- [ ] Audit all `except Exception` blocks and narrow to specific exceptions.
-- [ ] Add structured logging context (menu name, state, action) to all log messages.
+- [x] Audit all `except Exception` blocks and narrow to specific exceptions.
+  - `tuxemon/menu/alert.py` — narrowed `StopIteration` to its own `except` clause in `animate_text` and `dump_remaining_text`; remaining `except Exception` guards are appropriate for untrusted caller callbacks.
+- [x] Add structured logging context (menu name, state, action) to all log messages.
+  - `tuxemon/menu/alert.py` — log messages now include `message=%r`, `text=%r`, and action context.
+  - `tuxemon/menu/input_handler.py` — log messages now include `button=%r` and handler context string.
+  - `tuxemon/states/dialog_state.py` — on_complete callback log includes descriptive context.
 - [ ] Add metrics collection for menu navigation patterns (debug builds only).
 
 ---

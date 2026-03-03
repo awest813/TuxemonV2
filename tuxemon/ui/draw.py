@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+from collections import OrderedDict
 from collections.abc import Generator, Iterable
 from dataclasses import dataclass
 from enum import Enum
@@ -45,7 +46,7 @@ __all__ = (
 )
 
 _FONT_SIZE_CACHE_MAX = 4096
-font_size_cache: dict[str, tuple[int, int]] = {}
+font_size_cache: OrderedDict[str, tuple[int, int]] = OrderedDict()
 
 
 class RenderMode(Enum):
@@ -86,11 +87,14 @@ def get_text_size(
     text: str,
     font: Font,
 ) -> tuple[int, int]:
-    if text not in font_size_cache:
-        if len(font_size_cache) >= _FONT_SIZE_CACHE_MAX:
-            font_size_cache.clear()
-        font_size_cache[text] = font.size(text)
-    return font_size_cache[text]
+    if text in font_size_cache:
+        font_size_cache.move_to_end(text)
+        return font_size_cache[text]
+    if len(font_size_cache) >= _FONT_SIZE_CACHE_MAX:
+        font_size_cache.popitem(last=False)
+    result = font.size(text)
+    font_size_cache[text] = result
+    return result
 
 
 class OverflowHandler:
@@ -158,7 +162,7 @@ def _prepare_text_lines(
     """
     if not text.strip():
         return [""]
-    if overflow_behavior == TextOverflow.WRAP:
+    if overflow_behavior in (TextOverflow.WRAP, TextOverflow.SHRINK):
         return list(
             break_text_into_lines(
                 text, font, rect_width, allow_word_overflow=True
@@ -176,6 +180,46 @@ def _prepare_text_lines(
         )
     else:
         return list(iterate_paragraphs(text))
+
+
+def _find_shrink_font(
+    text: str,
+    original_font: Font,
+    rect: Rect,
+    min_font_size: int = 6,
+) -> Font:
+    """
+    Returns a Font sized to fit the text within rect (single-line).
+    Steps down from the original font size until the text fits, or reaches min_font_size.
+    """
+    current_size = original_font.size(text)
+    if current_size[0] <= rect.width and current_size[1] <= rect.height:
+        return original_font
+
+    orig_pt = original_font.get_height()
+
+    # font_path: None falls back to pygame default font, which is valid
+    font_path: str | None
+    name_attr = getattr(original_font, "name", None)
+    if name_attr and name_attr != "freesansbold.ttf":
+        import os
+
+        if os.path.isfile(name_attr):
+            font_path = name_attr
+        else:
+            font_path = None
+    else:
+        font_path = None
+
+    pt = orig_pt - 1
+    while pt >= min_font_size:
+        candidate = Font(font_path, pt)
+        w, h = candidate.size(text)
+        if w <= rect.width and h <= rect.height:
+            return candidate
+        pt -= 1
+
+    return Font(font_path, min_font_size)
 
 
 def _iter_chars_for_line(
@@ -268,6 +312,9 @@ def iter_render_text(
     overflow_behavior: TextOverflow = TextOverflow.CLIP,
     line_spacing: int = 0,
 ) -> Generator[RenderedChar, None, None]:
+
+    if overflow_behavior == TextOverflow.SHRINK:
+        font = _find_shrink_font(text, font, rect)
 
     lines = _prepare_text_lines(text, font, rect.width, overflow_behavior)
     if not lines:
