@@ -44,10 +44,20 @@ class MenuInputHandler(InputHandler, PressLogicMixin):
 
     REPEAT_DELAY = 0.50  # seconds before repeat starts
     REPEAT_INTERVAL = 0.08  # seconds between repeats
+    ANALOG_DEAD_ZONE = 0.25  # analog axis values below this threshold are ignored
 
-    def __init__(self, menu: Menu[T]) -> None:
+    def __init__(
+        self,
+        menu: Menu[T],
+        repeat_delay: float | None = None,
+        repeat_interval: float | None = None,
+        single_press_only: bool = False,
+    ) -> None:
         self._menu = menu
         self._repeat_timers: dict[int, float] = {}
+        self._repeat_delay = repeat_delay if repeat_delay is not None else self.REPEAT_DELAY
+        self._repeat_interval = repeat_interval if repeat_interval is not None else self.REPEAT_INTERVAL
+        self._single_press_only = single_press_only
 
     def handle_event(self, event: PlayerInput) -> PlayerInput | None:
         if (
@@ -68,16 +78,26 @@ class MenuInputHandler(InputHandler, PressLogicMixin):
         )
 
     def _repeat_due(self, button: int, event: PlayerInput) -> bool:
-        if not event.is_held(self.REPEAT_DELAY):
+        if self._single_press_only:
+            return False
+
+        if not event.is_held(self._repeat_delay):
             return False
 
         now = time.time()
         last = self._repeat_timers.get(button, 0.0)
 
-        if now - last >= self.REPEAT_INTERVAL:
+        if now - last >= self._repeat_interval:
             self._repeat_timers[button] = now
             return True
 
+        return False
+
+    def _is_analog_deadzone(self, event: PlayerInput) -> bool:
+        """Returns True if an analog axis value is within the dead zone."""
+        val = event.value
+        if isinstance(val, float):
+            return abs(val) < self.ANALOG_DEAD_ZONE
         return False
 
     def _fake_press(self, event: PlayerInput) -> PlayerInput:
@@ -92,7 +112,9 @@ class MenuInputHandler(InputHandler, PressLogicMixin):
     def _valid_press(self, event: PlayerInput) -> bool:
         if not self._menu_interactable():
             return False
-        return self._is_press(event, self.REPEAT_DELAY)
+        if self._is_analog_deadzone(event):
+            return False
+        return self._is_press(event, self._repeat_delay)
 
     def _handle_escape(self, event: PlayerInput) -> bool:
         if event.button not in (
@@ -208,9 +230,17 @@ class PygameMenuInputHandler(InputHandler, PressLogicMixin):
     """
 
     REPEAT_DELAY = 0.50  # seconds before repeat starts
+    ANALOG_DEAD_ZONE = 0.25
 
-    def __init__(self, state: PygameMenuState) -> None:
+    def __init__(
+        self,
+        state: PygameMenuState,
+        repeat_delay: float | None = None,
+        single_press_only: bool = False,
+    ) -> None:
         self._state = state
+        self._repeat_delay = repeat_delay if repeat_delay is not None else self.REPEAT_DELAY
+        self._single_press_only = single_press_only
 
     def handle_event(self, event: PlayerInput) -> PlayerInput | None:
         if not self._state.state_controller.is_interactive():
@@ -226,7 +256,12 @@ class PygameMenuInputHandler(InputHandler, PressLogicMixin):
         try:
             pygame_event = self._convert_event(event)
         except Exception as e:
-            logger.error(f"Error converting PlayerInput to pygame event: {e}")
+            logger.error(
+                "PygameMenuInputHandler: event conversion raised unexpectedly "
+                "(button=%r): %s",
+                getattr(event, "button", None),
+                e,
+            )
             return event
 
         if pygame_event is None:
@@ -239,7 +274,23 @@ class PygameMenuInputHandler(InputHandler, PressLogicMixin):
             buttons.LEFT,
             buttons.RIGHT,
         ):
-            if self._state.open and self._is_press(event, self.REPEAT_DELAY):
+            if self._single_press_only:
+                if self._state.open and event.pressed:
+                    try:
+                        self._state.menu.update([pygame_event])
+                        self._state.selected_widget = (
+                            self._state.menu.get_selected_widget()
+                        )
+                    except Exception as e:
+                        logger.error(
+                            "PygameMenuInputHandler: menu.update raised "
+                            "(button=%r, single_press_only=True): %s",
+                            event.button,
+                            e,
+                        )
+                return None
+
+            if self._state.open and self._is_press(event, self._repeat_delay):
                 try:
                     self._state.menu.update([pygame_event])
                     self._state.selected_widget = (
@@ -247,7 +298,10 @@ class PygameMenuInputHandler(InputHandler, PressLogicMixin):
                     )
                 except Exception as e:
                     logger.error(
-                        f"Unexpected error in menu event processing: {e}"
+                        "PygameMenuInputHandler: menu.update raised "
+                        "(button=%r): %s",
+                        event.button,
+                        e,
                     )
             return None
 
@@ -259,7 +313,12 @@ class PygameMenuInputHandler(InputHandler, PressLogicMixin):
                     self._state.menu.get_selected_widget()
                 )
             except Exception as e:
-                logger.error(f"Unexpected error in menu event processing: {e}")
+                logger.error(
+                    "PygameMenuInputHandler: menu.update raised "
+                    "(button=%r): %s",
+                    event.button,
+                    e,
+                )
 
         return None
 
@@ -286,5 +345,9 @@ class PygameMenuInputHandler(InputHandler, PressLogicMixin):
         try:
             return playerinput_to_event(event)
         except Exception as e:
-            logger.error(f"Error converting PlayerInput to pygame event: {e}")
+            logger.error(
+                "_convert_event: playerinput_to_event raised (button=%r): %s",
+                getattr(event, "button", None),
+                e,
+            )
             return None

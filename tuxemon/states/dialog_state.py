@@ -11,6 +11,7 @@ from tuxemon.menu.menu import PopUpMenu
 from tuxemon.platform.const import buttons
 from tuxemon.platform.events import PlayerInput
 from tuxemon.sprite import Sprite
+from tuxemon.ui.dialog_history import DialogHistory
 from tuxemon.ui.text import TextArea
 from tuxemon.ui.text_alignment import HorizontalAlignment, VerticalAlignment
 
@@ -47,6 +48,8 @@ class DialogState(PopUpMenu[None]):
         per_line_timeout: bool = False,
         advance_buttons: list[int] | None = None,
         dialog_speed: str | None = None,
+        speaker: str | None = None,
+        history: DialogHistory | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(client=client, **kwargs)
@@ -58,6 +61,8 @@ class DialogState(PopUpMenu[None]):
         self.advance_buttons = advance_buttons or [buttons.A]
         self.per_line_timeout = per_line_timeout
         self.dialog_speed = dialog_speed or self.client.config.dialog_speed
+        self.speaker = speaker
+        self.history = history if history is not None else DialogHistory()
 
         self._elapsed_time: float = 0.0
         self._timer_active: bool = False
@@ -167,6 +172,7 @@ class DialogState(PopUpMenu[None]):
             if not text:
                 return self.next_text()
 
+            self.history.record(text, speaker=self.speaker)
             self.dialog.alert(
                 message=text,
                 text_area=self.dialog_box,
@@ -198,7 +204,11 @@ class DialogState(PopUpMenu[None]):
             try:
                 self.on_complete()
             except Exception as e:
-                logger.error(f"Error in on_complete callback: {e}")
+                logger.error(
+                    "close_dialog: on_complete callback raised an unexpected "
+                    "exception: %s",
+                    e,
+                )
 
         self.close()
 

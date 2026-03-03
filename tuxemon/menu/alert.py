@@ -82,7 +82,11 @@ class AlertManager:
     ) -> None:
         """Animate text in the given TextArea at the specified speed."""
         if text_area is None:
-            logger.error("No TextArea available to animate text.")
+            logger.error(
+                "animate_text: no TextArea available (text=%r, speed=%r)",
+                text[:60],
+                dialog_speed,
+            )
             return
 
         text_area.text = text
@@ -92,8 +96,15 @@ class AlertManager:
             try:
                 for _ in text_area:
                     pass
+            except StopIteration:
+                pass
             except Exception as e:
-                logger.warning(f"Unexpected error while dumping text: {e}")
+                logger.warning(
+                    "animate_text: unexpected error while dumping text "
+                    "(text=%r): %s",
+                    text[:60],
+                    e,
+                )
 
             self._on_line_complete()
 
@@ -142,7 +153,12 @@ class AlertManager:
                     if next_alert.callback:
                         next_alert.callback()
                 except Exception as e:
-                    logger.error(f"Error in alert callback: {e}")
+                    logger.error(
+                        "alert callback raised an unexpected exception "
+                        "(message=%r): %s",
+                        next_alert.message[:60],
+                        e,
+                    )
 
             self._final_callback = alert_complete_callback
 
@@ -245,7 +261,11 @@ class AlertManager:
             try:
                 self._final_callback()
             except Exception as e:
-                logger.error(f"Error in alert callback: {e}")
+                logger.error(
+                    "_on_alert_complete: callback raised an unexpected "
+                    "exception: %s",
+                    e,
+                )
             finally:
                 self._final_callback = None
 
@@ -261,15 +281,16 @@ class AlertManager:
     def dump_remaining_text(self, text_area: TextArea) -> None:
         """Dump all remaining characters in the current line immediately."""
         if text_area is None:
-            logger.error("No TextArea available to dump remaining text.")
+            logger.error("dump_remaining_text: no TextArea provided.")
             return
 
-        # Dump all remaining characters in the current line
         try:
             for _ in text_area:
                 pass
+        except StopIteration:
+            pass
         except Exception as e:
-            logger.warning(f"Error dumping remaining text: {e}")
+            logger.warning("dump_remaining_text: unexpected error: %s", e)
 
         # After dumping, handle line completion (advance or close)
         self._on_line_complete()

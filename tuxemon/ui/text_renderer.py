@@ -68,3 +68,55 @@ class TextRenderer:
         image.blit(shadow_color, tuple(_offset))
         image.blit(font_color, (0, 0))
         return image
+
+    def outline_text(
+        self,
+        text: str,
+        fg: ColorLike | None = None,
+        outline_color: ColorLike | None = None,
+        outline_width: int = 1,
+    ) -> Surface:
+        """
+        Render text with a solid outline (stroke) instead of a drop shadow.
+
+        The outline is produced by rendering the text in the outline color at
+        each of the 8 surrounding pixel positions and then compositing the
+        foreground color on top.
+
+        Parameters:
+            text: The text string to render.
+            fg: Foreground font color. If None, uses the default font color.
+            outline_color: Color of the outline stroke. If None, uses the
+                default font shadow color.
+            outline_width: Thickness of the outline in (unscaled) pixels.
+                Defaults to 1.
+
+        Returns:
+            A Surface containing the rendered text with outline applied.
+        """
+        if fg is None:
+            fg = self.font_color
+        if outline_color is None:
+            outline_color = self.font_shadow_color
+
+        scaled_width = max(1, self.scaling.scale_int(outline_width))
+
+        base_surface = self.font.render(text, True, fg)
+        w, h = base_surface.get_size()
+        pad = scaled_width
+        total_w = w + pad * 2
+        total_h = h + pad * 2
+
+        image = Surface((total_w, total_h), SRCALPHA)
+
+        offsets = [
+            (-pad, -pad), (0, -pad), (pad, -pad),
+            (-pad,   0),             (pad,   0),
+            (-pad,  pad), (0,  pad), (pad,  pad),
+        ]
+        outline_surface = self.font.render(text, True, outline_color)
+        for ox, oy in offsets:
+            image.blit(outline_surface, (pad + ox, pad + oy))
+
+        image.blit(base_surface, (pad, pad))
+        return image
