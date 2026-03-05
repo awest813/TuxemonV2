@@ -270,7 +270,7 @@ class TestCheckin:
         r = manager.check_in_participant(t.tournament_id, uuid4())
         assert r == TournamentResult.NOT_REGISTERED
 
-    def test_double_checkin_rejected(self):
+    def test_double_checkin_idempotent(self):
         manager = _make_manager()
         t = _make_8_player_tournament(manager)
         manager.open_registration(t.tournament_id)
@@ -279,7 +279,7 @@ class TestCheckin:
         manager.close_registration(t.tournament_id)
         manager.check_in_participant(t.tournament_id, pid)
         r = manager.check_in_participant(t.tournament_id, pid)
-        assert r == TournamentResult.ALREADY_CHECKED_IN
+        assert r == TournamentResult.SUCCESS
 
     def test_insufficient_checkins_cancels_tournament(self):
         manager = _make_manager()
@@ -765,6 +765,60 @@ class TestMatchReporting:
         )
         assert resolved == TournamentResult.SUCCESS
         assert m.status == MatchStatus.WALKOVER
+
+
+    def test_resolve_no_show_timeout_idempotent_same_token(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+        assert m.scheduled_at is not None
+
+        at_timeout = m.scheduled_at + timedelta(
+            seconds=t.policy.no_show_timeout_seconds
+        )
+        first = manager.resolve_no_show_timeout(
+            t.tournament_id,
+            m.match_id,
+            m.player_a_id,
+            resolution_token="noshow-1",
+            now=at_timeout,
+        )
+        retry = manager.resolve_no_show_timeout(
+            t.tournament_id,
+            m.match_id,
+            m.player_a_id,
+            resolution_token="noshow-1",
+            now=at_timeout + timedelta(seconds=2),
+        )
+
+        assert first == TournamentResult.SUCCESS
+        assert retry == TournamentResult.SUCCESS
+
+    def test_resolve_no_show_timeout_duplicate_conflicting_token(self):
+        manager = _make_manager()
+        t, _ = _setup_ready_tournament(manager)
+        m = next(m for m in t.matches if m.status == MatchStatus.SCHEDULED)
+        assert m.scheduled_at is not None
+
+        at_timeout = m.scheduled_at + timedelta(
+            seconds=t.policy.no_show_timeout_seconds
+        )
+        manager.resolve_no_show_timeout(
+            t.tournament_id,
+            m.match_id,
+            m.player_a_id,
+            resolution_token="noshow-1",
+            now=at_timeout,
+        )
+
+        duplicate = manager.resolve_no_show_timeout(
+            t.tournament_id,
+            m.match_id,
+            m.player_a_id,
+            resolution_token="noshow-2",
+            now=at_timeout + timedelta(seconds=1),
+        )
+        assert duplicate == TournamentResult.DUPLICATE_RESULT
 
     def test_resolve_no_show_timeout_publishes_auto_adjudication_event(self):
         manager = _make_manager()
