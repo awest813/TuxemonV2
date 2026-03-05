@@ -233,6 +233,33 @@ Beta focus areas identified from alpha-exit review:
 - [ ] Publish creator guide covering map-to-export workflow with the campaign maker.
 - [ ] Update contributor guide to reflect beta branching and release process.
 
+
+### 5.5 Performance and Safe High/Medium-Impact Fixes
+
+#### 5.5.1 High-Impact, Low-Risk Performance Work
+- [ ] Add frame-time instrumentation (CPU + draw + scripting buckets) and ship a baseline performance dashboard for target hardware tiers.
+- [ ] Cache hot-path content lookups (monster/species/item definitions, encounter table parsing, ruleset snapshots) with explicit invalidation on mod/campaign reload.
+- [ ] Reduce world-state update overhead by batching event/timer evaluations per tick and skipping inactive subsystems when their gates are false.
+- [ ] Optimize save/load serialization by profiling large saves, deduplicating repeated payloads, and deferring non-critical post-load recomputations.
+
+#### 5.5.2 Medium-Impact Performance Improvements
+- [ ] Audit and cap avoidable allocations in battle and overworld loops (string formatting, temporary collections, repeated object construction).
+- [ ] Add texture/audio asset preloading hints for scene transitions to reduce visible hitches during map changes and combat start.
+- [ ] Introduce lightweight object pools for frequently spawned short-lived gameplay objects where profiling confirms churn.
+- [ ] Convert frequently repeated deterministic calculations to memoized helpers with clear cache scope boundaries.
+
+#### 5.5.3 High-Impact Non-Performance Fixes (Safe to Ship in Beta)
+- [ ] Enforce structured error reporting with user-safe messages + actionable telemetry keys for network, campaign import, and tournament flows.
+- [ ] Add idempotency keys and retry-safe guards for online actions (check-in, match report, reward claim) to prevent duplicate state transitions.
+- [ ] Expand migration safety nets: preflight checks, automatic backups, and one-command rollback for campaign and save schema upgrades.
+- [ ] Tighten moderation and abuse controls with configurable rate limits and clearer operator tooling for escalations.
+
+#### 5.5.4 Delivery Safety Rules for This Workstream
+- [ ] Every optimization must land with before/after benchmark evidence on representative scenarios.
+- [ ] No behavior-changing optimization ships without parity tests for gameplay outcomes and deterministic rules resolution.
+- [ ] New caches must include invalidation tests for mod enable/disable, campaign switch, and locale change paths.
+- [ ] Roll out high-impact changes behind feature flags first, then promote to default after beta telemetry confirms stability.
+
 ---
 
 ## Definition of Done for Any Roadmap Item
