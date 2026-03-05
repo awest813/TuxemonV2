@@ -73,7 +73,7 @@ class CelestialState(PygameMenuState):
             )
             menu.add.progress_bar(
                 f"{day_in_phase + 1}/{phase_length}",
-                (day_in_phase / phase_length) * 100,
+                self._get_phase_completion_percent(day_in_phase, phase_length),
             )
             menu.add.vertical_margin(10)
 
@@ -106,3 +106,18 @@ class CelestialState(PygameMenuState):
             selectable=True,
             font_size=self.font_type.medium,
         )
+
+    @staticmethod
+    def _get_phase_completion_percent(
+        day_in_phase: int, phase_length: int
+    ) -> float:
+        """
+        Return completion percent for a phase progress bar.
+
+        ``day_in_phase`` is zero-indexed by ``get_phase_progress`` while the UI
+        displays one-indexed day numbers. This keeps the text and bar aligned so
+        day 1 is shown as non-zero progress.
+        """
+        if phase_length <= 0:
+            return 0.0
+        return ((day_in_phase + 1) / phase_length) * 100
