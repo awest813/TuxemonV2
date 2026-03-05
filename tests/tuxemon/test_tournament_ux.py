@@ -329,6 +329,45 @@ class TestSeasonStandings:
         assert entry.tournaments_entered == 2
         assert entry.best_placement == 1
 
+
+    def test_record_placement_idempotent_same_claim_token(self) -> None:
+        manager, t, player_ids = self._make_started_tournament()
+        pid = player_ids[0]
+
+        first = manager.record_placement(
+            t.tournament_id,
+            pid,
+            "Alice",
+            1,
+            claim_token="claim-1",
+        )
+        retry = manager.record_placement(
+            t.tournament_id,
+            pid,
+            "Alice",
+            1,
+            claim_token="claim-1",
+        )
+
+        assert first == TournamentResult.SUCCESS
+        assert retry == TournamentResult.SUCCESS
+        standings = manager.get_season_standings()
+        entry = next(e for e in standings if e.player_id == pid)
+        assert entry.points == 110
+        assert entry.tournaments_entered == 1
+
+    def test_record_placement_idempotent_without_claim_token(self) -> None:
+        manager, t, player_ids = self._make_started_tournament()
+        pid = player_ids[0]
+
+        manager.record_placement(t.tournament_id, pid, "Alice", 2)
+        manager.record_placement(t.tournament_id, pid, "Alice", 2)
+
+        standings = manager.get_season_standings()
+        entry = next(e for e in standings if e.player_id == pid)
+        assert entry.points == 70
+        assert entry.tournaments_entered == 1
+
     def test_record_placement_unknown_tournament(self) -> None:
         manager = _make_manager()
         r = manager.record_placement(uuid4(), uuid4(), "Ghost", 1)

@@ -111,6 +111,7 @@ class Participant:
     display_name: str
     registered_at: datetime
     checked_in: bool = False
+    checkin_token: str | None = None
     seed: int | None = None
     disqualified: bool = False
     disqualified_at: datetime | None = None
@@ -121,6 +122,7 @@ class Participant:
             "display_name": self.display_name,
             "registered_at": self.registered_at.isoformat(),
             "checked_in": self.checked_in,
+            "checkin_token": self.checkin_token,
             "seed": self.seed,
             "disqualified": self.disqualified,
             "disqualified_at": (
@@ -138,6 +140,11 @@ class Participant:
             display_name=str(data["display_name"]),
             registered_at=_coerce_utc_timestamp(str(data["registered_at"])),
             checked_in=bool(data.get("checked_in", False)),
+            checkin_token=(
+                str(data["checkin_token"])
+                if data.get("checkin_token") is not None
+                else None
+            ),
             seed=(int(data["seed"]) if data.get("seed") is not None else None),
             disqualified=bool(data.get("disqualified", False)),
             disqualified_at=(
@@ -689,6 +696,8 @@ class TournamentManager:
         self.active_season: TournamentSeason | None = None
         self.season_standings: list[SeasonStandingEntry] = []
         self._notifications: list[PlayerNotification] = []
+        self._processed_reward_claims: set[str] = set()
+        self._awarded_player_tournaments: set[str] = set()
 
     # ------------------------------------------------------------------
     # Internal lookups
@@ -927,6 +936,11 @@ class TournamentManager:
             return
 
         if node.feeds_into is None:
+            if (
+                tournament.status == TournamentStatus.COMPLETED
+                and tournament.champion_id == match.winner_id
+            ):
+                return
             tournament.champion_id = match.winner_id
             tournament.status = TournamentStatus.COMPLETED
             self.event_bus.publish("tournament_completed", tournament)
@@ -960,8 +974,18 @@ class TournamentManager:
             return
 
         if next_node.slot_a_feeds_from == node.position:
+            if (
+                next_match.player_a_id is not None
+                and next_match.player_a_id != match.winner_id
+            ):
+                return
             next_match.player_a_id = match.winner_id
         elif next_node.slot_b_feeds_from == node.position:
+            if (
+                next_match.player_b_id is not None
+                and next_match.player_b_id != match.winner_id
+            ):
+                return
             next_match.player_b_id = match.winner_id
 
         if (
@@ -1099,7 +1123,11 @@ class TournamentManager:
         return TournamentResult.SUCCESS
 
     def check_in_participant(
-        self, tournament_id: UUID, player_id: UUID
+        self,
+        tournament_id: UUID,
+        player_id: UUID,
+        *,
+        checkin_token: str | None = None,
     ) -> TournamentResult:
         """Check in a registered participant during the CHECKIN phase."""
         tournament = self._find_tournament(tournament_id)
@@ -1114,9 +1142,15 @@ class TournamentManager:
         if participant.disqualified:
             return TournamentResult.DISQUALIFIED
         if participant.checked_in:
-            return TournamentResult.ALREADY_CHECKED_IN
+            if (
+                checkin_token is not None
+                and participant.checkin_token is None
+            ):
+                participant.checkin_token = checkin_token
+            return TournamentResult.SUCCESS
 
         participant.checked_in = True
+        participant.checkin_token = checkin_token
         self.event_bus.publish(
             "tournament_participant_checked_in",
             {
@@ -1243,6 +1277,7 @@ class TournamentManager:
         match_id: UUID,
         absent_player_id: UUID,
         *,
+        resolution_token: str | None = None,
         absent_disconnected_at: datetime | None = None,
         now: datetime | None = None,
     ) -> TournamentResult:
@@ -1259,6 +1294,22 @@ class TournamentManager:
         match = self._find_match(tournament, match_id)
         if match is None:
             return TournamentResult.MATCH_NOT_FOUND
+        if match.status in (MatchStatus.COMPLETED, MatchStatus.WALKOVER):
+            expected_winner_id = (
+                match.player_b_id
+                if absent_player_id == match.player_a_id
+                else match.player_a_id
+            )
+            if (
+                match.status == MatchStatus.WALKOVER
+                and match.winner_id == expected_winner_id
+                and (
+                    resolution_token is None
+                    or match.resolution_token == resolution_token
+                )
+            ):
+                return TournamentResult.SUCCESS
+            return TournamentResult.DUPLICATE_RESULT
         if match.status != MatchStatus.SCHEDULED:
             return TournamentResult.INVALID_STATE
         if absent_player_id not in {match.player_a_id, match.player_b_id}:
@@ -1292,6 +1343,7 @@ class TournamentManager:
         match.winner_id = winner_id
         match.status = MatchStatus.WALKOVER
         match.resolved_at = current_time
+        match.resolution_token = resolution_token
 
         self.event_bus.publish(
             "tournament_match_no_show_resolved",
@@ -1502,6 +1554,10 @@ class TournamentManager:
             ),
             "season_standings": [e.to_dict() for e in self.season_standings],
             "notifications": [n.to_dict() for n in self._notifications],
+            "processed_reward_claims": sorted(self._processed_reward_claims),
+            "awarded_player_tournaments": sorted(
+                self._awarded_player_tournaments
+            ),
         }
 
     def load_log(self, data: dict[str, Any]) -> None:
@@ -1542,6 +1598,20 @@ class TournamentManager:
                 continue
         self._notifications = notifications
 
+        processed_claims = data.get("processed_reward_claims", [])
+        self._processed_reward_claims = {
+            str(claim)
+            for claim in processed_claims
+            if isinstance(claim, str)
+        }
+
+        awarded_players = data.get("awarded_player_tournaments", [])
+        self._awarded_player_tournaments = {
+            str(entry)
+            for entry in awarded_players
+            if isinstance(entry, str)
+        }
+
     # ------------------------------------------------------------------
     # Season management
     # ------------------------------------------------------------------
@@ -1562,6 +1632,7 @@ class TournamentManager:
         display_name: str,
         placement: int,
         *,
+        claim_token: str | None = None,
         now: datetime | None = None,
     ) -> TournamentResult:
         """Record a player's finishing placement in the current season.
@@ -1575,6 +1646,19 @@ class TournamentManager:
         tournament = self._find_tournament(tournament_id)
         if tournament is None:
             return TournamentResult.NOT_FOUND
+
+        player_tournament_key = f"{tournament_id}:{player_id}"
+        token_key = (
+            f"{player_tournament_key}:{claim_token}"
+            if claim_token is not None
+            else None
+        )
+        if token_key is not None and token_key in self._processed_reward_claims:
+            return TournamentResult.SUCCESS
+        if player_tournament_key in self._awarded_player_tournaments:
+            if token_key is not None:
+                self._processed_reward_claims.add(token_key)
+            return TournamentResult.SUCCESS
 
         points = _SEASON_PARTICIPATION_POINTS + _SEASON_PLACEMENT_POINTS.get(
             placement, 0
@@ -1625,6 +1709,10 @@ class TournamentManager:
                 "tournament_notification_eliminated",
                 {"tournament": tournament.name},
             )
+
+        self._awarded_player_tournaments.add(player_tournament_key)
+        if token_key is not None:
+            self._processed_reward_claims.add(token_key)
 
         return TournamentResult.SUCCESS
 
