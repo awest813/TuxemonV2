@@ -191,6 +191,10 @@ class InputMenu(Menu[InputMenuObj]):
             self._handle_unicode_event(event.value)
             return None
 
+        if event.pressed and event.button == buttons.START:
+            self.confirm()
+            return None
+
         return super().process_event(event)
 
     def empty(self) -> None:
