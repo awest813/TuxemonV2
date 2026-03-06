@@ -1,6 +1,6 @@
 # OpenCapsuleMon Roadmap (TuxemonV2 Transition)
 
-_Last updated: March 2026_
+_Last updated: June 2026_
 
 This roadmap is now centered on five product pillars:
 
@@ -30,8 +30,8 @@ This is a foundational design rule, not a configuration option. Any contribution
 ### Current Status Summary
 
 - **Implemented foundations:** core systems for tournament flow, campaign tooling, economy policy auditing, and ruleset surfacing are present and tracked in Phases 1-4.
-- **Current execution focus:** alpha-exit hardening across UX clarity, moderation operations, exploit resistance, and creator onboarding quality.
-- **Gate to alpha declaration:** all five pillars must meet the Alpha Exit Criteria section below simultaneously; partial completion in one pillar is not sufficient.
+- **Current execution focus:** beta hardening and operational validation of features that passed alpha exit in controlled conditions.
+- **Current release stage:** **Beta** (`0.5.0`) with targeted follow-through on reliability, onboarding quality, anti-abuse telemetry, and performance safety.
 
 ### Pillar A — Gold/Silver-Inspired Core Experience
 Deliver a modern, open-source interpretation of the design strengths players associate with classic monster-RPG generations:
@@ -78,6 +78,26 @@ Make all key gameplay and online behaviors explicit, configurable, and testable:
 ---
 
 ## Delivery Roadmap
+
+### Phase-by-Phase Delivery Snapshot
+
+| Phase | Focus | Status | Exit Signal | Remaining Follow-Through |
+| --- | --- | --- | --- | --- |
+| Phase 1 | Rules/settings baseline, GS-inspired blueprint, campaign maker discovery | ✅ Complete | Rulebook/taxonomy docs and precedence regressions landed | None (maintenance only) |
+| Phase 2 | Tournament playable path, battle center MVP, campaign maker MVP implementation | ✅ Complete | Tournament UX + lobby flow + creator wizard available end-to-end | Monitor live usability/ops telemetry during beta |
+| Phase 3 | Competitive integrity, online operations hardening, creator DX improvements | ✅ Complete | Moderation/no-show foundations + stronger creator linting shipped | Stress-test reconnect/no-show + operator workflows at live-like scale |
+| Phase 4 | Economy guardrails, anti-exploit checks, ruleset polish | ✅ Complete | In-game-only currency auditing + rules confirmation surfaces validated | Validate anti-abuse thresholds against real beta telemetry |
+| Phase 5 | Beta hardening and polish | 🟡 In progress | Cross-pillar integration coverage expanded | Close the beta checklist in sections 5.1-5.5 |
+
+### Remaining Alpha-Exit Follow-Through Gaps (Found During Beta)
+
+These do **not** invalidate alpha exit criteria; they are post-exit hardening gaps identified by broader beta usage and operational rehearsal:
+
+1. **Pillar B (Online tournaments):** reconnect/no-show enforcement needs validation under real-world network variance and retry behavior.
+2. **Pillar C (Casino + battle center):** anti-abuse trip thresholds and earn-cap tuning still need telemetry-backed calibration from beta sessions.
+3. **Pillar D (Campaign maker):** first-party creator playtests and friction remediation are incomplete for the `classic_two_region` onboarding flow.
+4. **Pillar E (Rules/settings operations):** public-facing onboarding docs for tournament flow and creator export workflow are not yet published.
+5. **Cross-pillar reliability:** structured error reporting, idempotency guards, and migration rollback ergonomics are still open in Phase 5.5.3.
 
 ## Phase 1 — Foundations for the New Focus (Complete)
 
@@ -195,7 +215,7 @@ Make all key gameplay and online behaviors explicit, configurable, and testable:
 
 ---
 
-## Alpha Exit Declaration (March 2026)
+## Alpha Exit Record (Closed March 2026)
 
 All five Alpha Exit Criteria have been met:
 
@@ -205,7 +225,7 @@ All five Alpha Exit Criteria have been met:
 4. ✅ Campaign maker supports non-programmer creators from project creation through validated export.
 5. ✅ Rules/settings system is polished and reliable with documented precedence, UI clarity, and regression coverage.
 
-The project moves to **Beta** effective March 2026. The version has been bumped to `0.5.0`.
+The project moved to **Beta** in March 2026. The version was bumped to `0.5.0`.
 
 ---
 
