@@ -7,8 +7,13 @@ and scaffold generation.
 
 import pytest
 
+from tuxemon.campaign.builder import CampaignBuilder
+from tuxemon.campaign.importer import CampaignImporter
+from tuxemon.campaign.linter import CampaignLinter
 from tuxemon.campaign.models import CampaignManifest
+from tuxemon.campaign.smoke_test import CampaignSmokeTest
 from tuxemon.campaign.wizard import CampaignWizard, WizardValidationError
+from tuxemon.campaign.validator import CampaignValidator
 from tuxemon.rules.models import ClauseID, DifficultyPreset
 
 
@@ -97,6 +102,7 @@ class TestWizardStep1Validation:
             )
         assert exc_info.value.step == 1
         assert len(exc_info.value.errors) > 0
+        assert any("Campaign ID" in msg for msg in exc_info.value.inline_messages)
 
     def test_description_too_short(self, wizard):
         with pytest.raises(WizardValidationError) as exc_info:
@@ -215,6 +221,13 @@ class TestManifestConstruction:
         manifest = _complete_wizard(wizard)
         assert isinstance(manifest, CampaignManifest)
 
+    def test_manifest_start_map_tracks_selected_template(self, wizard):
+        manifest = _complete_wizard(
+            wizard, step2={"template": "classic_two_region"}
+        )
+        assert manifest.start_map == "maps/region1_town.tmx"
+        assert manifest.entry_script == "main_intro"
+
 
 class TestScaffoldGeneration:
     def test_dry_run_returns_scaffold(self, wizard, tmp_path):
@@ -250,6 +263,16 @@ class TestScaffoldGeneration:
         assert "Test Campaign" in content
         assert "Test Author" in content
 
+    def test_generate_writes_template_aware_manifest_yaml(
+        self, wizard, tmp_path
+    ):
+        _complete_wizard(wizard, step2={"template": "classic_two_region"})
+        output = tmp_path / "my_campaign"
+        wizard.generate_scaffold(output)
+        content = (output / "campaign.yaml").read_text()
+        assert 'start_map: "maps/region1_town.tmx"' in content
+        assert 'entry_script: "main_intro"' in content
+
     def test_generate_raises_if_dir_exists(self, wizard, tmp_path):
         _complete_wizard(wizard)
         output = tmp_path / "my_campaign"
@@ -264,6 +287,61 @@ class TestScaffoldGeneration:
         m2 = wizard.build_manifest()
         assert m1.id == m2.id
         assert m1.name == m2.name
+
+    def test_generate_applies_selected_template(self, wizard, tmp_path):
+        _complete_wizard(wizard, step2={"template": "classic_two_region"})
+        output = tmp_path / "my_campaign"
+        wizard.generate_scaffold(output)
+
+        assert (output / "maps" / "region1_town.tmx").is_file()
+        assert (output / "maps" / "region2_gym.tmx").is_file()
+        assert (output / "scripts" / "gym1_leader.json").is_file()
+        assert (output / "locale" / "en_US.ini").is_file()
+
+    def test_generate_template_manifest_points_to_existing_start_map(
+        self, wizard, tmp_path
+    ):
+        _complete_wizard(wizard, step2={"template": "classic_two_region"})
+        output = tmp_path / "my_campaign"
+        wizard.generate_scaffold(output)
+
+        manifest = wizard.build_manifest()
+        assert (output / manifest.start_map).is_file()
+
+
+class TestClassicTwoRegionCreatorJourney:
+    def test_end_to_end_generate_validate_package_install_and_smoke(
+        self, wizard, tmp_path
+    ):
+        _complete_wizard(wizard, step2={"template": "classic_two_region"})
+        campaign_dir = tmp_path / "classic_campaign"
+        wizard.generate_scaffold(campaign_dir)
+
+        validator = CampaignValidator()
+        validation_report = validator.validate(campaign_dir)
+        assert validation_report.is_valid, validation_report.summary()
+
+        linter_report = CampaignLinter(validator=validator).lint(campaign_dir)
+        assert linter_report.passed, linter_report.format_human()
+
+        smoke_result = CampaignSmokeTest(validator=validator).run(campaign_dir)
+        assert smoke_result.ready, smoke_result.format_report()
+
+        build_result = CampaignBuilder(validator=validator).build(campaign_dir)
+        assert build_result.success, build_result.human_summary()
+        assert build_result.output_path is not None
+        assert build_result.output_path.exists()
+
+        install_root = tmp_path / "installed"
+        import_result = CampaignImporter().install(
+            build_result.output_path, install_root
+        )
+        assert import_result.success, import_result.human_summary()
+        assert import_result.install_dir is not None
+        assert (import_result.install_dir / "campaign.yaml").is_file()
+
+        post_install = CampaignSmokeTest().run(import_result.install_dir)
+        assert post_install.ready, post_install.format_report()
 
 
 class TestWizardReset:

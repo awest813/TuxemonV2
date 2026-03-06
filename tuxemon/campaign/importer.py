@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import shutil
+import tempfile
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -207,11 +208,29 @@ class CampaignImporter:
             install_dir.mkdir(parents=True, exist_ok=True)
             if campaign_target.exists() and overwrite:
                 shutil.rmtree(campaign_target)
-            with zipfile.ZipFile(capsule_path, "r") as zf:
-                # The archive stores files under the campaign directory name
-                # (e.g. "my_campaign/campaign.yaml"), so extract to install_dir
-                # to produce the correct install_dir/campaign_id/ layout.
-                zf.extractall(install_dir)
+
+            with tempfile.TemporaryDirectory(dir=install_dir) as temp_dir:
+                temp_path = Path(temp_dir)
+                with zipfile.ZipFile(capsule_path, "r") as zf:
+                    zf.extractall(temp_path)
+
+                extracted_root = self._find_extracted_campaign_root(
+                    temp_path, compat.campaign_id
+                )
+                if extracted_root is None:
+                    return ImportResult(
+                        success=False,
+                        compatibility=compat,
+                        error=(
+                            "Archive extraction succeeded but no campaign root "
+                            "with campaign.yaml was found."
+                        ),
+                    )
+
+                if campaign_target.exists() and overwrite:
+                    shutil.rmtree(campaign_target)
+
+                shutil.move(str(extracted_root), str(campaign_target))
         except (zipfile.BadZipFile, OSError) as exc:
             return ImportResult(
                 success=False,
@@ -287,6 +306,32 @@ class CampaignImporter:
         for name in zf.namelist():
             if name.endswith("campaign.yaml"):
                 return name
+        return None
+
+    @staticmethod
+    def _find_extracted_campaign_root(
+        extracted_dir: Path, campaign_id: str
+    ) -> Optional[Path]:
+        """
+        Locate the extracted campaign root directory containing campaign.yaml.
+
+        Prefer ``<extracted_dir>/<campaign_id>`` when present, otherwise fall
+        back to the shallowest unique directory that contains campaign.yaml.
+        """
+        preferred = extracted_dir / campaign_id
+        if (preferred / "campaign.yaml").is_file():
+            return preferred
+
+        candidates = sorted(
+            {
+                p.parent
+                for p in extracted_dir.rglob("campaign.yaml")
+                if p.is_file()
+            },
+            key=lambda p: len(p.relative_to(extracted_dir).parts),
+        )
+        if len(candidates) == 1:
+            return candidates[0]
         return None
 
     def _evaluate_compatibility(

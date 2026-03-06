@@ -58,6 +58,30 @@ def _make_capsule(
     return capsule_path
 
 
+def _make_capsule_with_root(
+    tmp_path: Path,
+    *,
+    archive_root: str,
+    manifest_override: dict | None = None,
+) -> Path:
+    """Create a .capsule archive under a custom archive root directory."""
+    manifest = {**VALID_MANIFEST_DICT, **(manifest_override or {})}
+    manifest_yaml = yaml.dump(manifest)
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr(f"{archive_root}/campaign.yaml", manifest_yaml)
+        zf.writestr(f"{archive_root}/maps/start.tmx", "<map/>")
+        zf.writestr(
+            f"{archive_root}/scripts/main_intro.json",
+            json.dumps({"id": "main_intro", "triggers": [], "nodes": []}),
+        )
+
+    capsule_path = tmp_path / f"{manifest['id']}.capsule"
+    capsule_path.write_bytes(buf.getvalue())
+    return capsule_path
+
+
 # ---------------------------------------------------------------------------
 # CompatibilityResult tests
 # ---------------------------------------------------------------------------
@@ -209,6 +233,24 @@ class TestCampaignImporter:
         importer.install(capsule, install_dir)
         result = importer.install(capsule, install_dir, overwrite=True)
         assert result.success
+
+    def test_install_handles_archive_root_not_matching_campaign_id(
+        self, tmp_path
+    ):
+        capsule = _make_capsule_with_root(
+            tmp_path,
+            archive_root="classic_campaign",
+            manifest_override={"id": "import_test"},
+        )
+        install_dir = tmp_path / "campaigns"
+        install_dir.mkdir()
+
+        importer = CampaignImporter(engine_version="0.4.35")
+        result = importer.install(capsule, install_dir)
+
+        assert result.success, result.human_summary()
+        assert result.install_dir == install_dir / "import_test"
+        assert (result.install_dir / "campaign.yaml").is_file()
 
     def test_read_manifest_returns_model(self, tmp_path):
         capsule = _make_capsule(tmp_path)
