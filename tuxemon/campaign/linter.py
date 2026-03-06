@@ -127,7 +127,7 @@ LINT_HINTS: dict[str, str] = {
         "Restructure the call graph to remove the cycle."
     ),
     "encounter_zone_valid": (
-        "Add at least one monster ID to the encounter zone's `monsters` property in Tiled."
+        "Add at least one monster ID to the encounter zone's `monster_ids` property in Tiled."
     ),
     "monster_id_valid": (
         "Verify the monster ID is spelled correctly and exists in the game database."

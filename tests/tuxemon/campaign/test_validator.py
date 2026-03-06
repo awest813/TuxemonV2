@@ -580,3 +580,50 @@ class TestCampaignLevelChecks:
         assert any(
             i.check_id == "no_unreachable_maps" for i in report.warnings
         )
+
+class TestValidationMessageQuality:
+    def test_entry_script_message_has_field_and_fix(self, tmp_path):
+        campaign_dir = _make_campaign(
+            tmp_path,
+            manifest_overrides={"entry_script": "missing_intro"},
+        )
+        report = CampaignValidator().validate(campaign_dir)
+        issue = next(i for i in report.blocking if i.check_id == "entry_script_missing")
+        assert "entry_script" in issue.message
+        assert "Fix:" in issue.message
+
+    def test_unknown_action_message_has_script_node_and_fix(self, tmp_path):
+        campaign_dir = _make_campaign(
+            tmp_path,
+            script_overrides={
+                "nodes": [
+                    {
+                        "id": "bad_node",
+                        "action": "bad_action",
+                        "args": {},
+                        "next": None,
+                        "branches": {},
+                    }
+                ]
+            },
+        )
+        report = CampaignValidator().validate(campaign_dir)
+        issue = next(i for i in report.blocking if i.check_id == "script_action_valid")
+        assert "main_intro" in issue.message
+        assert "bad_node" in issue.message
+        assert "Fix:" in issue.message
+
+    def test_npc_missing_script_message_has_field_and_fix(self, tmp_path):
+        campaign_dir = _make_campaign(tmp_path)
+        maps_dir = campaign_dir / "maps"
+        tmx = MINIMAL_TMX_WITH_SPAWN.format(
+            slug="npc_map",
+            events=SPAWN_POINT_XML + "\n" + NPC_XML.format(script_id="ghost_script"),
+        )
+        (maps_dir / "npc_map.tmx").write_text(tmx, encoding="utf-8")
+
+        report = CampaignValidator().validate(campaign_dir)
+        issue = next(i for i in report.blocking if i.check_id == "npc_script_valid")
+        assert "script_id" in issue.message
+        assert "ghost_script" in issue.message
+        assert "Fix:" in issue.message
