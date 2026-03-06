@@ -272,6 +272,11 @@ class CampaignValidator:
 
         return report
 
+    @staticmethod
+    def _with_fix(message: str, fix: str) -> str:
+        """Append a concrete fix suggestion to a validation message."""
+        return f"{message} Fix: {fix}"
+
     # ------------------------------------------------------------------
     # Manifest validation (§4.1)
     # ------------------------------------------------------------------
@@ -313,7 +318,10 @@ class CampaignValidator:
                 field_loc = ".".join(str(x) for x in err["loc"])
                 report.add_blocking(
                     "manifest_field_invalid",
-                    f"Field '{field_loc}': {err['msg']}",
+                    self._with_fix(
+                        f"Field '{field_loc}' is invalid: {err['msg']}.",
+                        "Update campaign.yaml so this field matches the manifest schema.",
+                    ),
                     path="campaign.yaml",
                 )
             return None
@@ -324,9 +332,12 @@ class CampaignValidator:
         ):
             report.add_blocking(
                 "engine_version_incompatible",
-                (
-                    f"Campaign requires engine >= {manifest.engine_min_version}, "
-                    f"but current engine is {self._engine_version}"
+                self._with_fix(
+                    (
+                        f"campaign.yaml field 'engine_min_version' requires >= {manifest.engine_min_version}, "
+                        f"but current engine is {self._engine_version}."
+                    ),
+                    "Lower engine_min_version or upgrade the engine version.",
                 ),
                 path="campaign.yaml",
             )
@@ -415,10 +426,14 @@ class CampaignValidator:
                 monster_ids = [
                     m.strip() for m in monster_ids_raw.split(",") if m.strip()
                 ]
+                zone_id = zone.get("id", "unknown")
                 if not monster_ids:
                     report.add_blocking(
                         "encounter_zone_valid",
-                        "Encounter zone has no monster IDs assigned.",
+                        self._with_fix(
+                            f"Encounter zone object id='{zone_id}' field 'monster_ids' is empty.",
+                            "Set the encounter_zone property monster_ids to one or more comma-separated monster IDs.",
+                        ),
                         path=str(rel),
                     )
                 elif self._known_monster_ids is not None:
@@ -426,7 +441,10 @@ class CampaignValidator:
                         if mid not in self._known_monster_ids:
                             report.add_blocking(
                                 "monster_id_valid",
-                                f"Unknown monster ID '{mid}' in encounter zone.",
+                                self._with_fix(
+                                    f"Encounter zone object id='{zone_id}' references unknown monster id '{mid}' in field 'monster_ids'.",
+                                    "Correct the ID spelling or use an existing monster ID from the game database.",
+                                ),
                                 path=str(rel),
                             )
 
@@ -562,7 +580,10 @@ class CampaignValidator:
             if sid in script_ids:
                 report.add_blocking(
                     "script_id_unique",
-                    f"Duplicate script ID '{sid}': also found in {script_ids[sid]}",
+                    self._with_fix(
+                        f"Duplicate script id '{sid}' found in '{rel}' and '{script_ids[sid].relative_to(campaign_dir)}'.",
+                        "Give one of these script files a unique id value.",
+                    ),
                     path=rel,
                 )
             else:
@@ -570,8 +591,9 @@ class CampaignValidator:
 
             # Validate action nodes
             calls: list[str] = []
-            for node in data.get("nodes", []):
+            for node_index, node in enumerate(data.get("nodes", []), start=1):
                 action_type = node.get("action") or node.get("type")
+                node_id = node.get("id", f"index_{node_index}")
                 if action_type == "call_script":
                     target = (node.get("args") or {}).get("script_id")
                     if target:
@@ -582,7 +604,10 @@ class CampaignValidator:
                     # §4.4 script_action_valid
                     report.add_blocking(
                         "script_action_valid",
-                        f"Unknown action type '{action_type}' in script '{sid}'.",
+                        self._with_fix(
+                            f"Script '{sid}' node '{node_id}' (nodes[{node_index}].action) uses unknown action type '{action_type}'.",
+                            "Replace it with a supported action type or remove this node.",
+                        ),
                         path=rel,
                     )
 
@@ -595,7 +620,7 @@ class CampaignValidator:
                             "localization_key_defined",
                             (
                                 f"Script '{sid}' references locale key "
-                                f"'{args['text_key']}' but no locale/ directory found."
+                                f"'{args['text_key']}' in node '{node_id}', but no locale/ directory found."
                             ),
                             path=rel,
                         )
@@ -635,7 +660,10 @@ class CampaignValidator:
                 if dfs(sid):
                     report.add_blocking(
                         "script_loop_detected",
-                        f"Circular script reference detected involving script '{sid}'.",
+                        self._with_fix(
+                            f"Circular script reference detected involving script '{sid}'.",
+                            "Remove at least one call_script edge so the call graph becomes acyclic.",
+                        ),
                     )
 
     # ------------------------------------------------------------------
@@ -656,7 +684,10 @@ class CampaignValidator:
         if not start_map_path.exists():
             report.add_blocking(
                 "start_map_reachable",
-                f"start_map '{manifest.start_map}' does not exist in campaign directory.",
+                self._with_fix(
+                    f"campaign.yaml field 'start_map' points to missing file '{manifest.start_map}'.",
+                    "Set start_map to an existing .tmx path relative to campaign root (for example: maps/start.tmx).",
+                ),
                 path=manifest.start_map,
             )
         else:
@@ -673,7 +704,10 @@ class CampaignValidator:
             if start_desc is not None and start_desc.spawn_count == 0:
                 report.add_blocking(
                     "spawn_point_exists",
-                    f"Start map '{manifest.start_map}' has no spawn_point object.",
+                    self._with_fix(
+                        f"Start map '{manifest.start_map}' has no object of type 'spawn_point'.",
+                        "Add a spawn_point object in the map's Events object layer.",
+                    ),
                     path=manifest.start_map,
                 )
 
@@ -681,9 +715,12 @@ class CampaignValidator:
         if script_ids and manifest.entry_script not in script_ids:
             report.add_blocking(
                 "entry_script_missing",
-                (
-                    f"entry_script '{manifest.entry_script}' not found in scripts/. "
-                    f"Known scripts: {sorted(script_ids)}"
+                self._with_fix(
+                    (
+                        f"campaign.yaml field 'entry_script' references '{manifest.entry_script}', "
+                        f"but it was not found in scripts/. Known script ids: {sorted(script_ids)}."
+                    ),
+                    "Create the script file with that id or update entry_script to an existing id.",
                 ),
                 path="campaign.yaml",
             )
@@ -700,7 +737,10 @@ class CampaignValidator:
                 }:
                     report.add_blocking(
                         "transition_target_valid",
-                        f"Map transition references non-existent map '{target}'.",
+                        self._with_fix(
+                            f"Map transition target_map='{target}' in '{rel}' points to a missing map.",
+                            "Update target_map to a valid path under maps/.",
+                        ),
                         path=rel,
                     )
                 else:
@@ -712,7 +752,10 @@ class CampaignValidator:
                     ):
                         report.add_blocking(
                             "spawn_point_exists",
-                            f"Transition target '{target}' has no spawn_point object.",
+                            self._with_fix(
+                                f"Transition target '{target}' has no object of type 'spawn_point'.",
+                                "Add a spawn_point object to the target map's Events object layer.",
+                            ),
                             path=rel,
                         )
 
@@ -721,7 +764,10 @@ class CampaignValidator:
                 if script_ids and sid not in script_ids:
                     report.add_blocking(
                         "npc_script_valid",
-                        f"NPC references script '{sid}' which does not exist in scripts/.",
+                        self._with_fix(
+                            f"NPC in '{rel}' references missing script id '{sid}' via field 'script_id'.",
+                            "Create a script with this id in scripts/ or update the NPC script_id property.",
+                        ),
                         path=rel,
                     )
 
