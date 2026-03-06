@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from enum import Enum
@@ -235,6 +236,8 @@ class BaseClient(ABC):
         """
         self.network_manager.update(time_delta)
         self.input_cache.clear_frame_state()
+
+        input_start = time.perf_counter()
         events = self.input_manager.process_events()
 
         while True:
@@ -248,6 +251,10 @@ class BaseClient(ABC):
 
         self.input_manager.update(time_delta)
         self.key_events = list(self.event_manager.process_events(events))
+
+        profiler = getattr(self, "profiler", None)
+        if profiler:
+            profiler.record("input_latency", time.perf_counter() - input_start)
 
         self.event_data = {}
         self.event_engine.update(time_delta)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from collections import OrderedDict, defaultdict
 from collections.abc import Generator, MutableMapping
 from math import cos, pi, sin
@@ -71,6 +72,7 @@ class MapLoader:
         self.cache_size = cache_size or MAP_CACHE_SIZE
         self.enable_cache = enable_cache
         self._cache: OrderedDict[str, AbstractMap] = OrderedDict()
+        self.last_load_time = 0.0
 
     def load_map_data(self, path: str) -> AbstractMap:
         """
@@ -93,9 +95,11 @@ class MapLoader:
             if cached:
                 return cached
 
+        load_start = time.perf_counter()
         txmn_map = self.load_map_from_disk(normalized_path)
         yaml_files = self.resolve_yaml_files(txmn_map, normalized_path)
         self.process_and_merge_events(txmn_map, yaml_files)
+        self.last_load_time = time.perf_counter() - load_start
 
         if self.enable_cache:
             self.update_cache(normalized_path, txmn_map)
