@@ -6,6 +6,7 @@ import importlib
 import json
 import logging
 import os
+import shutil
 from base64 import b64encode
 from collections.abc import Callable, Mapping
 from datetime import datetime
@@ -16,6 +17,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 from pygame.image import tobytes
 from pygame.surface import Surface
+from pydantic import ValidationError
 
 from tuxemon.constants import paths
 from tuxemon.database.yaml_utils import dump_yaml_io, load_yaml
@@ -308,8 +310,44 @@ def load(save_path: Path) -> SaveData | None:
     if raw_data is None:
         # File not found; it probably wasn't ever created, so don't panic
         return None
-    upgraded_data = upgrade_save(raw_data)
-    return SaveData(**upgraded_data)
+
+    try:
+        upgraded_data = upgrade_save(raw_data)
+        return SaveData(**upgraded_data)
+    except (KeyError, TypeError, ValueError, ValidationError) as exc:
+        backup_path = _backup_failed_migration_save(save_path)
+        logger.error(
+            "Failed to migrate save '%s'. "
+            "This can happen with malformed or imported campaign data. "
+            "Backup created at '%s'. Error: %s",
+            save_path,
+            backup_path if backup_path is not None else "<backup failed>",
+            exc,
+            exc_info=True,
+        )
+        return None
+
+
+def _backup_failed_migration_save(save_path: Path) -> Path | None:
+    """Create a backup when migration/loading fails and return its path."""
+    if not save_path.exists():
+        return None
+
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    backup_path = save_path.with_suffix(
+        f"{save_path.suffix}.migration_failed_{timestamp}.bak"
+    )
+    try:
+        shutil.copy2(save_path, backup_path)
+    except OSError:
+        logger.error(
+            "Could not create migration-failure backup for '%s'.",
+            save_path,
+            exc_info=True,
+        )
+        return None
+
+    return backup_path
 
 
 def get_index_of_latest_save() -> int | None:
