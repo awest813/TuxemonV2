@@ -52,9 +52,9 @@ class Renderer:
         self.frames = 0
         self.fps_timer = 0.0
 
-    def draw(self) -> None:
-        """Draws the current game state."""
-        self.state_drawer.draw()
+    def draw(self) -> int:
+        """Draws the current game state and returns a draw-call proxy count."""
+        return self.state_drawer.draw()
 
     def draw_debug(
         self, partial_events: list[Sequence[tuple[bool, SpatialCondition]]]
@@ -113,7 +113,7 @@ class StateDrawer:
         self.state_manager = state_manager
         self.config = config
 
-    def draw(self) -> None:
+    def draw(self) -> int:
         """Draw all active states to the surface."""
         to_draw: list[State] = []
         full_screen = self.surface.get_rect()
@@ -132,6 +132,8 @@ class StateDrawer:
         # Draw states from bottom to top for proper layering.
         for state in reversed(to_draw):
             state.draw(self.surface)
+
+        return len(to_draw)
 
 
 class EventDebugDrawer:
