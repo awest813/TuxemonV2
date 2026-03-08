@@ -1,0 +1,3 @@
+## 2024-03-24 - [UX/a11y insight] QuantityMenu Wrap Around Navigation
+**Learning:** Menus for selecting quantities (e.g., buying items, moving items) lacked a wrap-around feature, causing users to have to manually increase/decrease by holding buttons to reach max/min quantities.
+**Action:** Implemented a bounds check wrap-around in `QuantityMenu._clamp_quantity()`. If `quantity` exceeds `max_quantity`, it wraps to `MIN_QUANTITY`, and if it drops below `MIN_QUANTITY`, it wraps to `max_quantity`. This pattern allows keyboard/gamepad users to instantly reach the upper or lower limits of a quantity selector with a single interaction, making bulk purchases/transfers faster and more accessible.

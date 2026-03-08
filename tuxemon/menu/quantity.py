@@ -111,10 +111,13 @@ class QuantityMenu(Menu[None]):
 
     def _clamp_quantity(self) -> None:
         if self.max_quantity is None:
+            self.quantity = max(MIN_QUANTITY, self.quantity)
             return
-        self.quantity = max(
-            MIN_QUANTITY, min(self.quantity, self.max_quantity)
-        )
+
+        if self.quantity < MIN_QUANTITY:
+            self.quantity = self.max_quantity
+        elif self.quantity > self.max_quantity:
+            self.quantity = MIN_QUANTITY
 
     def initialize_items(self) -> Generator[MenuItem[None], None, None]:
         label = self.label(self.quantity)
