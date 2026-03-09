@@ -81,7 +81,7 @@ class QuantityMenu(Menu[None]):
                 self.close()
                 self.callback(0)
                 return None
-            elif event.button == buttons.A:
+            elif event.button in (buttons.A, intentions.SELECT):
                 self.menu_select_sound.play()
                 self.close()
                 self.callback(self.quantity)
