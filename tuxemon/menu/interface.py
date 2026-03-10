@@ -278,8 +278,9 @@ class MenuItem(Generic[T], Sprite):
             pass
 
         if not self._enabled:
-            # Add visual effect for not enabled here
-            pass
+            self._image.set_alpha(128)
+        else:
+            self._image.set_alpha(255)
 
     @property
     def enabled(self) -> bool:
