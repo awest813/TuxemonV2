@@ -1,3 +1,3 @@
-## 2024-03-24 - [UX/a11y insight] QuantityMenu Wrap Around Navigation
-**Learning:** Menus for selecting quantities (e.g., buying items, moving items) lacked a wrap-around feature, causing users to have to manually increase/decrease by holding buttons to reach max/min quantities.
-**Action:** Implemented a bounds check wrap-around in `QuantityMenu._clamp_quantity()`. If `quantity` exceeds `max_quantity`, it wraps to `MIN_QUANTITY`, and if it drops below `MIN_QUANTITY`, it wraps to `max_quantity`. This pattern allows keyboard/gamepad users to instantly reach the upper or lower limits of a quantity selector with a single interaction, making bulk purchases/transfers faster and more accessible.
+## 2024-03-24 - QuantityMenu Confirm Interaction with SELECT Intention
+**Learning:** `QuantityMenu` was missing the ability to confirm selections with `intentions.SELECT`, whereas general menus support it. This caused inconsistent behavior for users relying on alternative input methods mapped to the generic `SELECT` intention.
+**Action:** Updated `QuantityMenu.process_event` to accept both `buttons.A` and `intentions.SELECT` for confirming a quantity selection, ensuring consistent input handling across the UI.
