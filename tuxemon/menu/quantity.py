@@ -100,13 +100,13 @@ class QuantityMenu(Menu[None]):
         return None
 
     def _update_quantity(self, button: int) -> None:
-        if button == buttons.UP:
+        if button in (buttons.UP, intentions.UP):
             self.quantity += QUANTITY_INCREMENT
-        elif button == buttons.DOWN:
+        elif button in (buttons.DOWN, intentions.DOWN):
             self.quantity -= QUANTITY_INCREMENT
-        elif button == buttons.RIGHT:
+        elif button in (buttons.RIGHT, intentions.RIGHT):
             self.quantity += QUANTITY_PAGE_INCREMENT
-        elif button == buttons.LEFT:
+        elif button in (buttons.LEFT, intentions.LEFT):
             self.quantity -= QUANTITY_PAGE_INCREMENT
 
     def _clamp_quantity(self) -> None:
