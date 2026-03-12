@@ -148,6 +148,10 @@ class MenuInputHandler(InputHandler, PressLogicMixin):
             buttons.DOWN,
             buttons.LEFT,
             buttons.RIGHT,
+            intentions.UP,
+            intentions.DOWN,
+            intentions.LEFT,
+            intentions.RIGHT,
         ):
             return False
 
