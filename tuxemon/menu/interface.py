@@ -273,14 +273,26 @@ class MenuItem(Generic[T], Sprite):
         if self._image is None:
             return
 
-        if self._in_focus:
-            # Add visual effect for focus here
-            pass
+        # Ensure we don't permanently modify the original image reference.
+        # Sprite's update_image can return a direct reference to _original_image
+        # if no scaling or rotation happens, so we copy it if we need to modify it
+        # beyond setting alpha (which affects the surface itself).
+        # Actually, set_alpha also mutates the underlying surface!
+        # If multiple menu items use the same image (e.g. quantity up/down arrows),
+        # changing alpha on one changes all unless copied.
+        # Let's copy safely if not already copied.
+        if self._image is self._original_image:
+            self._image = self._image.copy()
 
         if not self._enabled:
             self._image.set_alpha(128)
         else:
             self._image.set_alpha(255)
+
+        if self._in_focus:
+            # Add visual effect for focus to improve accessibility
+            from pygame import BLEND_RGB_ADD
+            self._image.fill((60, 60, 60, 0), special_flags=BLEND_RGB_ADD)
 
     @property
     def enabled(self) -> bool:
