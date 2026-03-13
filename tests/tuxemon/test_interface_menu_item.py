@@ -1,14 +1,24 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
+import pygame
 from pygame import Surface
 
 from tuxemon.menu.interface import MenuItem
 
 
 class TestMenuItem(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        pygame.init()
+        pygame.display.set_mode((1, 1))
+
+    @classmethod
+    def tearDownClass(cls):
+        pygame.quit()
 
     def setUp(self):
         self.image = Surface((10, 10))
@@ -50,6 +60,40 @@ class TestMenuItem(unittest.TestCase):
         menu_item.enabled = False
         menu_item.update_image = MagicMock()
         menu_item.update_image()
+
+    def test_enabled_setter_triggers_update_image(self):
+        menu_item = MenuItem(
+            self.image, "Test Label", "Test Description", self.game_object
+        )
+        with patch.object(menu_item, "update_image") as mock_update:
+            menu_item.enabled = False
+            mock_update.assert_called_once()
+
+    def test_enabled_setter_no_call_when_unchanged(self):
+        menu_item = MenuItem(
+            self.image, "Test Label", "Test Description", self.game_object
+        )
+        with patch.object(menu_item, "update_image") as mock_update:
+            menu_item.enabled = True  # already True, no change
+            mock_update.assert_not_called()
+
+    def test_disabled_item_has_reduced_alpha(self):
+        menu_item = MenuItem(
+            self.image, "Test Label", "Test Description", self.game_object
+        )
+        menu_item.enabled = False
+        self.assertEqual(menu_item.image.get_alpha(), 128)
+
+    def test_enabled_item_has_full_alpha(self):
+        menu_item = MenuItem(
+            self.image,
+            "Test Label",
+            "Test Description",
+            self.game_object,
+            enabled=False,
+        )
+        menu_item.enabled = True
+        self.assertEqual(menu_item.image.get_alpha(), 255)
 
     def test_enabled_property(self):
         menu_item = MenuItem(
