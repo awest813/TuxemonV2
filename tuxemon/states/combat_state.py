@@ -881,14 +881,13 @@ class CombatState(CombatAnimations):
         Animate monsters that need to be fainted.
 
         * Animation to remove monster is handled here
-        TODO: check for faint status, not HP
         """
         for (
             _,
             party,
         ) in self.combat_session.field_monsters.get_all_monsters().items():
             for monster in party:
-                if monster.is_fainted:
+                if monster.status.is_fainted:
                     params = {"name": monster.name.upper()}
                     msg = T.format("combat_fainted", params)
                     self.text_anim.add_text_animation(
@@ -953,6 +952,9 @@ class CombatState(CombatAnimations):
         Parameters:
             monster: Monster that was defeated.
         """
+        if monster.status.is_fainted:
+            return
+        monster.status.apply_faint(self.session, monster)
         self.remove_monster_actions_from_queue(monster)
         self.award_experience_and_money(monster)
         # Remove monster from damage map

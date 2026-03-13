@@ -302,6 +302,7 @@ class MenuItem(Generic[T], Sprite):
     def enabled(self, value: bool) -> None:
         if self._enabled != value:
             self._enabled = value
+            self.update_image()
 
     @property
     def in_focus(self) -> bool:
