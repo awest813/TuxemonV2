@@ -15,7 +15,7 @@ from tuxemon.item.sorter import ItemSorter
 from tuxemon.locale.locale import T
 from tuxemon.menu.interface import MenuItem
 from tuxemon.menu.menu import Menu
-from tuxemon.platform.const import buttons
+from tuxemon.platform.const import buttons, intentions
 from tuxemon.platform.const.graphics import (
     BG_ITEMS,
     BG_ITEMS_BACKPACK,
@@ -275,12 +275,12 @@ class ItemMenuState(Menu[Item]):
             Optional[PlayerInput]: The processed event or None if it's not handled.
         """
         total_pages = self.paginator.total_pages()
-        if event.button == buttons.RIGHT and event.pressed:
+        if event.button in (buttons.RIGHT, intentions.RIGHT) and event.pressed:
             # Move to the next page if possible
             if self.current_page < total_pages - 1:
                 self.current_page += 1
                 self.reload_items()
-        elif event.button == buttons.LEFT and event.pressed:
+        elif event.button in (buttons.LEFT, intentions.LEFT) and event.pressed:
             # Move to the previous page if possible
             if self.current_page > 0:
                 self.current_page -= 1
