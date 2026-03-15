@@ -117,3 +117,19 @@ class TestMenuItem(unittest.TestCase):
         )
         self.assertIn("Test Label", str(menu_item))
         self.assertIn("enabled=True", str(menu_item))
+
+    def test_in_focus_setter_triggers_update_image(self):
+        menu_item = MenuItem(
+            self.image, "Test Label", "Test Description", self.game_object
+        )
+        with patch.object(menu_item, "update_image") as mock_update:
+            menu_item.in_focus = True
+            mock_update.assert_called_once()
+
+    def test_in_focus_setter_no_call_when_unchanged(self):
+        menu_item = MenuItem(
+            self.image, "Test Label", "Test Description", self.game_object
+        )
+        with patch.object(menu_item, "update_image") as mock_update:
+            menu_item.in_focus = False  # already False, no change
+            mock_update.assert_not_called()

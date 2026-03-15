@@ -11,3 +11,6 @@
 ## 2024-05-22 - Visual Focus States for Menu Items
 **Learning:** `MenuItem` sprites lacked a visual indicator when they were focused (relying solely on an external cursor or other hints). Applying a subtle brightening effect using `BLEND_RGB_ADD` significantly improves keyboard and gamepad navigation feedback.
 **Action:** When implementing or modifying custom UI sprites that support an `in_focus` state, ensure that focus is communicated visually (e.g., through brightness, scale, or a highlight) to aid accessibility.
+## 2026-03-15 - Added Visual Focus State Updates for MenuItem
+**Learning:** The `MenuItem` custom UI sprite lacked an explicit visual update when its `in_focus` property was set via its property setter, unlike `enabled`. This caused keyboard/gamepad navigation to sometimes not reflect the focus state immediately, relying on the state update to trigger elsewhere.
+**Action:** When creating or modifying properties on a UI sprite (like `in_focus` or `enabled`) that affect visual representation (e.g. using `BLEND_RGB_ADD` or setting alpha), always ensure the property setter checks for a change and calls `self.update_image()` to immediately reflect the new state.
