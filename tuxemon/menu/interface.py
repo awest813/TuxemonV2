@@ -310,7 +310,9 @@ class MenuItem(Generic[T], Sprite):
 
     @in_focus.setter
     def in_focus(self, value: bool) -> None:
-        self._in_focus = bool(value)
+        if self._in_focus != bool(value):
+            self._in_focus = bool(value)
+            self.update_image()
 
     def __repr__(self) -> str:
         return (
