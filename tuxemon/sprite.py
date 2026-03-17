@@ -23,7 +23,7 @@ from pygame.surface import Surface
 from pygame.transform import rotozoom, scale
 
 from tuxemon import graphics
-from tuxemon.platform.const import buttons
+from tuxemon.platform.const import buttons, intentions
 from tuxemon.platform.events import PlayerInput
 from tuxemon.surfanim import SurfaceAnimation
 
@@ -538,9 +538,13 @@ class MenuSpriteGroup(SpriteGroup[_MenuElement]):
 
     _simple_movement_dict: Final = {
         buttons.LEFT: -1,
+        intentions.LEFT: -1,
         buttons.RIGHT: 1,
+        intentions.RIGHT: 1,
         buttons.UP: -1,
+        intentions.UP: -1,
         buttons.DOWN: 1,
+        intentions.DOWN: 1,
     }
     expand = False  # Used in subclasses only
 
@@ -641,9 +645,13 @@ class VisualSpriteList(RelativeGroup[_MenuElement]):
     expand = True  # True: fill all space of parent. False: more compact
     _2d_movement_dict: Final = {
         buttons.LEFT: ("lr", -1),
+        intentions.LEFT: ("lr", -1),
         buttons.RIGHT: ("lr", 1),
+        intentions.RIGHT: ("lr", 1),
         buttons.UP: ("tb", -1),
+        intentions.UP: ("tb", -1),
         buttons.DOWN: ("tb", 1),
+        intentions.DOWN: ("tb", 1),
     }
 
     def __init__(self, **kwargs: Any) -> None:
