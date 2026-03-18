@@ -16,7 +16,7 @@ from tuxemon.menu.menu import PygameMenuState
 from tuxemon.menu.theme import get_theme
 from tuxemon.monster.monster import Monster
 from tuxemon.monster.renderer import MonsterRenderer
-from tuxemon.platform.const import buttons
+from tuxemon.platform.const import buttons, intentions
 from tuxemon.platform.const.graphics import INDIV_INFO
 from tuxemon.platform.const.sizes import U_CM, U_FT, U_KG, U_LB, U_M, U_T
 from tuxemon.prepare import SCREEN_SIZE
@@ -483,17 +483,29 @@ class MonsterInfoState(PygameMenuState):
 
             slot = monsters.index(self._monster)
 
-            if event.button == buttons.RIGHT and self.valid_press(event):
+            if (
+                event.button in (buttons.RIGHT, intentions.RIGHT)
+                and self.valid_press(event)
+            ):
                 slot = (slot + 1) % len(monsters)
                 param["monster"] = monsters[slot]
                 client.replace_state("MonsterInfoState", **param)
-            elif event.button == buttons.LEFT and self.valid_press(event):
+            elif (
+                event.button in (buttons.LEFT, intentions.LEFT)
+                and self.valid_press(event)
+            ):
                 slot = (slot - 1) % len(monsters)
                 param["monster"] = monsters[slot]
                 client.replace_state("MonsterInfoState", **param)
 
         if (
-            event.button in (buttons.BACK, buttons.B, buttons.A)
+            event.button in (
+                buttons.BACK,
+                buttons.B,
+                buttons.A,
+                intentions.SELECT,
+                intentions.MENU_CANCEL,
+            )
             and event.pressed
         ):
             client.remove_state_by_name("MonsterInfoState")

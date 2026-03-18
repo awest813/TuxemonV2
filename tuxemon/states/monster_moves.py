@@ -15,7 +15,7 @@ from tuxemon.db import MonsterModel, SpeedLabel
 from tuxemon.locale.locale import T
 from tuxemon.menu.menu import PygameMenuState
 from tuxemon.monster.renderer import MonsterRenderer
-from tuxemon.platform.const import buttons
+from tuxemon.platform.const import buttons, intentions
 from tuxemon.platform.const.graphics import TECH_INFO
 from tuxemon.platform.const.sizes import ACCURACY_RANGE, POTENCY_RANGE
 from tuxemon.prepare import SCREEN_SIZE
@@ -376,14 +376,20 @@ class MonsterMovesState(PygameMenuState):
             slot = monsters.index(self._monster)
 
             # RIGHT → next monster (with repeat)
-            if event.button == buttons.RIGHT and self.valid_press(event):
+            if (
+                event.button in (buttons.RIGHT, intentions.RIGHT)
+                and self.valid_press(event)
+            ):
                 slot = (slot + 1) % len(monsters)
                 param["monster"] = monsters[slot]
                 client.replace_state("MonsterMovesState", **param)
                 return None
 
             # LEFT → previous monster (with repeat)
-            elif event.button == buttons.LEFT and self.valid_press(event):
+            elif (
+                event.button in (buttons.LEFT, intentions.LEFT)
+                and self.valid_press(event)
+            ):
                 slot = (slot - 1) % len(monsters)
                 param["monster"] = monsters[slot]
                 client.replace_state("MonsterMovesState", **param)

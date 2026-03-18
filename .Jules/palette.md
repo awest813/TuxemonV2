@@ -11,3 +11,6 @@
 ## 2024-05-22 - Visual Focus States for Menu Items
 **Learning:** `MenuItem` sprites lacked a visual indicator when they were focused (relying solely on an external cursor or other hints). Applying a subtle brightening effect using `BLEND_RGB_ADD` significantly improves keyboard and gamepad navigation feedback.
 **Action:** When implementing or modifying custom UI sprites that support an `in_focus` state, ensure that focus is communicated visually (e.g., through brightness, scale, or a highlight) to aid accessibility.
+## 2026-03-18 - Add intentions for more states
+**Learning:** Hardcoded button checks limit accessibility and consistency for mapped intentions. This issue was previously fixed in `QuantityMenu` but remained in other UI components like `NumberPickerState`, `MonsterMovesState`, and `MonsterInfoState`. Adding fallback checks for `intentions.RIGHT/LEFT/SELECT/MENU_CANCEL` significantly improves usability for users with customized inputs.
+**Action:** When working on Pygame menu states, remember to use intention equivalents when verifying user input (e.g., `intentions.SELECT` instead of just `buttons.A`).

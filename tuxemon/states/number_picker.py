@@ -9,7 +9,7 @@ from pygame_menu.locals import ALIGN_CENTER, POSITION_EAST
 
 from tuxemon.locale.locale import T
 from tuxemon.menu.menu import PygameMenuState
-from tuxemon.platform.const import buttons
+from tuxemon.platform.const import buttons, intentions
 from tuxemon.platform.const.graphics import BG_MISSIONS
 from tuxemon.prepare import SCREEN_SIZE
 
@@ -108,22 +108,31 @@ class NumberPickerState(PygameMenuState):
 
     def process_event(self, event: PlayerInput) -> PlayerInput | None:
         # RIGHT increment
-        if event.button == buttons.RIGHT and self.valid_press(event):
+        if (
+            event.button in (buttons.RIGHT, intentions.RIGHT)
+            and self.valid_press(event)
+        ):
             self._increment()
             return None
 
         # LEFT decrement
-        if event.button == buttons.LEFT and self.valid_press(event):
+        if (
+            event.button in (buttons.LEFT, intentions.LEFT)
+            and self.valid_press(event)
+        ):
             self._decrement()
             return None
 
         # A confirm (pressed only, not held)
-        if event.button == buttons.A and event.pressed:
+        if event.button in (buttons.A, intentions.SELECT) and event.pressed:
             self._confirm()
             return None
 
         # B cancel (pressed only)
-        if event.button == buttons.B and event.pressed:
+        if (
+            event.button in (buttons.B, intentions.MENU_CANCEL)
+            and event.pressed
+        ):
             self.client.pop_state()
             return None
 
