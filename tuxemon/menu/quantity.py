@@ -88,18 +88,17 @@ class QuantityMenu(Menu[None]):
                 return None
             else:
                 self._update_quantity(event.button)
-                self._clamp_quantity()
                 self.reload_items()
 
         elif event.held:
             if event.is_held(REPEAT_DELAY):
                 self._update_quantity(event.button)
-                self._clamp_quantity()
                 self.reload_items()
 
         return None
 
     def _update_quantity(self, button: int) -> None:
+        old_quantity = self.quantity
         if button in (buttons.UP, intentions.UP):
             self.quantity += QUANTITY_INCREMENT
         elif button in (buttons.DOWN, intentions.DOWN):
@@ -108,6 +107,11 @@ class QuantityMenu(Menu[None]):
             self.quantity += QUANTITY_PAGE_INCREMENT
         elif button in (buttons.LEFT, intentions.LEFT):
             self.quantity -= QUANTITY_PAGE_INCREMENT
+
+        self._clamp_quantity()
+
+        if old_quantity != self.quantity:
+            self.menu_select_sound.play()
 
     def _clamp_quantity(self) -> None:
         if self.max_quantity is None:
