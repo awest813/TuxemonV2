@@ -11,3 +11,6 @@
 ## 2024-05-22 - Visual Focus States for Menu Items
 **Learning:** `MenuItem` sprites lacked a visual indicator when they were focused (relying solely on an external cursor or other hints). Applying a subtle brightening effect using `BLEND_RGB_ADD` significantly improves keyboard and gamepad navigation feedback.
 **Action:** When implementing or modifying custom UI sprites that support an `in_focus` state, ensure that focus is communicated visually (e.g., through brightness, scale, or a highlight) to aid accessibility.
+## 2024-05-24 - Support Intentions in Pygame-Menu Event Adapter
+**Learning:** Modern menus built with `pygame-menu-ce` rely on `playerinput_to_event` (via `_EVENT_MAP` in `tuxemon/menu/events.py`) to convert game `PlayerInput` into native `pygame.Event` objects. This map only checked physical `buttons` (e.g. `buttons.UP`, `buttons.A`), which broke navigation for users who remapped controls to generic `intentions` (like `intentions.UP`, `intentions.SELECT`).
+**Action:** When creating adapters or bridging game input to third-party UI libraries, always map abstract `intentions` alongside literal `buttons` so alternative/custom control schemes still function correctly.

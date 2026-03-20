@@ -6,7 +6,7 @@ from typing import Final
 import pygame
 from pygame.event import Event
 
-from tuxemon.platform.const import buttons
+from tuxemon.platform.const import buttons, intentions
 from tuxemon.platform.events import PlayerInput
 
 _EVENT_MAP: Final[dict[int, Callable[[], Event]]] = {
@@ -17,6 +17,13 @@ _EVENT_MAP: Final[dict[int, Callable[[], Event]]] = {
     buttons.BACK: lambda: Event(pygame.KEYDOWN, key=pygame.K_ESCAPE),
     buttons.A: lambda: Event(pygame.KEYDOWN, key=pygame.K_RETURN),
     buttons.B: lambda: Event(pygame.KEYDOWN, key=pygame.K_ESCAPE),
+    intentions.UP: lambda: Event(pygame.KEYDOWN, key=pygame.K_UP),
+    intentions.DOWN: lambda: Event(pygame.KEYDOWN, key=pygame.K_DOWN),
+    intentions.LEFT: lambda: Event(pygame.KEYDOWN, key=pygame.K_LEFT),
+    intentions.RIGHT: lambda: Event(pygame.KEYDOWN, key=pygame.K_RIGHT),
+    intentions.MENU_CANCEL: lambda: Event(pygame.KEYDOWN, key=pygame.K_ESCAPE),
+    intentions.SELECT: lambda: Event(pygame.KEYDOWN, key=pygame.K_RETURN),
+    intentions.BACK: lambda: Event(pygame.KEYDOWN, key=pygame.K_ESCAPE),
 }
 
 
