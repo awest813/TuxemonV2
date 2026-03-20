@@ -14,3 +14,10 @@
 ## 2024-05-24 - Support Intentions in Pygame-Menu Event Adapter
 **Learning:** Modern menus built with `pygame-menu-ce` rely on `playerinput_to_event` (via `_EVENT_MAP` in `tuxemon/menu/events.py`) to convert game `PlayerInput` into native `pygame.Event` objects. This map only checked physical `buttons` (e.g. `buttons.UP`, `buttons.A`), which broke navigation for users who remapped controls to generic `intentions` (like `intentions.UP`, `intentions.SELECT`).
 **Action:** When creating adapters or bridging game input to third-party UI libraries, always map abstract `intentions` alongside literal `buttons` so alternative/custom control schemes still function correctly.
+## 2026-03-20 - Adding Auditory Feedback to Quantity Changes
+**Learning:**  lacked auditory feedback when changing the quantity via D-pad/intentions, unlike standard  interactions. This reduced accessibility and UI consistency.
+**Action:** When implementing new UI elements or inputs that change state, verify that  (or the equivalent sound hook) is fired appropriately on state change to ensure intuitive and consistent feedback.
+
+## 2024-05-25 - Adding Auditory Feedback to Quantity Changes
+**Learning:** `QuantityMenu` lacked auditory feedback when changing the quantity via D-pad/intentions, unlike standard `Menu` interactions. This reduced accessibility and UI consistency.
+**Action:** When implementing new UI elements or inputs that change state, verify that `self.menu_select_sound.play()` (or the equivalent sound hook) is fired appropriately on state change to ensure intuitive and consistent feedback.
