@@ -3,6 +3,7 @@
 import unittest
 
 from tuxemon.step_tracker import (
+    MilestoneStatus,
     StepTracker,
     StepTrackerManager,
     decode_steps,
@@ -220,3 +221,25 @@ class TestStepTrackerManager(unittest.TestCase):
     def test_get_nonexistent_tracker(self):
         tracker = self.manager.get_tracker("ghost")
         self.assertIsNone(tracker)
+
+    def test_encode_steps_structure(self):
+        """Test the dictionary structure returned by encode_steps."""
+        self.tracker1.steps = 10.0
+        self.tracker1.countdown = 90.0
+        self.tracker1.initial_countdown = 100.0
+        self.tracker1.milestone_status = {
+            50.0: MilestoneStatus(triggered=True, shown=False)
+        }
+        encoded = encode_steps(self.manager)
+        self.assertIn("user1", encoded)
+        self.assertIn("user2", encoded)
+
+        tracker1_data = encoded["user1"]
+        self.assertEqual(tracker1_data["steps"], 10.0)
+        self.assertEqual(tracker1_data["countdown"], 90.0)
+        self.assertEqual(tracker1_data["initial_countdown"], 100.0)
+        self.assertIn("50.0", tracker1_data["milestone_status"])
+        self.assertEqual(
+            tracker1_data["milestone_status"]["50.0"],
+            {"triggered": True, "shown": False},
+        )
