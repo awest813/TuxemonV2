@@ -389,6 +389,9 @@ class Menu(Generic[T], State):
     animate_contents = False  # show contents while window opens
     # if true, then menu items can be selected with the mouse/touch
     touch_aware = True
+    # The padding to add when fitting the border to the contents
+    fit_padding_width: int = 18
+    fit_padding_height: int = 19
 
     def __init__(
         self, client: BaseClient, selected_index: int = 0, **kwargs: Any
@@ -581,10 +584,13 @@ class Menu(Generic[T], State):
         rect1 = rect1.union(rect2)
 
         # expand the bounding box by the border and some padding
-        # TODO: do not hardcode these values
         # border is 12, padding is the rest
-        rect1.width += self.client.context.scaling.scale_int(18)
-        rect1.height += self.client.context.scaling.scale_int(19)
+        rect1.width += self.client.context.scaling.scale_int(
+            self.fit_padding_width
+        )
+        rect1.height += self.client.context.scaling.scale_int(
+            self.fit_padding_height
+        )
         rect1.topleft = 0, 0
 
         # set our rect and adjust the centers to match
