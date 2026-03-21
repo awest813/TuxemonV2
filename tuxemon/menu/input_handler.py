@@ -277,6 +277,10 @@ class PygameMenuInputHandler(InputHandler, PressLogicMixin):
             buttons.DOWN,
             buttons.LEFT,
             buttons.RIGHT,
+            intentions.UP,
+            intentions.DOWN,
+            intentions.LEFT,
+            intentions.RIGHT,
         ):
             if self._single_press_only:
                 if self._state.open and event.pressed:
