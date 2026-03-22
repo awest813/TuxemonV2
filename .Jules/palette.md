@@ -21,3 +21,7 @@
 ## 2024-05-25 - Adding Auditory Feedback to Quantity Changes
 **Learning:** `QuantityMenu` lacked auditory feedback when changing the quantity via D-pad/intentions, unlike standard `Menu` interactions. This reduced accessibility and UI consistency.
 **Action:** When implementing new UI elements or inputs that change state, verify that `self.menu_select_sound.play()` (or the equivalent sound hook) is fired appropriately on state change to ensure intuitive and consistent feedback.
+
+## 2026-03-22 - Support Intentions in PygameMenuInputHandler Directional Controls
+**Learning:** `PygameMenuInputHandler` correctly handled directional inputs like `buttons.UP` and allowed held repeat but it missed abstract intentions like `intentions.UP`. This prevented hold-to-repeat functionality for users who remap controls using generic intentions.
+**Action:** Always include abstract intentions mapped alongside physical button inputs when checking if an input should be handled (especially for special features like repeat delay) in input handlers.

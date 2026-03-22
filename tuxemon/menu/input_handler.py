@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0
-# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
+# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com> # noqa: E501
 from __future__ import annotations
 
 import logging
@@ -44,7 +44,9 @@ class MenuInputHandler(InputHandler, PressLogicMixin):
 
     REPEAT_DELAY = 0.50  # seconds before repeat starts
     REPEAT_INTERVAL = 0.08  # seconds between repeats
-    ANALOG_DEAD_ZONE = 0.25  # analog axis values below this threshold are ignored
+    ANALOG_DEAD_ZONE = (
+        0.25  # analog axis values below this threshold are ignored
+    )
 
     def __init__(
         self,
@@ -55,8 +57,14 @@ class MenuInputHandler(InputHandler, PressLogicMixin):
     ) -> None:
         self._menu = menu
         self._repeat_timers: dict[int, float] = {}
-        self._repeat_delay = repeat_delay if repeat_delay is not None else self.REPEAT_DELAY
-        self._repeat_interval = repeat_interval if repeat_interval is not None else self.REPEAT_INTERVAL
+        self._repeat_delay = (
+            repeat_delay if repeat_delay is not None else self.REPEAT_DELAY
+        )
+        self._repeat_interval = (
+            repeat_interval
+            if repeat_interval is not None
+            else self.REPEAT_INTERVAL
+        )
         self._single_press_only = single_press_only
 
     def handle_event(self, event: PlayerInput) -> PlayerInput | None:
@@ -216,7 +224,8 @@ class MenuInputHandler(InputHandler, PressLogicMixin):
                 selected = self._menu.get_selected_item()
                 if not selected:
                     raise RuntimeError(
-                        "Menu selection was None despite enabled item being clicked"
+                        "Menu selection was None despite enabled item "
+                        "being clicked"
                     )
                 self._menu.on_menu_selection(selected)
                 return True
@@ -243,7 +252,9 @@ class PygameMenuInputHandler(InputHandler, PressLogicMixin):
         single_press_only: bool = False,
     ) -> None:
         self._state = state
-        self._repeat_delay = repeat_delay if repeat_delay is not None else self.REPEAT_DELAY
+        self._repeat_delay = (
+            repeat_delay if repeat_delay is not None else self.REPEAT_DELAY
+        )
         self._single_press_only = single_press_only
 
     def handle_event(self, event: PlayerInput) -> PlayerInput | None:
@@ -277,6 +288,10 @@ class PygameMenuInputHandler(InputHandler, PressLogicMixin):
             buttons.DOWN,
             buttons.LEFT,
             buttons.RIGHT,
+            intentions.UP,
+            intentions.DOWN,
+            intentions.LEFT,
+            intentions.RIGHT,
         ):
             if self._single_press_only:
                 if self._state.open and event.pressed:
@@ -344,7 +359,8 @@ class PygameMenuInputHandler(InputHandler, PressLogicMixin):
     def _convert_event(self, event: PlayerInput) -> Event | None:
         """
         Converts PlayerInput → pygame.Event using the adapter.
-        Returns None when the event cannot be mapped. Exceptions are caught by the caller.
+        Returns None when the event cannot be mapped. Exceptions are caught
+        by the caller.
         """
         try:
             return playerinput_to_event(event)
