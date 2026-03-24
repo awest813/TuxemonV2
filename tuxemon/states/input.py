@@ -205,6 +205,7 @@ class InputMenu(Menu[InputMenuObj]):
         self.input_controller.backspace()
         self.update_text_area()
         self.update_char_counter()
+        self.menu_select_sound.play()
 
     def add_input_char_and_pop(self, char: str) -> None:
         """Add character from variant dialog and close the variant menu."""
@@ -212,6 +213,7 @@ class InputMenu(Menu[InputMenuObj]):
         self.input_controller.add_char(char)
         self.update_text_area()
         self.update_char_counter()
+        self.menu_select_sound.play()
         self.client.pop_state()
 
     def add_input_char(self, char: str) -> None:
@@ -223,6 +225,7 @@ class InputMenu(Menu[InputMenuObj]):
         if self.input_controller.add_char(char):
             self.update_text_area()
             self.update_char_counter()
+            self.menu_select_sound.play()
         else:
             self.input_display.update_input_string(T.translate("alert_text"))
 
@@ -245,6 +248,7 @@ class InputMenu(Menu[InputMenuObj]):
             return
         if self.callback is None:
             raise ValueError("Callback function not provided!")
+        self.menu_select_sound.play()
         self.callback(final_input_string)
         self.client.pop_state(self)
 
@@ -259,6 +263,7 @@ class InputMenu(Menu[InputMenuObj]):
         self.input_controller.set_string(random_name)
         self.update_text_area()
         self.update_char_counter()
+        self.menu_select_sound.play()
 
     def _create_empty_item(self) -> MenuItem[InputMenuObj]:
         """Create a disabled menu item representing an empty key."""

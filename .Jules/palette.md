@@ -21,3 +21,7 @@
 ## 2024-05-25 - Adding Auditory Feedback to Quantity Changes
 **Learning:** `QuantityMenu` lacked auditory feedback when changing the quantity via D-pad/intentions, unlike standard `Menu` interactions. This reduced accessibility and UI consistency.
 **Action:** When implementing new UI elements or inputs that change state, verify that `self.menu_select_sound.play()` (or the equivalent sound hook) is fired appropriately on state change to ensure intuitive and consistent feedback.
+
+## 2024-05-26 - Adding Auditory Feedback to Custom Text Input Menus
+**Learning:** Custom UI components like `InputMenu` that mimic keyboard input often overlook auditory feedback for keypresses (typing, backspacing, submitting). Without this feedback, users lack immediate confirmation that their input was registered, leading to a disjointed and less accessible experience compared to standard navigation menus.
+**Action:** When creating or modifying complex custom input states, ensure that interactive actions that update the UI state (e.g., adding a character, deleting, generating random text, submitting) trigger the standard UI select sound (`self.menu_select_sound.play()`) to provide necessary auditory confirmation.
