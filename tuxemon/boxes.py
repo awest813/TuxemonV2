@@ -565,7 +565,7 @@ class ItemBoxes(BoxCollection):
         while True:
             formatted_suffix = f"{prefix}{i}{suffix}"
             new_box_id = f"{box_id}{formatted_suffix}"
-            if new_box_id not in self.get_box_ids("item"):
+            if new_box_id not in self.item_boxes:
                 break
             i += 1
         self.create_box(new_box_id)
@@ -686,7 +686,7 @@ class MonsterBoxes(BoxCollection):
         while True:
             formatted_suffix = f"{prefix}{i}{suffix}"
             new_box_id = f"{box_id}{formatted_suffix}"
-            if new_box_id not in self.get_box_ids("monster"):
+            if new_box_id not in self.monster_boxes:
                 break
             i += 1
         self.create_box(new_box_id)
