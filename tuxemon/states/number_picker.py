@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
-# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>, Benjamin Bean <superman2k5@gmail.com>
+# Copyright (c) 2014-2026 William Edwards <shadowapex@gmail.com>,
+# Benjamin Bean <superman2k5@gmail.com>
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -9,7 +10,7 @@ from pygame_menu.locals import ALIGN_CENTER, POSITION_EAST
 
 from tuxemon.locale.locale import T
 from tuxemon.menu.menu import PygameMenuState
-from tuxemon.platform.const import buttons
+from tuxemon.platform.const import buttons, intentions
 from tuxemon.platform.const.graphics import BG_MISSIONS
 from tuxemon.prepare import SCREEN_SIZE
 
@@ -58,6 +59,10 @@ class NumberPickerState(PygameMenuState):
         if escape_key_exits is not None:
             self.escape_key_exits = escape_key_exits
 
+        self.menu_select_sound = self.client.sound_manager.load_sound(
+            self.client.config.menu_sound
+        )
+
         self._build_menu()
         self.reset_theme()
 
@@ -95,35 +100,48 @@ class NumberPickerState(PygameMenuState):
         if new_value <= self.max_value:
             self.current_value = new_value
             self.value_label.set_title(str(self.current_value))
+            self.menu_select_sound.play()
 
     def _decrement(self) -> None:
         new_value = self.current_value - self.step
         if new_value >= self.min_value:
             self.current_value = new_value
             self.value_label.set_title(str(self.current_value))
+            self.menu_select_sound.play()
 
     def _confirm(self) -> None:
+        self.menu_select_sound.play()
         self.callback(self.current_value)
         self.client.pop_state()
 
     def process_event(self, event: PlayerInput) -> PlayerInput | None:
         # RIGHT increment
-        if event.button == buttons.RIGHT and self.valid_press(event):
+        if event.button in (
+            buttons.RIGHT,
+            intentions.RIGHT,
+        ) and self.valid_press(event):
             self._increment()
             return None
 
         # LEFT decrement
-        if event.button == buttons.LEFT and self.valid_press(event):
+        if event.button in (
+            buttons.LEFT,
+            intentions.LEFT,
+        ) and self.valid_press(event):
             self._decrement()
             return None
 
         # A confirm (pressed only, not held)
-        if event.button == buttons.A and event.pressed:
+        if event.button in (buttons.A, intentions.SELECT) and event.pressed:
             self._confirm()
             return None
 
         # B cancel (pressed only)
-        if event.button == buttons.B and event.pressed:
+        if (
+            event.button
+            in (buttons.B, intentions.BACK, intentions.MENU_CANCEL)
+            and event.pressed
+        ):
             self.client.pop_state()
             return None
 
