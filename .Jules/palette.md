@@ -24,3 +24,6 @@
 ## 2026-03-25 - [Audio Feedback for Custom Text Inputs]
 **Learning:** In Pygame custom text input states (e.g., `InputMenu`), users may not perceive interactive actions like typing, backspacing, submitting, or generating random text as successful without audio feedback, particularly when visual updates are subtle. Auditory cues enhance UX and improve accessibility confirmation.
 **Action:** Ensure custom interactive menus trigger standard UI auditory feedback (`self.menu_select_sound.play()`) on successful state changes.
+## 2026-03-26 - Audio Feedback and Intentions for Number Picker
+**Learning:** `NumberPickerState` lacked audio feedback when incrementing or decrementing values, which made the UI feel unresponsive, especially for users relying on non-visual cues. It also lacked support for alternative generic input intentions like `intentions.RIGHT` or `intentions.SELECT`, which breaks custom user inputs.
+**Action:** Added `self.client.sound_manager.load_sound(self.client.config.menu_sound).play()` on value changes and confirmation, and added support for checking abstract generic intentions alongside physical buttons inside `NumberPickerState.process_event`.
