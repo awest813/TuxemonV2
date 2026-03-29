@@ -24,3 +24,7 @@
 ## 2026-03-25 - [Audio Feedback for Custom Text Inputs]
 **Learning:** In Pygame custom text input states (e.g., `InputMenu`), users may not perceive interactive actions like typing, backspacing, submitting, or generating random text as successful without audio feedback, particularly when visual updates are subtle. Auditory cues enhance UX and improve accessibility confirmation.
 **Action:** Ensure custom interactive menus trigger standard UI auditory feedback (`self.menu_select_sound.play()`) on successful state changes.
+
+## 2026-03-30 - Audio Feedback for Rejected Inputs
+**Learning:** In Pygame custom text input states (e.g., `InputMenu`), the UI provided visual feedback when a user hit the character limit but failed to provide auditory feedback, leading to a poor experience (especially for visually impaired users).
+**Action:** Always ensure that disabled actions or rejected inputs (like exceeding a character limit) provide a distinct auditory signal, such as `sound_button_click` or a bump sound, via `self.client.sound_manager.play_sound`.
