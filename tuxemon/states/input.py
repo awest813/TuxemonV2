@@ -228,6 +228,9 @@ class InputMenu(Menu[InputMenuObj]):
             self.update_char_counter()
         else:
             self.input_display.update_input_string(T.translate("alert_text"))
+            self.client.sound_manager.play_sound(
+                "sound_retro_beep_06", self.client.config.sound_volume
+            )
 
     def update_text_area(self) -> None:
         """Update the text area to reflect the current input string."""
