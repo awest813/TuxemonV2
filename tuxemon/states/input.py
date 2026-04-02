@@ -94,6 +94,10 @@ class InputMenu(Menu[InputMenuObj]):
         )
         self.char_manager = char_manager or CharacterSetManager()
 
+        self.error_sound = client.sound_manager.load_sound(
+            "sound_retro_beep_06"
+        )
+
         self._repeat_timers: dict[int, float] = {
             buttons.UP: 0.0,
             buttons.DOWN: 0.0,
@@ -227,6 +231,8 @@ class InputMenu(Menu[InputMenuObj]):
             self.update_text_area()
             self.update_char_counter()
         else:
+            if self.error_sound:
+                self.error_sound.play()
             self.input_display.update_input_string(T.translate("alert_text"))
 
     def update_text_area(self) -> None:
