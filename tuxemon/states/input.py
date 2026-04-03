@@ -106,6 +106,10 @@ class InputMenu(Menu[InputMenuObj]):
         # after leaving the char variant dialog.
         self.leaving_char_variant_dialog = False
 
+        self.error_sound = self.client.sound_manager.load_sound(
+            "sound_retro_beep_06"
+        )
+
         self.input_display = InputDisplay(
             context=self.client.context,
             font=self.font,
@@ -227,6 +231,7 @@ class InputMenu(Menu[InputMenuObj]):
             self.update_text_area()
             self.update_char_counter()
         else:
+            self.error_sound.play()
             self.input_display.update_input_string(T.translate("alert_text"))
 
     def update_text_area(self) -> None:
@@ -245,6 +250,7 @@ class InputMenu(Menu[InputMenuObj]):
         """Trigger the input confirmation and invoke callback."""
         final_input_string = self.input_controller.current_string
         if not final_input_string and self.char_limit > 0:
+            self.error_sound.play()
             return
         if self.callback is None:
             raise ValueError("Callback function not provided!")
