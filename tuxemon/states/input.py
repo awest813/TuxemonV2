@@ -227,6 +227,9 @@ class InputMenu(Menu[InputMenuObj]):
             self.update_text_area()
             self.update_char_counter()
         else:
+            self.client.sound_manager.play_sound(
+                "sound_button_click", self.client.config.sound_volume
+            )
             self.input_display.update_input_string(T.translate("alert_text"))
 
     def update_text_area(self) -> None:
