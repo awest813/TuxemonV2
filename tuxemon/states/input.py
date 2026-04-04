@@ -102,6 +102,8 @@ class InputMenu(Menu[InputMenuObj]):
         }
         super().__init__(client=client, **kwargs)
 
+        self.error_sound = self.client.sound_manager.load_sound("sound_retro_beep_06")
+
         # The following is necessary to prevent writing a char immediately
         # after leaving the char variant dialog.
         self.leaving_char_variant_dialog = False
@@ -202,10 +204,12 @@ class InputMenu(Menu[InputMenuObj]):
 
     def backspace(self) -> None:
         """Remove the last character from the input string."""
-        self.menu_select_sound.play()
-        self.input_controller.backspace()
-        self.update_text_area()
-        self.update_char_counter()
+        if self.input_controller.backspace():
+            self.menu_select_sound.play()
+            self.update_text_area()
+            self.update_char_counter()
+        else:
+            self.error_sound.play()
 
     def add_input_char_and_pop(self, char: str) -> None:
         """Add character from variant dialog and close the variant menu."""
@@ -227,6 +231,7 @@ class InputMenu(Menu[InputMenuObj]):
             self.update_text_area()
             self.update_char_counter()
         else:
+            self.error_sound.play()
             self.input_display.update_input_string(T.translate("alert_text"))
 
     def update_text_area(self) -> None:

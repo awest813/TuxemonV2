@@ -175,12 +175,16 @@ class InputController:
 
         return False
 
-    def backspace(self) -> None:
-        """Remove the last character from the string; revert to empty if cleared."""
+    def backspace(self) -> bool:
+        """Remove the last character from the string; revert to empty if cleared.
+
+        Returns True if a character was removed, False otherwise."""
         if self._input_string:
             self._input_string = self._input_string[:-1]
             if not self._input_string:
                 self._input_string = ""
+            return True
+        return False
 
     def set_string(self, new_string: str) -> None:
         """Set the entire string directly, truncating if necessary to fit the limit."""
