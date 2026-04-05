@@ -123,6 +123,13 @@ class InputMenu(Menu[InputMenuObj]):
 
         self.update_char_counter()
 
+    def reload_sounds(self) -> None:
+        """Reload sounds."""
+        super().reload_sounds()
+        self.error_sound = self.client.sound_manager.load_sound(
+            "sound_retro_beep_06"
+        )
+
     def calc_internal_rect(self) -> Rect:
         """Calculate the internal area of the menu for layout."""
         w = self.rect.width - self.rect.width * 0.95
@@ -227,6 +234,9 @@ class InputMenu(Menu[InputMenuObj]):
             self.update_text_area()
             self.update_char_counter()
         else:
+            error_sound = getattr(self, "error_sound", None)
+            if error_sound:
+                error_sound.play()
             self.input_display.update_input_string(T.translate("alert_text"))
 
     def update_text_area(self) -> None:
