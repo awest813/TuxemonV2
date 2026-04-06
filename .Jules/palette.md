@@ -28,3 +28,7 @@
 ## 2024-05-26 - [Audio Feedback for Invalid Inputs]
 **Learning:** When users interact with text input fields (like `InputMenu`) and hit boundaries such as a character limit, missing auditory feedback can leave them confused about why their input was rejected. A distinct auditory cue for failure states clearly signals to the user that their action was invalid.
 **Action:** When implementing input limits or validation, always provide distinct auditory feedback (like an error beep) for rejected inputs to communicate failure states effectively.
+
+## 2025-05-18 - Better error feedback in text input states
+**Learning:** Users lack feedback when performing invalid actions like backspacing on an empty field or confirming an empty required field. Silent failures are confusing.
+**Action:** Always provide a distinct auditory error cue (like `sound_retro_beep_06`) when an action is rejected to clearly communicate state, improving accessibility and UX.

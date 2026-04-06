@@ -209,6 +209,11 @@ class InputMenu(Menu[InputMenuObj]):
 
     def backspace(self) -> None:
         """Remove the last character from the input string."""
+        if not self.input_controller.current_string:
+            error_sound = getattr(self, "error_sound", None)
+            if error_sound:
+                error_sound.play()
+            return
         self.menu_select_sound.play()
         self.input_controller.backspace()
         self.update_text_area()
@@ -255,6 +260,9 @@ class InputMenu(Menu[InputMenuObj]):
         """Trigger the input confirmation and invoke callback."""
         final_input_string = self.input_controller.current_string
         if not final_input_string and self.char_limit > 0:
+            error_sound = getattr(self, "error_sound", None)
+            if error_sound:
+                error_sound.play()
             return
         if self.callback is None:
             raise ValueError("Callback function not provided!")
