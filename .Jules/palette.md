@@ -28,3 +28,7 @@
 ## 2024-05-26 - [Audio Feedback for Invalid Inputs]
 **Learning:** When users interact with text input fields (like `InputMenu`) and hit boundaries such as a character limit, missing auditory feedback can leave them confused about why their input was rejected. A distinct auditory cue for failure states clearly signals to the user that their action was invalid.
 **Action:** When implementing input limits or validation, always provide distinct auditory feedback (like an error beep) for rejected inputs to communicate failure states effectively.
+
+## 2025-04-07 - Add error sound to rejected input actions in Pygame menus
+**Learning:** In custom Pygame menu forms like `InputMenu`, simply rejecting invalid user input (such as pressing backspace on an empty string or submitting an empty required field) without feedback can leave users, especially those using screen readers or relying on auditory cues, unaware that their action failed. Furthermore, sounds like `menu_select_sound` or `error_sound` might fail to load or be disabled, requiring safe playback checks.
+**Action:** When an input action is explicitly rejected (like hitting a character limit or attempting an invalid submission), always trigger a standard `error_sound` (e.g., `'sound_retro_beep_06'`) to clearly signal failure. Ensure all sound `.play()` calls in Pygame UI classes are wrapped in a safety check (`getattr(self, 'sound_attr', None)`) to prevent `AttributeError` crashes in restricted or disabled audio environments.
