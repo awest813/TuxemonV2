@@ -209,14 +209,26 @@ class InputMenu(Menu[InputMenuObj]):
 
     def backspace(self) -> None:
         """Remove the last character from the input string."""
-        self.menu_select_sound.play()
+        if not self.input_controller.current_string:
+            error_sound = getattr(self, "error_sound", None)
+            if error_sound:
+                error_sound.play()
+            return
+
+        menu_select_sound = getattr(self, "menu_select_sound", None)
+        if menu_select_sound:
+            menu_select_sound.play()
+
         self.input_controller.backspace()
         self.update_text_area()
         self.update_char_counter()
 
     def add_input_char_and_pop(self, char: str) -> None:
         """Add character from variant dialog and close the variant menu."""
-        self.menu_select_sound.play()
+        menu_select_sound = getattr(self, "menu_select_sound", None)
+        if menu_select_sound:
+            menu_select_sound.play()
+
         self.leaving_char_variant_dialog = True
         self.input_controller.add_char(char)
         self.update_text_area()
@@ -230,7 +242,9 @@ class InputMenu(Menu[InputMenuObj]):
             return
 
         if self.input_controller.add_char(char):
-            self.menu_select_sound.play()
+            menu_select_sound = getattr(self, "menu_select_sound", None)
+            if menu_select_sound:
+                menu_select_sound.play()
             self.update_text_area()
             self.update_char_counter()
         else:
@@ -255,16 +269,26 @@ class InputMenu(Menu[InputMenuObj]):
         """Trigger the input confirmation and invoke callback."""
         final_input_string = self.input_controller.current_string
         if not final_input_string and self.char_limit > 0:
+            error_sound = getattr(self, "error_sound", None)
+            if error_sound:
+                error_sound.play()
             return
         if self.callback is None:
             raise ValueError("Callback function not provided!")
-        self.menu_select_sound.play()
+
+        menu_select_sound = getattr(self, "menu_select_sound", None)
+        if menu_select_sound:
+            menu_select_sound.play()
+
         self.callback(final_input_string)
         self.client.pop_state(self)
 
     def pick_random(self) -> None:
         """Assign a random name based on gender and language preferences."""
-        self.menu_select_sound.play()
+        menu_select_sound = getattr(self, "menu_select_sound", None)
+        if menu_select_sound:
+            menu_select_sound.play()
+
         gender = local_session.player.gender or "neutral"
         language = T.get_current_language().lower()
         fallback_language = self.client.config.locale.slug.lower()
@@ -305,7 +329,11 @@ class InputMenu(Menu[InputMenuObj]):
             if self.leaving_char_variant_dialog:
                 self.leaving_char_variant_dialog = False
                 if menu_item.game_object.char:
-                    self.menu_select_sound.play()
+                    menu_select_sound = getattr(
+                        self, "menu_select_sound", None
+                    )
+                    if menu_select_sound:
+                        menu_select_sound.play()
                     self.input_controller.add_char(menu_item.game_object.char)
                     self.update_text_area()
                     self.update_char_counter()
