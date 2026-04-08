@@ -28,3 +28,7 @@
 ## 2024-05-26 - [Audio Feedback for Invalid Inputs]
 **Learning:** When users interact with text input fields (like `InputMenu`) and hit boundaries such as a character limit, missing auditory feedback can leave them confused about why their input was rejected. A distinct auditory cue for failure states clearly signals to the user that their action was invalid.
 **Action:** When implementing input limits or validation, always provide distinct auditory feedback (like an error beep) for rejected inputs to communicate failure states effectively.
+
+## 2026-03-30 - [Audio Feedback & Intentions Support for Interactive UI States]
+**Learning:** `NumberPickerState` lacked support for standard `intentions` mapped inputs (like `intentions.RIGHT` or `intentions.SELECT`), breaking functionality for custom input profiles. Furthermore, it offered no auditory feedback when valid bounds were changed or rejected (e.g. boundary hits on max_value/min_value).
+**Action:** Always ensure custom interactive UI menus (like `NumberPickerState`) support mapped `intentions` in addition to hardcoded `buttons`, and emit the standard `menu_select_sound` for successes and `error_sound` (like "sound_retro_beep_06") when hitting input constraints.
