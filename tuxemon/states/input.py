@@ -209,10 +209,15 @@ class InputMenu(Menu[InputMenuObj]):
 
     def backspace(self) -> None:
         """Remove the last character from the input string."""
-        self.menu_select_sound.play()
-        self.input_controller.backspace()
-        self.update_text_area()
-        self.update_char_counter()
+        if self.input_controller.current_string:
+            self.menu_select_sound.play()
+            self.input_controller.backspace()
+            self.update_text_area()
+            self.update_char_counter()
+        else:
+            error_sound = getattr(self, "error_sound", None)
+            if error_sound:
+                error_sound.play()
 
     def add_input_char_and_pop(self, char: str) -> None:
         """Add character from variant dialog and close the variant menu."""
@@ -255,6 +260,9 @@ class InputMenu(Menu[InputMenuObj]):
         """Trigger the input confirmation and invoke callback."""
         final_input_string = self.input_controller.current_string
         if not final_input_string and self.char_limit > 0:
+            error_sound = getattr(self, "error_sound", None)
+            if error_sound:
+                error_sound.play()
             return
         if self.callback is None:
             raise ValueError("Callback function not provided!")
