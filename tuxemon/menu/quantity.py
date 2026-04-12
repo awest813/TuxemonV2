@@ -71,6 +71,12 @@ class QuantityMenu(Menu[None]):
         self.quantity_formatter = quantity_formatter or QuantityFormatter()
         self.label = label or self.quantity_formatter.format
 
+    def reload_sounds(self) -> None:
+        super().reload_sounds()
+        self.error_sound = self.client.sound_manager.load_sound(
+            "sound_retro_beep_06"
+        )
+
     def process_event(self, event: PlayerInput) -> PlayerInput | None:
         if event.pressed:
             if event.button in (
@@ -112,6 +118,10 @@ class QuantityMenu(Menu[None]):
 
         if old_quantity != self.quantity:
             self.menu_select_sound.play()
+        else:
+            error_sound = getattr(self, "error_sound", None)
+            if error_sound:
+                error_sound.play()
 
     def _clamp_quantity(self) -> None:
         if self.max_quantity is None:
