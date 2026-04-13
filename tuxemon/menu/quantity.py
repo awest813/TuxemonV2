@@ -97,21 +97,37 @@ class QuantityMenu(Menu[None]):
 
         return None
 
+    def reload_sounds(self) -> None:
+        """Reload sounds."""
+        super().reload_sounds()
+        self.error_sound = self.client.sound_manager.load_sound(
+            "sound_retro_beep_06"
+        )
+
     def _update_quantity(self, button: int) -> None:
         old_quantity = self.quantity
+        is_movement = False
         if button in (buttons.UP, intentions.UP):
             self.quantity += QUANTITY_INCREMENT
+            is_movement = True
         elif button in (buttons.DOWN, intentions.DOWN):
             self.quantity -= QUANTITY_INCREMENT
+            is_movement = True
         elif button in (buttons.RIGHT, intentions.RIGHT):
             self.quantity += QUANTITY_PAGE_INCREMENT
+            is_movement = True
         elif button in (buttons.LEFT, intentions.LEFT):
             self.quantity -= QUANTITY_PAGE_INCREMENT
+            is_movement = True
 
         self._clamp_quantity()
 
         if old_quantity != self.quantity:
             self.menu_select_sound.play()
+        elif is_movement:
+            error_sound = getattr(self, "error_sound", None)
+            if error_sound:
+                error_sound.play()
 
     def _clamp_quantity(self) -> None:
         if self.max_quantity is None:
