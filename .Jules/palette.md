@@ -31,3 +31,6 @@
 ## 2024-04-10 - Add error sounds for invalid actions in InputMenu
 **Learning:** In Pygame UI, it is an important UX and accessibility pattern to provide distinct auditory feedback for invalid or rejected inputs (like exceeding a character limit in a text input field or attempting to backspace/submit an empty string) using specific error sounds like `sound_retro_beep_06` to clearly signal failure states.
 **Action:** When implementing custom Pygame text inputs, ensure invalid actions trigger error sounds, improving accessibility and providing clear failure signals to the user.
+## 2024-06-03 - [Audio Feedback for Number Picker Interactions]
+**Learning:** NumberPickerState (a PygameMenuState subclass) was handling raw input events for incrementing, decrementing, and confirming numbers, but lacked explicit audio feedback (menu select / error sounds) and did not support 'intentions' mappings (like `intentions.RIGHT` or `intentions.SELECT`), impacting both accessibility and custom input schemes.
+**Action:** When creating custom Pygame menus that intercept `process_event` directly, ensure that interaction actions trigger the standard UI auditory feedback (`self.menu_select_sound.play()`) and handle boundaries via error sounds. Also, check against both physical buttons and logical `intentions`.
