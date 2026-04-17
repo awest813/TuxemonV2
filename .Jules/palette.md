@@ -31,3 +31,6 @@
 ## 2024-04-10 - Add error sounds for invalid actions in InputMenu
 **Learning:** In Pygame UI, it is an important UX and accessibility pattern to provide distinct auditory feedback for invalid or rejected inputs (like exceeding a character limit in a text input field or attempting to backspace/submit an empty string) using specific error sounds like `sound_retro_beep_06` to clearly signal failure states.
 **Action:** When implementing custom Pygame text inputs, ensure invalid actions trigger error sounds, improving accessibility and providing clear failure signals to the user.
+## 2024-05-27 - [Auditory Feedback for UI Menu Boundaries]
+**Learning:** In Pygame UI menus, users may not notice when they hit the minimum or maximum limits while adjusting numerical values (e.g., in `QuantityMenu`), especially if they are looking away or have visual impairments. Providing a distinct error sound when input limits are reached clarifies the interaction and improves accessibility.
+**Action:** When implementing menus with bounded values, ensure that attempting to exceed these limits triggers an explicit auditory error cue, like `sound_retro_beep_06`, to confirm that the input was registered but rejected.
