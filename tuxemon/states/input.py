@@ -222,11 +222,15 @@ class InputMenu(Menu[InputMenuObj]):
 
     def add_input_char_and_pop(self, char: str) -> None:
         """Add character from variant dialog and close the variant menu."""
-        self.menu_select_sound.play()
         self.leaving_char_variant_dialog = True
-        self.input_controller.add_char(char)
-        self.update_text_area()
-        self.update_char_counter()
+        if self.input_controller.add_char(char):
+            self.menu_select_sound.play()
+            self.update_text_area()
+            self.update_char_counter()
+        else:
+            error_sound = getattr(self, "error_sound", None)
+            if error_sound:
+                error_sound.play()
         self.client.pop_state()
 
     def add_input_char(self, char: str) -> None:
@@ -243,7 +247,6 @@ class InputMenu(Menu[InputMenuObj]):
             error_sound = getattr(self, "error_sound", None)
             if error_sound:
                 error_sound.play()
-            self.input_display.update_input_string(T.translate("alert_text"))
 
     def update_text_area(self) -> None:
         """Update the text area to reflect the current input string."""
@@ -314,10 +317,16 @@ class InputMenu(Menu[InputMenuObj]):
             if self.leaving_char_variant_dialog:
                 self.leaving_char_variant_dialog = False
                 if menu_item.game_object.char:
-                    self.menu_select_sound.play()
-                    self.input_controller.add_char(menu_item.game_object.char)
-                    self.update_text_area()
-                    self.update_char_counter()
+                    if self.input_controller.add_char(
+                        menu_item.game_object.char
+                    ):
+                        self.menu_select_sound.play()
+                        self.update_text_area()
+                        self.update_char_counter()
+                    else:
+                        error_sound = getattr(self, "error_sound", None)
+                        if error_sound:
+                            error_sound.play()
             else:
                 menu_item.game_object()
 
