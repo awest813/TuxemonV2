@@ -319,7 +319,12 @@ class InputMenu(Menu[InputMenuObj]):
                     self.update_text_area()
                     self.update_char_counter()
             else:
-                menu_item.game_object()
+                if not menu_item.enabled:
+                    error_sound = getattr(self, "error_sound", None)
+                    if error_sound:
+                        error_sound.play()
+                else:
+                    menu_item.game_object()
 
         elif event.held and event.hold_time > self.client.config.fps:
             base_char = menu_item.game_object.char
