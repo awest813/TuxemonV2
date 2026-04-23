@@ -34,3 +34,10 @@
 ## 2024-05-27 - [Auditory Feedback for UI Menu Boundaries]
 **Learning:** In Pygame UI menus, users may not notice when they hit the minimum or maximum limits while adjusting numerical values (e.g., in `QuantityMenu`), especially if they are looking away or have visual impairments. Providing a distinct error sound when input limits are reached clarifies the interaction and improves accessibility.
 **Action:** When implementing menus with bounded values, ensure that attempting to exceed these limits triggers an explicit auditory error cue, like `sound_retro_beep_06`, to confirm that the input was registered but rejected.
+## 2026-03-25 - [Safely Checking Generic Object Properties in UI Events]
+**Learning:** When interacting with generic objects (like `T` in `Menu[T]`), directly accessing attributes like `.enabled` can cause `AttributeError` crashes if the specific object type doesn't implement them.
+**Action:** Use `getattr(selected, "enabled", True)` to safely evaluate states on generic objects to prevent crashes and ensure fallback behavior.
+
+## 2026-03-25 - [Configurable Asset Properties in Base UI Classes]
+**Learning:** Hardcoding sound slugs (like `"sound_retro_beep_06"`) in base classes like `Menu` breaks maintainability and configuration patterns.
+**Action:** Expose default assets as class attributes (e.g., `menu_error_sound_filename`) to allow easy overriding and configuration.
