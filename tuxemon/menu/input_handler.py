@@ -134,10 +134,21 @@ class MenuInputHandler(InputHandler, PressLogicMixin):
             return False
 
         if self._valid_press(event):
-            self._menu.menu_select_sound.play()
             selected = self._menu.get_selected_item()
-            if selected:
-                self._menu.on_menu_selection(selected)
+
+            # Check if selected item exists and is enabled (safe check)
+            is_enabled = True
+            if selected is not None:
+                is_enabled = getattr(selected, "enabled", True)
+
+            if is_enabled:
+                self._menu.menu_select_sound.play()
+                if selected:
+                    self._menu.on_menu_selection(selected)
+            else:
+                error_sound = getattr(self._menu, "menu_error_sound", None)
+                if error_sound:
+                    error_sound.play()
 
         return True
 
