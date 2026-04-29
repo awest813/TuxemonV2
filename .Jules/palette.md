@@ -34,3 +34,10 @@
 ## 2024-05-27 - [Auditory Feedback for UI Menu Boundaries]
 **Learning:** In Pygame UI menus, users may not notice when they hit the minimum or maximum limits while adjusting numerical values (e.g., in `QuantityMenu`), especially if they are looking away or have visual impairments. Providing a distinct error sound when input limits are reached clarifies the interaction and improves accessibility.
 **Action:** When implementing menus with bounded values, ensure that attempting to exceed these limits triggers an explicit auditory error cue, like `sound_retro_beep_06`, to confirm that the input was registered but rejected.
+## 2024-05-28 - [Support Intention Inputs for InputMenu Confirm]
+**Learning:** `InputMenu` relied solely on `buttons.START` to confirm keyboard input, completely ignoring `intentions.WORLD_MENU`. This broke accessibility for users who mapped the start action to a different input method via the generic intention.
+**Action:** Always include generic intentions (e.g. `intentions.WORLD_MENU`) alongside hardware buttons (e.g. `buttons.START`) when mapping core actions like 'confirm' in UI menus.
+
+## 2024-05-29 - [Auditory Error Feedback for Invalid Characters]
+**Learning:** `InputMenu` silently discarded invalid typed characters (e.g., from `_handle_unicode_event`) without providing any feedback to the user. Adding a distinct error sound clarifies that the input was registered but rejected, reducing confusion.
+**Action:** Ensure typed inputs that are validated and rejected trigger an error sound to improve accessibility and provide clear failure signals.
