@@ -198,7 +198,7 @@ class InputMenu(Menu[InputMenuObj]):
             self._handle_unicode_event(event.value)
             return None
 
-        if event.pressed and event.button == buttons.START:
+        if event.pressed and event.button in (buttons.START, intentions.WORLD_MENU):
             self.confirm()
             return None
 
@@ -344,3 +344,7 @@ class InputMenu(Menu[InputMenuObj]):
         """Handle unicode character input event."""
         if self.char_manager.is_valid_input_char(char):
             self.add_input_char(char)
+        else:
+            error_sound = getattr(self, "error_sound", None)
+            if error_sound:
+                error_sound.play()
