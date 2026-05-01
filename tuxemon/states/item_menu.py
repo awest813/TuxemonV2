@@ -99,6 +99,13 @@ class ItemMenuState(Menu[Item]):
         )
         self.paginator = Paginator(self.inventory, self.page_size)
 
+    def reload_sounds(self) -> None:
+        """Reload sounds."""
+        super().reload_sounds()
+        self.error_sound = self.client.sound_manager.load_sound(
+            "sound_retro_beep_06"
+        )
+
     def calc_internal_rect(self) -> Rect:
         # area in the screen where the item list is
         rect = self.rect.copy()
@@ -280,11 +287,21 @@ class ItemMenuState(Menu[Item]):
             if self.current_page < total_pages - 1:
                 self.current_page += 1
                 self.reload_items()
+                self.menu_select_sound.play()
+            else:
+                error_sound = getattr(self, "error_sound", None)
+                if error_sound:
+                    error_sound.play()
         elif event.button in (buttons.LEFT, intentions.LEFT) and event.pressed:
             # Move to the previous page if possible
             if self.current_page > 0:
                 self.current_page -= 1
                 self.reload_items()
+                self.menu_select_sound.play()
+            else:
+                error_sound = getattr(self, "error_sound", None)
+                if error_sound:
+                    error_sound.play()
         else:
             return super().process_event(event)
         return None
