@@ -280,14 +280,31 @@ class ItemMenuState(Menu[Item]):
             if self.current_page < total_pages - 1:
                 self.current_page += 1
                 self.reload_items()
+                if getattr(self, "menu_select_sound", None):
+                    self.menu_select_sound.play()
+            else:
+                if getattr(self, "error_sound", None):
+                    self.error_sound.play()
         elif event.button in (buttons.LEFT, intentions.LEFT) and event.pressed:
             # Move to the previous page if possible
             if self.current_page > 0:
                 self.current_page -= 1
                 self.reload_items()
+                if getattr(self, "menu_select_sound", None):
+                    self.menu_select_sound.play()
+            else:
+                if getattr(self, "error_sound", None):
+                    self.error_sound.play()
         else:
             return super().process_event(event)
         return None
+
+    def reload_sounds(self) -> None:
+        """Reload sounds."""
+        super().reload_sounds()
+        self.error_sound = self.client.sound_manager.load_sound(
+            "sound_retro_beep_06"
+        )
 
     def update_page_number_display(self, total_items: int) -> None:
         internal_rect = self.calc_internal_rect()
