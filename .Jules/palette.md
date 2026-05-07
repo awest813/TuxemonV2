@@ -34,3 +34,6 @@
 ## 2024-05-27 - [Auditory Feedback for UI Menu Boundaries]
 **Learning:** In Pygame UI menus, users may not notice when they hit the minimum or maximum limits while adjusting numerical values (e.g., in `QuantityMenu`), especially if they are looking away or have visual impairments. Providing a distinct error sound when input limits are reached clarifies the interaction and improves accessibility.
 **Action:** When implementing menus with bounded values, ensure that attempting to exceed these limits triggers an explicit auditory error cue, like `sound_retro_beep_06`, to confirm that the input was registered but rejected.
+## 2024-05-28 - [Audio Feedback for Item Menu Pagination]
+**Learning:** In paginated interfaces (like `ItemMenuState`), missing auditory cues during navigation left users without confirmation of successful page changes or clear feedback when hitting the boundaries (first/last page). Adding sounds for success and error states makes the interface significantly more intuitive and accessible.
+**Action:** When implementing paginated menus, ensure navigation success plays standard confirmation sounds (`self.menu_select_sound.play()`) and boundary collisions trigger error sounds (`self.error_sound.play()`).
