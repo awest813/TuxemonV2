@@ -380,6 +380,7 @@ class Menu(Generic[T], State):
     # File to load for image background
     background_filename: str | None = None
     menu_select_sound_filename = CONFIG.menu_sound
+    menu_error_sound_filename = 'sound_retro_beep_06'
     font_filename = CONFIG.locale.font_file
     borders_filename = CONFIG.menu_border
     cursor_filename = CONFIG.menu_cursor
@@ -598,6 +599,9 @@ class Menu(Generic[T], State):
         """Reload sounds."""
         self.menu_select_sound = self.client.sound_manager.load_sound(
             self.menu_select_sound_filename
+        )
+        self.menu_error_sound = self.client.sound_manager.load_sound(
+            self.menu_error_sound_filename
         )
 
     def shadow_text(
