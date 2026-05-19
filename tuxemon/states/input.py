@@ -311,6 +311,12 @@ class InputMenu(Menu[InputMenuObj]):
             return
 
         if event.triggered:
+            if not getattr(menu_item, "enabled", True):
+                error_sound = getattr(self, "error_sound", None)
+                if error_sound:
+                    error_sound.play()
+                return
+
             if self.leaving_char_variant_dialog:
                 self.leaving_char_variant_dialog = False
                 if menu_item.game_object.char:
