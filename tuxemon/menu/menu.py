@@ -380,6 +380,7 @@ class Menu(Generic[T], State):
     # File to load for image background
     background_filename: str | None = None
     menu_select_sound_filename = CONFIG.menu_sound
+    menu_error_sound_filename = "sound_retro_beep_06"
     font_filename = CONFIG.locale.font_file
     borders_filename = CONFIG.menu_border
     cursor_filename = CONFIG.menu_cursor
@@ -599,6 +600,9 @@ class Menu(Generic[T], State):
         self.menu_select_sound = self.client.sound_manager.load_sound(
             self.menu_select_sound_filename
         )
+        self.menu_error_sound = self.client.sound_manager.load_sound(
+            self.menu_error_sound_filename
+        )
 
     def shadow_text(
         self,
@@ -768,7 +772,8 @@ class Menu(Generic[T], State):
         """
         previous = self.get_selected_item()
         self.set_selected_index(index)
-        self.menu_select_sound.play()
+        if hasattr(self, "menu_select_sound") and self.menu_select_sound:
+            self.menu_select_sound.play()
         selected = self.get_selected_item()
         self.cursor_controller.update_selection_focus(
             previous, selected, animate
