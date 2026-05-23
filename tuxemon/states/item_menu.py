@@ -232,6 +232,12 @@ class ItemMenuState(Menu[Item]):
                 item.description, self.text_area, dialog_speed="max"
             )
 
+    def reload_sounds(self) -> None:
+        super().reload_sounds()
+        self.error_sound = self.client.sound_manager.load_sound(
+            "sound_retro_beep_06"
+        )
+
     def reload_items(self) -> None:
         self.clear()
         self.inventory = self.filter_controller.get_filtered_inventory()
@@ -280,11 +286,21 @@ class ItemMenuState(Menu[Item]):
             if self.current_page < total_pages - 1:
                 self.current_page += 1
                 self.reload_items()
+                if hasattr(self, "menu_select_sound") and self.menu_select_sound:
+                    self.menu_select_sound.play()
+            else:
+                if hasattr(self, "error_sound") and self.error_sound:
+                    self.error_sound.play()
         elif event.button in (buttons.LEFT, intentions.LEFT) and event.pressed:
             # Move to the previous page if possible
             if self.current_page > 0:
                 self.current_page -= 1
                 self.reload_items()
+                if hasattr(self, "menu_select_sound") and self.menu_select_sound:
+                    self.menu_select_sound.play()
+            else:
+                if hasattr(self, "error_sound") and self.error_sound:
+                    self.error_sound.play()
         else:
             return super().process_event(event)
         return None
