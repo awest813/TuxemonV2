@@ -60,6 +60,17 @@ class NumberPickerState(PygameMenuState):
 
         self._build_menu()
         self.reset_theme()
+        self.reload_sounds()
+
+    def reload_sounds(self) -> None:
+        if hasattr(super(), "reload_sounds"):
+            super().reload_sounds()  # type: ignore
+        self.menu_select_sound = self.client.sound_manager.load_sound(
+            self.client.config.menu_sound
+        )
+        self.error_sound = self.client.sound_manager.load_sound(
+            "sound_retro_beep_06"
+        )
 
     def _build_menu(self) -> None:
         self.menu.clear()
@@ -95,14 +106,26 @@ class NumberPickerState(PygameMenuState):
         if new_value <= self.max_value:
             self.current_value = new_value
             self.value_label.set_title(str(self.current_value))
+            if self.menu_select_sound:
+                self.menu_select_sound.play()
+        else:
+            if self.error_sound:
+                self.error_sound.play()
 
     def _decrement(self) -> None:
         new_value = self.current_value - self.step
         if new_value >= self.min_value:
             self.current_value = new_value
             self.value_label.set_title(str(self.current_value))
+            if self.menu_select_sound:
+                self.menu_select_sound.play()
+        else:
+            if self.error_sound:
+                self.error_sound.play()
 
     def _confirm(self) -> None:
+        if self.menu_select_sound:
+            self.menu_select_sound.play()
         self.callback(self.current_value)
         self.client.pop_state()
 
