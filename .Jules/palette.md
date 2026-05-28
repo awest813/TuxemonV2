@@ -34,3 +34,6 @@
 ## 2024-05-27 - [Auditory Feedback for UI Menu Boundaries]
 **Learning:** In Pygame UI menus, users may not notice when they hit the minimum or maximum limits while adjusting numerical values (e.g., in `QuantityMenu`), especially if they are looking away or have visual impairments. Providing a distinct error sound when input limits are reached clarifies the interaction and improves accessibility.
 **Action:** When implementing menus with bounded values, ensure that attempting to exceed these limits triggers an explicit auditory error cue, like `sound_retro_beep_06`, to confirm that the input was registered but rejected.
+## 2024-05-29 - [Auditory Feedback for NumberPicker Boundaries and Changes]
+**Learning:** `NumberPickerState` lacked auditory feedback when values were incremented, decremented, or when bounds were hit, making it inconsistent with other menus and inaccessible for non-visual interactions. Adding a menu select sound on success and an error sound when bounds are hit greatly improves UX and provides necessary clear failure states.
+**Action:** When implementing or modifying value selection menus (e.g. `NumberPickerState`), ensure that boundary checks and value changes have appropriate associated sound feedback loaded and played (`menu_select_sound` for success, `error_sound` for limits).
