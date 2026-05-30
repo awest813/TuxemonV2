@@ -34,3 +34,6 @@
 ## 2024-05-27 - [Auditory Feedback for UI Menu Boundaries]
 **Learning:** In Pygame UI menus, users may not notice when they hit the minimum or maximum limits while adjusting numerical values (e.g., in `QuantityMenu`), especially if they are looking away or have visual impairments. Providing a distinct error sound when input limits are reached clarifies the interaction and improves accessibility.
 **Action:** When implementing menus with bounded values, ensure that attempting to exceed these limits triggers an explicit auditory error cue, like `sound_retro_beep_06`, to confirm that the input was registered but rejected.
+## 2026-05-30 - [Auditory Feedback for Disabled Menu Items]
+**Learning:** When users try to interact with disabled menu items, the generic menu confirmed sound still played because the sound check happened before verifying the selection was actionable. This can lead to false expectations and accessibility confusion.
+**Action:** When handling selections, always verify that `selected.enabled` is truthy before playing the confirmation sound. If disabled, play an error sound like `sound_retro_beep_06` to provide negative feedback.
