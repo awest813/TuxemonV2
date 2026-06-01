@@ -58,6 +58,20 @@ def test_clear_status(session, status):
     assert handler.status == []
 
 
+def test_clear_status_clears_before_on_end(session, status):
+    handler = MonsterStatusHandler([status])
+
+    def clear_again(*args):
+        handler.clear_status(session)
+
+    status.use.side_effect = clear_again
+
+    handler.clear_status(session)
+
+    assert handler.status == []
+    status.use.assert_called_once_with(session, EffectPhase.ON_END)
+
+
 def test_get_statuses(status):
     handler = MonsterStatusHandler([status])
     assert handler.get_statuses() == [status]
