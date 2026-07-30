@@ -343,4 +343,5 @@ class InputMenu(Menu[InputMenuObj]):
     def _handle_unicode_event(self, char: str) -> None:
         """Handle unicode character input event."""
         if self.char_manager.is_valid_input_char(char):
+            self.menu_select_sound.play()
             self.add_input_char(char)
